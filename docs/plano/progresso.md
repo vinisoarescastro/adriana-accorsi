@@ -7,7 +7,7 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | Fase | Nome | Estado | Concluída em | Observações |
 | --- | --- | --- | --- | --- |
 | 0 | Planejamento | **concluída** | 2026-11-12 | Aprovada. Validações externas (PV-A a PV-F) seguem abertas; as perguntas estão em [perguntas-ao-gabinete.md](perguntas-ao-gabinete.md) |
-| 1 | Fundação | **implementada; falta fechar** | | Código, testes e infraestrutura prontos e verificados **localmente**. Faltam dois itens da definição de pronto: implantação no ambiente de apresentação (decidido: será feita ao fim de todas as fases, PV-E) e conferência manual ([roteiro](../operacao/conferencias/fase1-fundacao.md)). Ver "Fase 1" abaixo |
+| 1 | Fundação | **implementada; falta fechar** (CI verde) | | Código, testes e infraestrutura prontos e verificados **localmente**. Faltam dois itens da definição de pronto: implantação no ambiente de apresentação (decidido: será feita ao fim de todas as fases, PV-E) e conferência manual ([roteiro](../operacao/conferencias/fase1-fundacao.md)). Ver "Fase 1" abaixo |
 | 2 | Atendimento | não iniciada | | |
 | 3 | Cidadão (área pública e e-mail) | não iniciada | | Marco de apresentação à deputada |
 | 4 | Trabalho da equipe | não iniciada | | |
@@ -34,7 +34,7 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 ### Verificação (2026-11-12)
 
 - **188 testes verdes** em 23 arquivos: unidade, interface (jsdom) e integração contra **Postgres 17 e servidor S3 reais** em contêiner.
-- Formatação, lint, tipos e build do front limpos. `npm audit` das dependências de produção: 0 vulnerabilidades.
+- **CI verde no GitHub.** Formatação, lint, tipos e build do front limpos. `npm audit` das dependências de produção: 0 vulnerabilidades.
 - **Teste de fumaça real:** Postgres do `compose.yaml`, comandos do banco, API como processo, e o fluxo de entrada por HTTP (login errado e certo, cookie `HttpOnly`, troca de senha obrigatória, equipe, fluxos, `no-store`, log sem cookie nem senha).
 - **Imagens construídas e executadas:** a API em contêiner (modo produção, usuário não administrador, `healthy`, recusa ter a conexão administrativa) e o Caddy (configuração válida, SPA, CSP, HSTS, `X-Frame-Options`, cache longo nos arquivos com hash, fallback do React Router, proxy da API).
 - **Backup e restauração testados:** arquivo criptografado, restauração em banco novo, conferência de números, dono correto das tabelas, 8 invariantes de segurança passando no banco restaurado, recusa de senha errada, banco existente e banco em uso.
@@ -53,7 +53,7 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | 8 | Não é possível desativar o último administrador | verificado no banco (gatilho); a API ainda impede a autoalteração |
 | 9 | A aplicação sobe em `dominio.nucleodedados.com` com HTTPS; trocar o hostname é só configuração | **pendente**: configuração testada localmente; falta a VPS (PV-E) |
 | 10 | Backup feito e restaurado em ambiente limpo | verificado localmente; **pendente na VPS** |
-| 11 | CI verde | **pendente**: o repositório git foi iniciado em 2026-11-12 (ramo main, sem commits ainda) e a CI só roda depois do primeiro push ao GitHub. O equivalente local passa |
+| 11 | CI verde | **verificado**: a CI rodou no GitHub em 2026-11-12 (formatação, lint, tipos, build do front, 188 testes com Postgres e S3 reais, auditoria de dependências e publicação das imagens) e passou |
 
 ### O que ficou fora, de propósito
 
