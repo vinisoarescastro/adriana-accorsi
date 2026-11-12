@@ -4,7 +4,7 @@ Sistema de gestão integrada do gabinete da Deputada Federal Adriana Accorsi: at
 
 É derivado do Mandatus (plataforma multi-gabinete), simplificado para **um único gabinete**.
 
-> **Estado:** fase 0 (planejamento) aprovada; fase 1 (fundação) fechada na CI; fase 2 (atendimento) implementada e verificada localmente; faltam a conferência manual e a implantação na VPS. Veja o [plano de implementação](docs/plano/plano-de-implementacao.md) e o [progresso](docs/plano/progresso.md).
+> **Estado:** fase 0 (planejamento) aprovada; fase 1 (fundação) fechada na CI; fase 2 (atendimento) implementada, com a CI verde; faltam a conferência manual e a implantação na VPS. Veja o [plano de implementação](docs/plano/plano-de-implementacao.md) e o [progresso](docs/plano/progresso.md).
 
 ## Documentação
 

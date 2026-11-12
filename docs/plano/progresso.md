@@ -8,7 +8,7 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | --- | --- | --- | --- | --- |
 | 0 | Planejamento | **concluída** | 2026-11-12 | Aprovada. Validações externas (PV-A a PV-F) seguem abertas; as perguntas estão em [perguntas-ao-gabinete.md](perguntas-ao-gabinete.md) |
 | 1 | Fundação | **implementada; falta fechar** (CI verde) | | Código, testes e infraestrutura prontos e verificados **localmente**. Faltam dois itens da definição de pronto: implantação no ambiente de apresentação (decidido: será feita ao fim de todas as fases, PV-E) e conferência manual ([roteiro](../operacao/conferencias/fase1-fundacao.md)). Ver "Fase 1" abaixo |
-| 2 | Atendimento | **implementada; falta fechar** (CI, conferência manual, implantação) | | Código e testes prontos e verificados **localmente** (324 testes verdes). Ver "Fase 2" abaixo |
+| 2 | Atendimento | **implementada; falta fechar** (conferência manual, implantação) | | Código e testes prontos; **CI verde no GitHub** (324 testes). Ver "Fase 2" abaixo |
 | 3 | Cidadão (área pública e e-mail) | não iniciada | | Marco de apresentação à deputada |
 | 4 | Trabalho da equipe | não iniciada | | |
 | 5 | Legislativo | não iniciada | | Depende de PV-A |
@@ -33,7 +33,7 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 
 - **324 testes verdes** em 36 arquivos (unidade, interface e integração com Postgres e S3 reais). Formatação, lint e tipos limpos.
 - **Antivírus testado contra o ClamAV real** (contêiner, versão 1.5.4): o cliente detectou o arquivo de teste EICAR (`Eicar-Test-Signature`) e aceitou conteúdo limpo, inclusive de 5 MB. O contêiner de teste foi removido. Os testes automáticos usam um servidor clamd falso que confere o enquadramento do protocolo.
-- **Não verificado ainda:** CI no GitHub desta fase, conferência manual em tela pequena ([roteiro](../operacao/conferencias/fase2-atendimento.md)) e implantação (adiada para o fim, PV-E).
+- **CI verde no GitHub** (confirmado em 2026-11-12). **Não verificado ainda:** conferência manual em tela pequena ([roteiro](../operacao/conferencias/fase2-atendimento.md)) e implantação (adiada para o fim, PV-E).
 
 ### Critérios de aceite da fase 2 (plano)
 
