@@ -1,0 +1,6 @@
+# Quebras de linha sempre LF, em qualquer sistema. Scripts e Dockerfiles quebram no Linux com CRLF.
+* text=auto eol=lf
+*.sh text eol=lf
+Dockerfile* text eol=lf
+*.png binary
+*.jpg binary
