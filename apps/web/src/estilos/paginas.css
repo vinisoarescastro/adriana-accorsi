@@ -187,3 +187,142 @@
     transition: none;
   }
 }
+
+/* Atendimento: quadro por etapa, gaveta da ficha e cartões do painel. */
+.quadro {
+  display: flex;
+  gap: var(--espaco-4);
+  overflow-x: auto;
+  padding-bottom: var(--espaco-3);
+}
+
+.quadro__coluna {
+  flex: 0 0 16rem;
+  padding: var(--espaco-3);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+}
+
+.quadro__titulo {
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+}
+
+.quadro__cartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  width: 100%;
+  margin-bottom: var(--espaco-3);
+  padding: var(--espaco-3);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  cursor: pointer;
+}
+
+.quadro__cartao:hover {
+  border-color: var(--cor-primaria);
+}
+
+.link-botao {
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--cor-primaria);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.protocolo {
+  font-family: var(--fonte-mono);
+  font-size: 1.6rem;
+  letter-spacing: 0.08em;
+}
+
+.lista-simples {
+  margin: 0 0 var(--espaco-4);
+  padding-left: var(--espaco-5);
+}
+
+.lista-simples li {
+  margin-bottom: var(--espaco-3);
+}
+
+.ficha {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--espaco-1) var(--espaco-4);
+}
+
+.ficha dt {
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+}
+
+.ficha dd {
+  margin: 0;
+}
+
+.gaveta {
+  position: fixed;
+  inset: 0 0 0 auto;
+  z-index: 60;
+  width: min(44rem, 100vw);
+  padding: var(--espaco-5);
+  overflow-y: auto;
+  background: var(--cor-superficie);
+  border-left: 1px solid var(--cor-borda);
+  box-shadow: -4px 0 16px rgb(20 35 59 / 18%);
+}
+
+.gaveta__topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+}
+
+.cartoes-do-painel {
+  display: grid;
+  gap: var(--espaco-4);
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  margin-bottom: var(--espaco-5);
+}
+
+.cartao-numero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  padding: var(--espaco-4);
+  color: var(--cor-texto);
+  text-decoration: none;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+}
+
+a.cartao-numero:hover {
+  border-color: var(--cor-primaria);
+}
+
+.cartao-numero__valor {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+@media (max-width: 900px) {
+  .gaveta {
+    padding: var(--espaco-4);
+  }
+}

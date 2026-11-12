@@ -37,6 +37,9 @@ export const esquemaApi = esquemaBase.extend({
   SESSAO_SEGREDO: z.string().min(32, 'deve ter ao menos 32 caracteres'),
   HOST_API: z.string().min(1).default('127.0.0.1'),
   PORTA_API: z.coerce.number().int().min(1).max(65535).default(3000),
+  /** Antivírus (ClamAV). Obrigatório em produção; opcional em desenvolvimento. */
+  CLAMAV_HOST: z.string().min(1).optional(),
+  CLAMAV_PORTA: z.coerce.number().int().min(1).max(65535).default(3310),
   ...armazenamento,
 });
 

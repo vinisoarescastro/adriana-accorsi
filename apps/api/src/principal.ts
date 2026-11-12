@@ -5,6 +5,7 @@ import {
   ArmazenamentoS3,
   type Armazenamento,
 } from './armazenamento/armazenamento.js';
+import { AntivirusClamd, type Antivirus } from './documentos/antivirus.js';
 import { construirServidor } from './servidor.js';
 
 /**
@@ -37,7 +38,21 @@ async function iniciar(): Promise<void> {
       armazenamento = s3;
     }
 
-    const app = await construirServidor({ ambiente, conexao, armazenamento, logger: true });
+    // Em produção o antivírus é obrigatório: sem ele, um ZIP pode conter qualquer coisa.
+    let antivirus: Antivirus | undefined;
+    if (ambiente.CLAMAV_HOST) {
+      antivirus = new AntivirusClamd(ambiente.CLAMAV_HOST, ambiente.CLAMAV_PORTA);
+    } else if (ambiente.NODE_ENV === 'production') {
+      throw new Error('Em produção o antivírus é obrigatório: defina CLAMAV_HOST.');
+    }
+
+    const app = await construirServidor({
+      ambiente,
+      conexao,
+      armazenamento,
+      ...(antivirus ? { antivirus } : {}),
+      logger: true,
+    });
 
     const encerrar = async () => {
       await app.close();

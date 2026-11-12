@@ -10,6 +10,7 @@ import type { Area, Perfil } from '@gabinete/compartilhado';
 import { eq } from 'drizzle-orm';
 import type { FastifyInstance, LightMyRequestResponse } from 'fastify';
 import type { Armazenamento } from '../armazenamento/armazenamento.js';
+import type { Antivirus } from '../documentos/antivirus.js';
 import { construirServidor, type DependenciasDoServidor } from '../servidor.js';
 
 declare module 'vitest' {
@@ -84,6 +85,8 @@ export async function iniciarAmbiente(
     producao?: boolean;
     limites?: DependenciasDoServidor['limites'];
     registrarRotas?: DependenciasDoServidor['registrarRotas'];
+    antivirus?: Antivirus;
+    gerarProtocolo?: () => string;
   } = {},
 ): Promise<Ambiente> {
   const banco = await criarBancoDeTeste(urlAdminDeTeste);
@@ -103,6 +106,7 @@ export async function iniciarAmbiente(
       NODE_ENV: opcoes.producao ? 'production' : 'test',
       HOSTNAME_APP: hostnameDeTeste,
       SESSAO_SEGREDO: segredoDeTeste,
+      HOSTNAME_PUBLICO: 'publico.exemplo.test',
     },
     conexao,
     armazenamento,
@@ -112,6 +116,8 @@ export async function iniciarAmbiente(
     },
     limites: { entradasPorMinuto: 1000, geralPorMinuto: 10_000, ...opcoes.limites },
     ...(opcoes.registrarRotas ? { registrarRotas: opcoes.registrarRotas } : {}),
+    ...(opcoes.antivirus ? { antivirus: opcoes.antivirus } : {}),
+    ...(opcoes.gerarProtocolo ? { gerarProtocolo: opcoes.gerarProtocolo } : {}),
   });
 
   let contador = 0;
@@ -184,3 +190,26 @@ export async function iniciarAmbiente(
   };
   return ambiente;
 }
+
+/** Antivírus de mentira: considera infectado o arquivo que contém o texto EICAR. */
+export const antivirusDeTeste: Antivirus = {
+  async verificar(bytes) {
+    return bytes.includes('EICAR')
+      ? { limpo: false, ameaca: 'Eicar-Test-Signature' }
+      : { limpo: true };
+  },
+};
+
+/** Cabeçalhos de um arquivo de cada tipo aceito, com o resto preenchido. */
+export const arquivos = {
+  pdf: (extra = 64) => Buffer.concat([Buffer.from('%PDF-1.7 '), Buffer.alloc(extra, 32)]),
+  png: (extra = 64) =>
+    Buffer.concat([
+      Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+      Buffer.alloc(extra, 1),
+    ]),
+  jpeg: (extra = 64) =>
+    Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(extra, 2)]),
+  zip: (extra = 64) =>
+    Buffer.concat([Buffer.from([0x50, 0x4b, 0x03, 0x04]), Buffer.alloc(extra, 3)]),
+};

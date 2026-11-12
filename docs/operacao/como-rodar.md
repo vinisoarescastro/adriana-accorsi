@@ -22,7 +22,7 @@ Preencha o `.env`. O `.env` nunca é versionado.
 ## Ambiente local
 
 ```
-npm run ambiente:subir     # sobe Postgres, S3Mock e Mailpit
+npm run ambiente:subir     # sobe Postgres, S3Mock, Mailpit e ClamAV
 npm run ambiente:descer    # para os serviços, mantendo os dados
 npm run ambiente:limpar    # para e APAGA os dados locais
 ```
@@ -31,6 +31,7 @@ npm run ambiente:limpar    # para e APAGA os dados locais
 | --- | --- | --- |
 | PostgreSQL 17 | `127.0.0.1:${POSTGRES_PORTA}` (padrão 5432), banco `gabinete` | usuário `dev`, senha `dev` (superusuário local) |
 | S3Mock (S3 de desenvolvimento) | `http://127.0.0.1:9090`, bucket `gabinete` | qualquer chave de acesso |
+| ClamAV (antivírus) | `127.0.0.1:3310` | sem autenticação. A primeira subida baixa as assinaturas (alguns minutos); até ficar `healthy`, o envio de documentos é recusado |
 | Mailpit | SMTP `127.0.0.1:1025`, interface `http://127.0.0.1:8025` | sem autenticação |
 
 Todas as portas escutam só em `127.0.0.1`. As credenciais são apenas de desenvolvimento local e nunca devem ser usadas em outro lugar. O Mailpit recebe todo e-mail e não envia nada para fora.
@@ -92,4 +93,4 @@ Variáveis da API (validadas na subida; o processo recusa configuração inváli
 
 ## O que ainda não existe
 
-App público e e-mail ao cidadão (fase 3), worker de avisos (fase 4), módulos de negócio (fases 2 e 4 a 7). Ver [o plano](../plano/plano-de-implementacao.md).
+App público e e-mail ao cidadão (fase 3), worker de avisos (fase 4), módulos de negócio (fases 4 a 7). O atendimento (fase 2) já existe. Ver [o plano](../plano/plano-de-implementacao.md).

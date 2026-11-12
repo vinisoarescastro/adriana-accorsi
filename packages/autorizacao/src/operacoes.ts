@@ -29,6 +29,57 @@ export const operacoes = {
   // Painel (blocos entram a partir da fase 2)
   'painel.abrir': { descricao: 'Abrir o painel', nivelMinimo: 1 },
 
+  // Atendimento (habilitação AT). Painel, pessoas e demandas: ver docs/especificacao/03.
+  'painel.atendimento': {
+    descricao: 'Ver o bloco de atendimento do painel',
+    nivelMinimo: 1,
+    habilitacao: ['AT'],
+  },
+  'pessoas.consultar': {
+    descricao: 'Consultar e buscar pessoas',
+    nivelMinimo: 1,
+    habilitacao: ['AT'],
+  },
+  'pessoas.manter': {
+    descricao: 'Cadastrar e alterar pessoas',
+    nivelMinimo: 2,
+    habilitacao: ['AT'],
+  },
+  'pessoas.inativar': {
+    descricao: 'Inativar e reativar pessoas',
+    nivelMinimo: 3,
+    habilitacao: ['AT'],
+  },
+  'pessoas.eliminar_dados': {
+    descricao: 'Eliminar os dados pessoais de uma pessoa',
+    nivelMinimo: 5,
+    habilitacao: ['AT'],
+  },
+  'demandas.registrar': { descricao: 'Registrar demanda', nivelMinimo: 1, habilitacao: ['AT'] },
+  'demandas.consultar': {
+    descricao: 'Listar e consultar demandas (o Assessor Externo vê só as suas)',
+    nivelMinimo: 1,
+    habilitacao: ['AT'],
+  },
+  'demandas.ficha': { descricao: 'Ficha completa da demanda', nivelMinimo: 2, habilitacao: ['AT'] },
+  'demandas.alterar': {
+    descricao:
+      'Editar e mover demanda (Supervisor ou superior, ou o responsável: regra do serviço)',
+    nivelMinimo: 1,
+    habilitacao: ['AT'],
+  },
+  'demandas.reatribuir': { descricao: 'Reatribuir demanda', nivelMinimo: 3, habilitacao: ['AT'] },
+  'demandas.cancelar': { descricao: 'Cancelar demanda', nivelMinimo: 3, habilitacao: ['AT'] },
+  'comentarios.criar': { descricao: 'Comentar internamente', nivelMinimo: 2, habilitacao: ['AT'] },
+  'comentarios.remover': {
+    descricao: 'Remover comentário (o próprio; o de terceiro exige Supervisor: regra do serviço)',
+    nivelMinimo: 2,
+    habilitacao: ['AT'],
+  },
+  'documentos.anexar': { descricao: 'Anexar documento', nivelMinimo: 2, habilitacao: ['AT'] },
+  'documentos.baixar': { descricao: 'Baixar documento', nivelMinimo: 2, habilitacao: ['AT'] },
+  'documentos.remover': { descricao: 'Remover documento', nivelMinimo: 3, habilitacao: ['AT'] },
+
   // Equipe
   'equipe.ver': { descricao: 'Ver a equipe', nivelMinimo: 1 },
   'equipe.administrar': {

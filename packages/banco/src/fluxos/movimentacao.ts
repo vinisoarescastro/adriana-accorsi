@@ -47,6 +47,8 @@ export interface NovaMovimentacao {
   readonly etapaDestinoId: number;
   readonly autorId: number;
   readonly observacao?: string | null;
+  /** Hora do ato, pelo relógio da aplicação. Se omitida, vale a do banco. */
+  readonly criadaEm?: Date;
 }
 
 export async function idDoTipoDeProcesso(
@@ -95,6 +97,7 @@ export async function registrarMovimentacao(
       etapaDestinoId: dados.etapaDestinoId,
       autorId: dados.autorId,
       observacao: dados.observacao ?? null,
+      ...(dados.criadaEm ? { criadaEm: dados.criadaEm } : {}),
     })
     .returning({ id: movimentacao.id });
   if (!criada) throw new Error('Falha ao registrar a movimentação.');

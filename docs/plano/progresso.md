@@ -8,7 +8,7 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | --- | --- | --- | --- | --- |
 | 0 | Planejamento | **concluída** | 2026-11-12 | Aprovada. Validações externas (PV-A a PV-F) seguem abertas; as perguntas estão em [perguntas-ao-gabinete.md](perguntas-ao-gabinete.md) |
 | 1 | Fundação | **implementada; falta fechar** (CI verde) | | Código, testes e infraestrutura prontos e verificados **localmente**. Faltam dois itens da definição de pronto: implantação no ambiente de apresentação (decidido: será feita ao fim de todas as fases, PV-E) e conferência manual ([roteiro](../operacao/conferencias/fase1-fundacao.md)). Ver "Fase 1" abaixo |
-| 2 | Atendimento | não iniciada | | |
+| 2 | Atendimento | **implementada; falta fechar** (CI, conferência manual, implantação) | | Código e testes prontos e verificados **localmente** (324 testes verdes). Ver "Fase 2" abaixo |
 | 3 | Cidadão (área pública e e-mail) | não iniciada | | Marco de apresentação à deputada |
 | 4 | Trabalho da equipe | não iniciada | | |
 | 5 | Legislativo | não iniciada | | Depende de PV-A |
@@ -16,6 +16,51 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | 7 | Consolidação | não iniciada | | |
 | 8 | Endurecimento | não iniciada | | |
 | 9 | Opcional (verba de gabinete, WhatsApp) | não iniciada | | Só se o gabinete pedir |
+
+## Fase 2: blocos
+
+| Bloco | Conteúdo | Estado |
+| --- | --- | --- |
+| 2.A | Banco: pessoa, protocolo, demanda, comentário, documento, gatilhos e permissões (migração 0007) | feito |
+| 2.B | Pessoas (cadastro por telefone, inativar, eliminar dados) | feito |
+| 2.C | Demandas: registro atômico, movimentação, reatribuir, cancelar, lista, quadro, ficha | feito |
+| 2.D | Comentários internos com menção | feito (os avisos de menção nascem na fase 4) |
+| 2.E | Documentos com antivírus (ClamAV) | feito |
+| 2.F | Painel de atendimento e histórico por registro | feito |
+| 2.G | Front: demandas, ficha em gaveta, pessoas, painel | feito |
+
+### Verificação da fase 2 (2026-11-12)
+
+- **324 testes verdes** em 36 arquivos (unidade, interface e integração com Postgres e S3 reais). Formatação, lint e tipos limpos.
+- **Antivírus testado contra o ClamAV real** (contêiner, versão 1.5.4): o cliente detectou o arquivo de teste EICAR (`Eicar-Test-Signature`) e aceitou conteúdo limpo, inclusive de 5 MB. O contêiner de teste foi removido. Os testes automáticos usam um servidor clamd falso que confere o enquadramento do protocolo.
+- **Não verificado ainda:** CI no GitHub desta fase, conferência manual em tela pequena ([roteiro](../operacao/conferencias/fase2-atendimento.md)) e implantação (adiada para o fim, PV-E).
+
+### Critérios de aceite da fase 2 (plano)
+
+| # | Critério | Estado |
+| --- | --- | --- |
+| 1 | Roteiro "Maria liga pedindo a poda" de ponta a ponta | verificado (API e interface) |
+| 2 | Falha em protocolo, link ou trilha impede a criação | verificado |
+| 3 | Não há duas pessoas ativas com o mesmo telefone | verificado (índice único parcial) |
+| 4 | O protocolo nunca muda, nem após cancelamento | verificado direto no banco |
+| 5 | Status não é coluna; muda com a etapa | verificado |
+| 6 | O Assessor Externo não vê demanda alheia (busca, link, quadro, painel) | verificado |
+| 7 | Comentário interno não tem rota que o publique | verificado (teste de contrato) |
+| 8 | Documento de tipo falso é recusado | verificado |
+| 9 | Eliminar dados preserva protocolo e histórico, despersonalizados | verificado |
+| 10 | Nenhuma listagem carrega o conjunto completo | verificado (paginação e limite de 30 por coluna no quadro) |
+
+### Decisões e desvios durante a fase 2
+
+- **Comentário, documento e movimentação** referenciam o registro por `registro_tipo` e `registro_id`, sem a tabela `vinculo` (mesma razão da movimentação na fase 1).
+- **Segredo do link:** hash SHA-256 **mais** cópia cifrada (AES-256-GCM), para poder reenviar o link ao cidadão na fase 3. Ver [ADR 0008](../arquitetura/decisoes/0008-documentos-link-e-antivirus.md).
+- **Menções** são gravadas, mas só geram aviso na fase 4.
+- **ClamAV** entra no `compose.yaml` e é **obrigatório em produção** (falha fechada). Aumenta a memória da VPS em cerca de 1 GB.
+- **Trilha de pessoa** guarda só os nomes dos campos alterados, nunca dados pessoais (LGPD).
+- **Relógio injetável:** horários de criação e de movimentação vêm do relógio da aplicação, não do `now()` do banco. Defeito real achado pelos testes (misturava as duas fontes).
+- **Histórico por registro** liberou `demanda` e `pessoa` (Assessor Interno em diante); `tarefa` continua fechada até a fase 4.
+- **Limite de "parado"** da demanda vem do parâmetro `limite_parado.demanda` (padrão 14 dias), a validar em PV-A.
+- Nos testes de API, o `any` dos corpos JSON é liberado por arquivo (comentário no topo); o arquivo de demandas foi dividido por responsabilidade.
 
 ## Fase 1: blocos
 

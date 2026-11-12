@@ -1,4 +1,12 @@
-import type { Area, PapelDeEtapaDto, Perfil, TipoDeProcessoDto } from '@gabinete/compartilhado';
+import type {
+  Area,
+  NaturezaDeDocumento,
+  PapelDeEtapaDto,
+  Perfil,
+  Prioridade,
+  StatusDeDemanda,
+  TipoDeProcessoDto,
+} from '@gabinete/compartilhado';
 
 /** Textos da interface para os valores técnicos. */
 export const rotuloDoPerfil: Record<Perfil, string> = {
@@ -30,4 +38,31 @@ export const rotuloDoFluxo: Record<TipoDeProcessoDto, string> = {
   projeto_lei: 'Projeto de Lei',
   emenda: 'Emenda',
   despesa_ceap: 'Despesa da CEAP',
+};
+
+export const rotuloDaPrioridade: Record<Prioridade, string> = {
+  baixa: 'Baixa',
+  media: 'Média',
+  alta: 'Alta',
+  urgente: 'Urgente',
+};
+
+export const rotuloDoStatus: Record<StatusDeDemanda, string> = {
+  em_andamento: 'Em andamento',
+  concluido: 'Concluída',
+  arquivado: 'Arquivada',
+  cancelada: 'Cancelada',
+};
+
+export const rotuloDaNatureza: Record<NaturezaDeDocumento, string> = {
+  comprovante: 'Comprovante',
+  nota_fiscal: 'Nota fiscal',
+  minuta: 'Minuta',
+  justificativa: 'Justificativa',
+  parecer: 'Parecer',
+  oficio: 'Ofício',
+  plano_de_trabalho: 'Plano de trabalho',
+  foto: 'Foto',
+  lista_assinada: 'Lista assinada',
+  outro: 'Outro',
 };

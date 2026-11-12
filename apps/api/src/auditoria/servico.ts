@@ -13,7 +13,7 @@ export interface FiltroDaTrilha {
 }
 
 /** Entidades cujo histórico individual pode ser consultado. Cresce com os módulos (falha fechada). */
-export const entidadesComHistorico = ['usuario', 'gabinete'] as const;
+export const entidadesComHistorico = ['usuario', 'gabinete', 'pessoa', 'demanda'] as const;
 
 export class ServicoDeAuditoria {
   constructor(private readonly bd: BancoDeDados) {}

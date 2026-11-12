@@ -18,6 +18,28 @@ const esperado: Record<NomeDeOperacao, readonly Perfil[]> = {
   'sessao.trocar_senha': perfis,
   'perfil.alterar_foto': perfis,
   'painel.abrir': perfis,
+  'painel.atendimento': perfis,
+  'pessoas.consultar': perfis,
+  'pessoas.manter': ['parlamentar', 'administrador', 'chefe', 'supervisor', 'assessor_interno'],
+  'pessoas.inativar': ['parlamentar', 'administrador', 'chefe', 'supervisor'],
+  'pessoas.eliminar_dados': ['administrador'],
+  'demandas.registrar': perfis,
+  'demandas.consultar': perfis,
+  'demandas.ficha': ['parlamentar', 'administrador', 'chefe', 'supervisor', 'assessor_interno'],
+  'demandas.alterar': perfis,
+  'demandas.reatribuir': ['parlamentar', 'administrador', 'chefe', 'supervisor'],
+  'demandas.cancelar': ['parlamentar', 'administrador', 'chefe', 'supervisor'],
+  'comentarios.criar': ['parlamentar', 'administrador', 'chefe', 'supervisor', 'assessor_interno'],
+  'comentarios.remover': [
+    'parlamentar',
+    'administrador',
+    'chefe',
+    'supervisor',
+    'assessor_interno',
+  ],
+  'documentos.anexar': ['parlamentar', 'administrador', 'chefe', 'supervisor', 'assessor_interno'],
+  'documentos.baixar': ['parlamentar', 'administrador', 'chefe', 'supervisor', 'assessor_interno'],
+  'documentos.remover': ['parlamentar', 'administrador', 'chefe', 'supervisor'],
   'equipe.ver': perfis,
   'equipe.administrar': ['administrador', 'chefe'],
   'equipe.historico': ['parlamentar', 'administrador', 'chefe'],
@@ -87,13 +109,44 @@ describe('decisor', () => {
 });
 
 describe('páginas alcançáveis', () => {
+  it('sem a habilitação AT, as páginas de atendimento não aparecem (nem vazias)', () => {
+    const semAtendimento = paginasAlcancaveis({ perfil: 'supervisor', habilitacoes: ['AG'] });
+    expect(semAtendimento).not.toContain('demandas');
+    expect(semAtendimento).not.toContain('pessoas');
+    expect(semAtendimento).toContain('painel');
+  });
+
   it('cada perfil vê só o que o decisor permite', () => {
     const para = (perfil: Perfil) => paginasAlcancaveis({ perfil, habilitacoes: todas });
-    expect(para('assessor_externo')).toEqual(['painel', 'equipe', 'fluxos', 'configuracoes']);
-    expect(para('supervisor')).toEqual(['painel', 'equipe', 'fluxos', 'configuracoes']);
-    expect(para('chefe')).toEqual(['painel', 'equipe', 'fluxos', 'auditoria', 'configuracoes']);
+    expect(para('assessor_externo')).toEqual([
+      'painel',
+      'demandas',
+      'pessoas',
+      'equipe',
+      'fluxos',
+      'configuracoes',
+    ]);
+    expect(para('supervisor')).toEqual([
+      'painel',
+      'demandas',
+      'pessoas',
+      'equipe',
+      'fluxos',
+      'configuracoes',
+    ]);
+    expect(para('chefe')).toEqual([
+      'painel',
+      'demandas',
+      'pessoas',
+      'equipe',
+      'fluxos',
+      'auditoria',
+      'configuracoes',
+    ]);
     expect(para('parlamentar')).toEqual([
       'painel',
+      'demandas',
+      'pessoas',
       'equipe',
       'fluxos',
       'auditoria',

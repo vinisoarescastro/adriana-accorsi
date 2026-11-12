@@ -1,3 +1,4 @@
+export * from './atendimento/protocolo.js';
 export * from './conexao.js';
 export * from './esquema/index.js';
 export * from './fluxos/movimentacao.js';

@@ -50,6 +50,7 @@ export const codigosDeErro = [
   'sem_permissao',
   'conflito',
   'arquivo_invalido',
+  'verificacao_indisponivel',
   'troca_de_senha_obrigatoria',
   'senha_atual_incorreta',
   'senha_fraca',

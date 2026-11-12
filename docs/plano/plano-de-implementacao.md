@@ -313,6 +313,8 @@ Autorização mal modelada é cara de corrigir depois. Mitigação: testes de ma
 
 **Objetivo.** A equipe atende cidadãos e conduz demandas de ponta a ponta, internamente. Base: módulos M06, M09, M10, M11, M12 e blocos de atendimento do painel no Mandatus.
 
+**Estado:** implementada (ver [progresso](progresso.md)). Antivírus: ClamAV em contêiner, obrigatório em produção ([ADR 0008](../arquitetura/decisoes/0008-documentos-link-e-antivirus.md)).
+
 ### Tarefas
 
 | Id | Tarefa |

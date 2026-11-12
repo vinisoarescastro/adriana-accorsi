@@ -13,6 +13,7 @@ Cada decisão relevante vira um arquivo `NNNN-titulo-curto.md`, numerado em sequ
 | [0005](0005-estrategia-de-testes.md) | Estratégia de testes | proposta |
 | [0006](0006-monorepo-e-dominios.md) | Monorepo e domínios | proposta |
 | [0007](0007-chave-primaria.md) | Chave primária das tabelas | aceita |
+| [0008](0008-documentos-link-e-antivirus.md) | Documentos, segredo do link e antivírus | aceita |
 
 ## Modelo
 

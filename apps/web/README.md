@@ -4,15 +4,15 @@ SPA React da equipe do gabinete (React 19, Vite, React Router, TanStack Query). 
 
 ## Organização
 
-| Pasta                                                                          | O que tem                                                                     |
-| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| `src/api/`                                                                     | Cliente da API e consultas (TanStack Query)                                   |
-| `src/acesso/`                                                                  | Entrada, troca de senha, guardas de rota                                      |
-| `src/layout/`                                                                  | Estrutura da área interna: barra lateral (gaveta no celular) e cabeçalho      |
-| `src/equipe/`, `fluxos/`, `auditoria/`, `configuracoes/`, `perfil/`, `painel/` | Uma pasta por página                                                          |
-| `src/componentes/`                                                             | Botão, campo, aviso, selo, envio de foto                                      |
-| `src/estilos/`                                                                 | `tokens.css` (paleta e medidas), `base.css`, `componentes.css`, `paginas.css` |
-| `src/sistema/`                                                                 | Catálogo do sistema de design, em `/sistema`                                  |
+| Pasta                                                                                                   | O que tem                                                                        |
+| ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `src/api/`                                                                                              | Cliente da API e consultas (TanStack Query)                                      |
+| `src/acesso/`                                                                                           | Entrada, troca de senha, guardas de rota                                         |
+| `src/layout/`                                                                                           | Estrutura da área interna: barra lateral (gaveta no celular) e cabeçalho         |
+| `src/equipe/`, `fluxos/`, `auditoria/`, `configuracoes/`, `perfil/`, `painel/`, `demandas/`, `pessoas/` | Uma pasta por página (a ficha da demanda abre em gaveta, com link `?demanda=ID`) |
+| `src/componentes/`                                                                                      | Botão, campo, aviso, selo, envio de foto                                         |
+| `src/estilos/`                                                                                          | `tokens.css` (paleta e medidas), `base.css`, `componentes.css`, `paginas.css`    |
+| `src/sistema/`                                                                                          | Catálogo do sistema de design, em `/sistema`                                     |
 
 ## Regras
 

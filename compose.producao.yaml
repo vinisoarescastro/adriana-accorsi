@@ -20,6 +20,13 @@ services:
       retries: 10
     # Sem "ports": o banco só é alcançável pelos outros serviços desta rede.
 
+  # Antivírus: obrigatório em produção. Sem portas publicadas; só a API fala com ele.
+  clamav:
+    image: clamav/clamav:stable
+    restart: unless-stopped
+    volumes:
+      - clamav_dados:/var/lib/clamav
+
   api:
     build:
       context: .
@@ -31,9 +38,12 @@ services:
       NODE_ENV: production
       HOST_API: 0.0.0.0
       PORTA_API: '3000'
+      CLAMAV_HOST: clamav
     depends_on:
       postgres:
         condition: service_healthy
+      clamav:
+        condition: service_started
     # Sem "ports": só o Caddy fala com a API.
 
   caddy:
@@ -55,5 +65,6 @@ services:
 
 volumes:
   postgres_dados:
+  clamav_dados:
   caddy_dados:
   caddy_config:

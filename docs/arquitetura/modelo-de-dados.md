@@ -68,8 +68,8 @@ Restrições: uma etapa de Entrada, uma de Arquivamento e ao menos uma de Conclu
 
 | Tabela | Colunas principais | Observações |
 | --- | --- | --- |
-| `protocolo_emitido` | `protocolo` (único) | Garante unicidade e nunca reutilização |
-| `demanda` | `protocolo`, `segredo_link_hash`, `solicitante_id`, `responsavel_id`, `autor_id`, `titulo`, `descricao`, `prioridade`, `etapa_atual_id`, `prazo`, `publicacao_link` (ativa, suspensa, revogada, expirada), `desfecho_em`, `link_expira_em`, `cancelada_em`, `justificativa_cancelamento`, `criado_em`, `atualizado_em` | Sem coluna de status. Gatilho: `protocolo` imutável. O segredo do link é guardado como hash |
+| `protocolo_emitido` | `protocolo` (único) | Garante unicidade e nunca reutilização. Só acrescenta (gatilho); guardado sem hífens |
+| `demanda` | `protocolo`, `segredo_link_hash`, `solicitante_id`, `responsavel_id`, `autor_id`, `titulo`, `descricao`, `prioridade`, `etapa_atual_id`, `prazo`, `publicacao_link` (ativa, suspensa, revogada, expirada), `desfecho_em`, `link_expira_em`, `cancelada_em`, `justificativa_cancelamento`, `criado_em`, `atualizado_em` | Sem coluna de status. Gatilho: `protocolo` imutável. O segredo do link é guardado como hash SHA-256 **e** como cópia cifrada (AES-256-GCM), ver ADR 0008 |
 | `publicacao_andamento` | `demanda_id`, `autor_id`, `texto`, `publicado_em`, `situacao` (publicada, removida) | Entidade distinta de `comentario_interno` |
 
 ## 7. Ligação

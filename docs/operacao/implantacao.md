@@ -9,6 +9,7 @@ Estado: scripts e imagens **testados localmente** (construção das imagens, API
 | `caddy` | construída de `infra/docker/Dockerfile.caddy` (Caddy + a SPA já construída) | 80 e 443 |
 | `api` | construída de `infra/docker/Dockerfile.api` | nenhuma |
 | `postgres` | `postgres:17` | nenhuma |
+| `clamav` | `clamav/clamav` | nenhuma (a API fala com ele pela rede interna; `CLAMAV_HOST=clamav`) |
 
 Só o Caddy aparece na internet. A API e o banco ficam na rede interna do compose. O app público e o worker entram nas fases 3 e 4.
 
@@ -58,6 +59,10 @@ Confere: serviços de pé, `/api/saude`, validade do certificado, espaço em dis
 ## Imagens publicadas pela CI
 
 Em push para `main`, depois que os testes passam, a CI publica `api` e `caddy` no GHCR (`ghcr.io/<dono>/<repositório>/api:main` e `...:<hash do commit>`). Para usá-las em vez de construir no servidor, defina `IMAGEM_API` e `IMAGEM_CADDY` e use `docker compose pull`. A CI **ainda não rodou** (o diretório não é um repositório git).
+
+## Antivírus (fase 2)
+
+A API **não sobe em produção sem `CLAMAV_HOST`**. O compose de produção já define o serviço `clamav`; reserve cerca de 1 GB de memória e espere alguns minutos na primeira subida (assinaturas). Sem o antivírus saudável, os envios de documentos são recusados (falha fechada).
 
 ## Limites conhecidos
 

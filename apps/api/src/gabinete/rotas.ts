@@ -2,6 +2,7 @@ import { esquemaGabinete } from '@gabinete/compartilhado';
 import type { FastifyInstance } from 'fastify';
 import { lerCorpo } from '../acesso/rotas.js';
 import type { Armazenamento } from '../armazenamento/armazenamento.js';
+import { tamanhoMaximoDaFoto } from '../armazenamento/foto.js';
 import { enviarFoto, guardarFoto, lerFoto } from '../armazenamento/fotos-rotas.js';
 import { atorDaSessao } from '../equipe/rotas.js';
 import type { ServicoDoGabinete } from './servico.js';
@@ -25,7 +26,7 @@ export function registrarRotasDoGabinete(
 
   app.post(
     '/api/gabinete/foto',
-    { config: { operacao: 'gabinete.editar' } },
+    { config: { operacao: 'gabinete.editar' }, bodyLimit: tamanhoMaximoDaFoto + 1024 },
     async (request, reply) => {
       const foto = lerFoto(request);
       const chave = await guardarFoto(armazenamento, 'fotos/gabinete', foto);

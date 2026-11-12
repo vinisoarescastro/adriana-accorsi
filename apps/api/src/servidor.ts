@@ -6,7 +6,18 @@ import { registrarAutenticacao } from './acesso/autenticacao.js';
 import { registrarRotasDeAcesso } from './acesso/rotas.js';
 import { ServicoDeAcesso } from './acesso/servico.js';
 import type { Armazenamento } from './armazenamento/armazenamento.js';
-import { tamanhoMaximoDaFoto } from './armazenamento/foto.js';
+import { registrarRotasDeComentarios } from './comentarios/rotas.js';
+import { ServicoDeComentarios } from './comentarios/servico.js';
+import { ConsultasDeDemandas } from './demandas/consultas.js';
+import { registrarRotasDeDemandas } from './demandas/rotas.js';
+import { ServicoDeDemandas } from './demandas/servico.js';
+import type { Antivirus } from './documentos/antivirus.js';
+import { registrarRotasDeDocumentos } from './documentos/rotas.js';
+import { ServicoDeDocumentos } from './documentos/servico.js';
+import { registrarRotasDoPainel } from './painel/rotas.js';
+import { ServicoDoPainel } from './painel/servico.js';
+import { registrarRotasDePessoas } from './pessoas/rotas.js';
+import { ServicoDePessoas } from './pessoas/servico.js';
 import { registrarRotasDeAuditoria } from './auditoria/rotas.js';
 import { ServicoDeAuditoria } from './auditoria/servico.js';
 import { registrarRotasDeFluxos } from './fluxos/rotas.js';
@@ -23,9 +34,14 @@ export interface DependenciasDoServidor {
     readonly NODE_ENV: 'development' | 'test' | 'production';
     readonly HOSTNAME_APP: string;
     readonly SESSAO_SEGREDO: string;
+    readonly HOSTNAME_PUBLICO: string;
   };
   readonly conexao: Conexao;
   readonly armazenamento: Armazenamento;
+  /** Verificação de vírus. Obrigatória em produção (ver principal.ts); opcional em desenvolvimento e testes. */
+  readonly antivirus?: Antivirus;
+  /** Gerador do protocolo. Só os testes trocam, para forçar colisões. */
+  readonly gerarProtocolo?: () => string;
   /** Relógio injetável, para testar expiração de sessão e bloqueio de conta. */
   readonly agora?: () => Date;
   /** Espera injetável, para testar o atraso por tentativa errada sem esperar de verdade. */
@@ -99,9 +115,18 @@ export async function construirServidor(dep: DependenciasDoServidor): Promise<Fa
   app.get('/api/saude', { config: { publica: true } }, async () => ({ ok: true }));
 
   // Fotos chegam como PNG ou JPEG no corpo; o tipo real é decidido pelo conteúdo (ver foto.ts).
+  // Arquivos (fotos e documentos) chegam como bytes no corpo; o tipo real é decidido pelo CONTEÚDO.
+  // O limite de tamanho é de cada rota (bodyLimit), não do tipo de conteúdo.
   app.addContentTypeParser(
-    ['image/png', 'image/jpeg'],
-    { parseAs: 'buffer', bodyLimit: tamanhoMaximoDaFoto + 1024 },
+    [
+      'image/png',
+      'image/jpeg',
+      'application/pdf',
+      'application/zip',
+      'application/x-zip-compressed',
+      'application/octet-stream',
+    ],
+    { parseAs: 'buffer' },
     (_request, corpo, pronto) => pronto(null, corpo),
   );
 
@@ -113,6 +138,28 @@ export async function construirServidor(dep: DependenciasDoServidor): Promise<Fa
   registrarRotasDoGabinete(app, new ServicoDoGabinete(dep.conexao.bd), dep.armazenamento);
   registrarRotasDeAuditoria(app, new ServicoDeAuditoria(dep.conexao.bd));
   registrarRotasDeFluxos(app, new ServicoDeFluxos(dep.conexao.bd));
+
+  const bd = dep.conexao.bd;
+  const consultasDeDemandas = new ConsultasDeDemandas(bd, agora);
+  registrarRotasDePessoas(app, new ServicoDePessoas(bd));
+  registrarRotasDeDemandas(
+    app,
+    consultasDeDemandas,
+    new ServicoDeDemandas({
+      bd,
+      consultas: consultasDeDemandas,
+      agora,
+      segredoDaAplicacao: dep.ambiente.SESSAO_SEGREDO,
+      hostnamePublico: dep.ambiente.HOSTNAME_PUBLICO,
+      ...(dep.gerarProtocolo ? { gerarProtocolo: dep.gerarProtocolo } : {}),
+    }),
+  );
+  registrarRotasDeComentarios(app, new ServicoDeComentarios(bd, consultasDeDemandas, agora));
+  registrarRotasDeDocumentos(
+    app,
+    new ServicoDeDocumentos(bd, dep.armazenamento, consultasDeDemandas, dep.antivirus, agora),
+  );
+  registrarRotasDoPainel(app, new ServicoDoPainel(bd, agora));
 
   await dep.registrarRotas?.(app);
   return app;

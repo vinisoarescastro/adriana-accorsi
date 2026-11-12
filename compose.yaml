@@ -38,6 +38,16 @@ services:
     volumes:
       - s3_dados:/dados
 
+  # Antivírus (ClamAV) de DESENVOLVIMENTO. Demora alguns minutos para baixar as assinaturas na primeira vez.
+  # Opcional: sem ele (CLAMAV_HOST vazio), os documentos entram como "nao_verificado".
+  clamav:
+    image: clamav/clamav:stable
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:3310:3310'
+    volumes:
+      - clamav_dados:/var/lib/clamav
+
   # Caixa de e-mail de desenvolvimento: recebe tudo e não envia nada para fora.
   mailpit:
     image: axllent/mailpit:latest
@@ -49,3 +59,4 @@ services:
 volumes:
   postgres_dados:
   s3_dados:
+  clamav_dados:

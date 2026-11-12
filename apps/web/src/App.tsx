@@ -4,10 +4,12 @@ import { PaginaEntrar } from './acesso/PaginaEntrar';
 import { PaginaTrocarSenha } from './acesso/PaginaTrocarSenha';
 import { PaginaAuditoria } from './auditoria/PaginaAuditoria';
 import { PaginaConfiguracoes } from './configuracoes/PaginaConfiguracoes';
+import { PaginaDemandas } from './demandas/PaginaDemandas';
 import { PaginaEquipe } from './equipe/PaginaEquipe';
 import { PaginaFluxos } from './fluxos/PaginaFluxos';
 import { Layout } from './layout/Layout';
 import { PaginaPainel } from './painel/PaginaPainel';
+import { PaginaPessoas } from './pessoas/PaginaPessoas';
 import { PaginaPerfil } from './perfil/PaginaPerfil';
 import { PaginaSistema } from './sistema/PaginaSistema';
 
@@ -41,6 +43,22 @@ function RotasDaArea() {
             element={
               <ExigePagina id="painel" sessao={sessao}>
                 <PaginaPainel sessao={sessao} />
+              </ExigePagina>
+            }
+          />
+          <Route
+            path="demandas"
+            element={
+              <ExigePagina id="demandas" sessao={sessao}>
+                <PaginaDemandas sessao={sessao} />
+              </ExigePagina>
+            }
+          />
+          <Route
+            path="pessoas"
+            element={
+              <ExigePagina id="pessoas" sessao={sessao}>
+                <PaginaPessoas sessao={sessao} />
               </ExigePagina>
             }
           />

@@ -33,6 +33,8 @@ describe('entrar', () => {
     expect(corpo.senhaTrocaObrigatoria).toBe(false);
     expect(corpo.paginasAlcancaveis.map((p: { id: string }) => p.id)).toEqual([
       'painel',
+      'demandas',
+      'pessoas',
       'equipe',
       'fluxos',
       'auditoria',

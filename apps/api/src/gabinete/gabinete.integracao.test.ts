@@ -212,7 +212,7 @@ describe('auditoria', () => {
     expect(historico.json()[0]).toMatchObject({ operacao: 'gabinete.criar' });
 
     expect(
-      (await a.chamar('GET', '/api/historico/demanda/1', { cookie: cookieInterno })).statusCode,
+      (await a.chamar('GET', '/api/historico/tarefa/1', { cookie: cookieInterno })).statusCode,
     ).toBe(404);
     expect(
       (await a.chamar('GET', '/api/historico/gabinete/1', { cookie: cookieExterno })).statusCode,

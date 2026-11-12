@@ -41,8 +41,15 @@ export const erros = {
     new ErroDeNegocio(401, 'nao_autenticado', 'Entre no sistema para continuar.'),
   naoEncontrado: () => new ErroDeNegocio(404, 'nao_encontrado', 'Não encontrado.'),
   semPermissao: (mensagem: string) => new ErroDeNegocio(403, 'sem_permissao', mensagem),
-  conflito: (mensagem: string) => new ErroDeNegocio(409, 'conflito', mensagem),
+  conflito: (mensagem: string, detalhes?: readonly string[]) =>
+    new ErroDeNegocio(409, 'conflito', mensagem, detalhes),
   arquivoInvalido: (mensagem: string) => new ErroDeNegocio(400, 'arquivo_invalido', mensagem),
+  verificacaoIndisponivel: () =>
+    new ErroDeNegocio(
+      503,
+      'verificacao_indisponivel',
+      'A verificação de segurança dos arquivos está indisponível. Tente novamente em instantes.',
+    ),
   trocaDeSenhaObrigatoria: () =>
     new ErroDeNegocio(
       403,

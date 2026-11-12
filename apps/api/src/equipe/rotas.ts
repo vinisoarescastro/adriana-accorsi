@@ -9,6 +9,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { lerCorpo } from '../acesso/rotas.js';
 import type { DadosDaSessao } from '../acesso/sessoes.js';
+import { tamanhoMaximoDaFoto } from '../armazenamento/foto.js';
 import { enviarFoto, guardarFoto, lerFoto } from '../armazenamento/fotos-rotas.js';
 import type { Armazenamento } from '../armazenamento/armazenamento.js';
 import { erros } from '../erros.js';
@@ -99,7 +100,7 @@ export function registrarRotasDeEquipe(
   // Cada um troca a própria foto.
   app.post(
     '/api/perfil/foto',
-    { config: { operacao: 'perfil.alterar_foto' } },
+    { config: { operacao: 'perfil.alterar_foto' }, bodyLimit: tamanhoMaximoDaFoto + 1024 },
     async (request, reply) => {
       const ator = atorDaSessao(request.sessao);
       const foto = lerFoto(request);
