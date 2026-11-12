@@ -1,0 +1,26 @@
+{
+  "name": "@gabinete/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "API Fastify da área interna: regras, sessão, autorização e auditoria",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "dev": "tsx watch --env-file-if-exists=../../.env src/principal.ts",
+    "start": "tsx --env-file-if-exists=../../.env src/principal.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1100.0",
+    "@fastify/cookie": "^11.1.5",
+    "@fastify/rate-limit": "^11.2.2",
+    "@gabinete/autorizacao": "*",
+    "@gabinete/banco": "*",
+    "@gabinete/compartilhado": "*",
+    "drizzle-orm": "^0.45.4",
+    "fastify": "^5.12.8",
+    "tsx": "^4.23.15"
+  },
+  "devDependencies": {
+    "testcontainers": "^12.2.1"
+  }
+}

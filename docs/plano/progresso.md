@@ -1,0 +1,121 @@
+# Progresso
+
+Registro vivo do andamento. Atualize ao fim de cada fase (e sempre que algo for adiado).
+
+Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
+
+| Fase | Nome | Estado | Concluída em | Observações |
+| --- | --- | --- | --- | --- |
+| 0 | Planejamento | **concluída** | 2026-11-12 | Aprovada. Validações externas (PV-A a PV-F) seguem abertas; as perguntas estão em [perguntas-ao-gabinete.md](perguntas-ao-gabinete.md) |
+| 1 | Fundação | **implementada; falta fechar** | | Código, testes e infraestrutura prontos e verificados **localmente**. Faltam dois itens da definição de pronto: implantação no ambiente de apresentação (decidido: será feita ao fim de todas as fases, PV-E) e conferência manual ([roteiro](../operacao/conferencias/fase1-fundacao.md)). Ver "Fase 1" abaixo |
+| 2 | Atendimento | não iniciada | | |
+| 3 | Cidadão (área pública e e-mail) | não iniciada | | Marco de apresentação à deputada |
+| 4 | Trabalho da equipe | não iniciada | | |
+| 5 | Legislativo | não iniciada | | Depende de PV-A |
+| 6 | Financeiro (emendas e CEAP) | não iniciada | | Depende de PV-A e PV-B |
+| 7 | Consolidação | não iniciada | | |
+| 8 | Endurecimento | não iniciada | | |
+| 9 | Opcional (verba de gabinete, WhatsApp) | não iniciada | | Só se o gabinete pedir |
+
+## Fase 1: blocos
+
+| Bloco | Conteúdo | Estado |
+| --- | --- | --- |
+| 1.A | Repositório e ambiente | feito |
+| 1.B | Banco (esquema, migrações, papéis, gatilhos, comandos) | feito |
+| 1.C | Acesso e sessão | feito (a foto de perfil foi feita no 1.E) |
+| 1.D | Perfis, habilitações e decisor | feito |
+| 1.E | Equipe, identidade do gabinete e fotos | feito |
+| 1.F | Auditoria | feito |
+| 1.G | Fluxos de trabalho e movimentação | feito |
+| 1.H | Front (React) | feito, sem o sino de avisos (entra na fase 4, com os avisos) |
+| 1.I | Infra e implantação | feito e testado localmente; **não executado numa VPS** |
+
+### Verificação (2026-11-12)
+
+- **188 testes verdes** em 23 arquivos: unidade, interface (jsdom) e integração contra **Postgres 17 e servidor S3 reais** em contêiner.
+- Formatação, lint, tipos e build do front limpos. `npm audit` das dependências de produção: 0 vulnerabilidades.
+- **Teste de fumaça real:** Postgres do `compose.yaml`, comandos do banco, API como processo, e o fluxo de entrada por HTTP (login errado e certo, cookie `HttpOnly`, troca de senha obrigatória, equipe, fluxos, `no-store`, log sem cookie nem senha).
+- **Imagens construídas e executadas:** a API em contêiner (modo produção, usuário não administrador, `healthy`, recusa ter a conexão administrativa) e o Caddy (configuração válida, SPA, CSP, HSTS, `X-Frame-Options`, cache longo nos arquivos com hash, fallback do React Router, proxy da API).
+- **Backup e restauração testados:** arquivo criptografado, restauração em banco novo, conferência de números, dono correto das tabelas, 8 invariantes de segurança passando no banco restaurado, recusa de senha errada, banco existente e banco em uso.
+
+### Critérios de aceite da fase 1 (plano)
+
+| # | Critério | Estado |
+| --- | --- | --- |
+| 1 | Administrador criado por comando entra, troca a senha e cria um usuário de cada perfil | verificado (testes e fumaça) |
+| 2 | Cada perfil vê na barra só o que alcança; rota não alcançada responde como inexistente | verificado |
+| 3 | 5 falhas bloqueiam por 15 min; e-mail inexistente e senha errada são indistinguíveis | verificado |
+| 4 | Alterar perfil derruba as sessões no ato | verificado |
+| 5 | O Chefe não concede Administrador | verificado |
+| 6 | Alterar ou apagar a trilha é recusado, inclusive por SQL direto | verificado |
+| 7 | Falha ao gravar a trilha desfaz a operação | verificado |
+| 8 | Não é possível desativar o último administrador | verificado no banco (gatilho); a API ainda impede a autoalteração |
+| 9 | A aplicação sobe em `dominio.nucleodedados.com` com HTTPS; trocar o hostname é só configuração | **pendente**: configuração testada localmente; falta a VPS (PV-E) |
+| 10 | Backup feito e restaurado em ambiente limpo | verificado localmente; **pendente na VPS** |
+| 11 | CI verde | **pendente**: o repositório git foi iniciado em 2026-11-12 (ramo main, sem commits ainda) e a CI só roda depois do primeiro push ao GitHub. O equivalente local passa |
+
+### O que ficou fora, de propósito
+
+- **Sino de avisos** no cabeçalho: os avisos nascem na fase 4.
+- **Playwright (ponta a ponta no navegador):** não foi feito. A cobertura é por testes de API com Postgres real e testes de interface com a API simulada. A conferência no navegador é o roteiro manual.
+- **App público e worker:** fases 3 e 4. O compose de produção só tem Caddy, API e Postgres.
+- **Segundo fator, antivírus, monitoramento contínuo:** fases 2 e 8.
+
+### Decisões e desvios durante a fase 1
+
+- **S3 de desenvolvimento:** o MinIO deixou de ser publicado no Docker Hub. Usamos o **S3Mock (Adobe)** no `compose.yaml` e nos testes; a implementação do S3 foi testada contra ele. Em produção continua o Cloudflare R2.
+- **TypeScript 6.0**, não 7: o `typescript-eslint` ainda não aceita a versão 7.
+- **React Router 7.18**, não 8 (a versão mais recente), para seguir a stack decidida.
+- **Movimentação referencia o registro direto** (`registro_tipo`, `registro_id`), sem passar por `vinculo`, para evitar referência circular. Atualizado no modelo de dados.
+- **Ticket de sessão** guardado como HMAC com o segredo da aplicação (não só um hash simples).
+- **Cookie `__Host-sessao`** em produção.
+- **Parlamentar** fora de "ajustar fluxos" (conservador: administração técnica).
+- **Datas e ids do SQL cru** voltam como texto quando o cliente é usado pelo Drizzle (anotado no README do pacote `banco`).
+- **Erros de COMMIT** (regras diferidas) não vêm embrulhados pelo Drizzle: a tradução de mensagens lê os dois formatos. Isso foi um defeito real achado pelos testes.
+- **A verificação "sem coluna de saldo"** passou a ler o catálogo (`pg_attribute`) porque o `information_schema` esconde tabelas de outros donos. Defeito real achado pelos testes.
+- **Caddyfile:** a diretiva `email` com variável vazia é inválida; foi removida.
+- **Restauração sem `--no-owner`:** com ele, o banco restaurado ficaria com o dono errado e as migrações futuras falhariam.
+
+## Fase 0: tarefas
+
+| Id | Tarefa | Estado | Onde |
+| --- | --- | --- | --- |
+| 0.1 | Estrutura de `docs/` e análise do Mandatus em `docs/referencia/` | feita | |
+| 0.2 | Classificar requisitos do Mandatus | feita | [classificacao-do-mandatus.md](classificacao-do-mandatus.md) |
+| 0.3 | Especificação enxuta | feita | `docs/especificacao/01` a `11` |
+| 0.4 | Modelo de dados | feita | `docs/arquitetura/modelo-de-dados.md` |
+| 0.5 | Fluxos federais como proposta | feita (depende de PV-A) | `docs/especificacao/09-fluxos-de-trabalho.md` |
+| 0.6 | Parâmetros da CEAP com vigência | feita (depende de PV-B) | `docs/especificacao/08-ceap.md` |
+| 0.7 | Texto de consentimento LGPD e modelo de e-mail | feita (depende de revisão jurídica) | `docs/especificacao/10-notificacoes-e-consentimento.md` |
+| 0.8 | ADRs | feita | `docs/arquitetura/decisoes/0001` a `0007` |
+| 0.9 | `CLAUDE.md` e `README.md` | feita | raiz |
+
+## Pendências externas
+
+| Id | Descrição | Responsável | Estado |
+| --- | --- | --- | --- |
+| PV-A | Validar fluxos federais (projeto de lei e emenda), tipos de emenda e de proposição, limites de "parado" | | aberta |
+| PV-B | Obter a norma vigente da CEAP e o anexo de limites por UF; confirmar categorias, competência, prazos e os nomes das etapas pós-aprovação | | aberta |
+| PV-C | Confirmar Chefe de Gabinete, Administrador e tamanho da equipe; validar a matriz de permissões | | aberta |
+| PV-D | Identidade visual e dados da deputada (foto, cores, partido, mandato) | | aberta |
+| PV-E | Acesso ao DNS de `nucleodedados.com` e à VPS; nome real do subdomínio; titularidade da conta do R2 | | aberta (**bloqueia fechar a fase 1**) |
+| PV-F | Retenção de dados, política de privacidade, encarregado (DPO) e revisão jurídica dos textos de consentimento e e-mail | | aberta |
+
+## Decisões tomadas
+
+| Data | Decisão |
+| --- | --- |
+| 2026-11-10 | Perfil **Parlamentar**: à parte da escala, um único usuário ativo, conta pessoal; opera e acompanha como Supervisor; na CEAP só consulta, sem ateste; não administra o sistema; a agenda do gabinete é a agenda dela |
+| 2026-11-12 | **Drizzle** confirmado como acesso a dados (P3) |
+| 2026-11-12 | Fluxo da despesa da CEAP **com** etapas pós-aprovação (Apresentada à Câmara, Ressarcida, Glosada) |
+| 2026-11-12 | Chave primária **`bigint` com identidade** (ADR 0007). Nenhum identificador sequencial exposto ao cidadão |
+| 2026-11-12 | Fase 0 aprovada; fase 1 implementada por inteiro |
+
+## Decisões abertas
+
+Nenhuma decisão técnica aberta.
+
+## Decisões adiadas
+
+Nenhuma até o momento.

@@ -1,0 +1,17 @@
+# Imagem do Caddy com a SPA já construída dentro. Contexto: a RAIZ do repositório.
+FROM node:24-slim AS web
+WORKDIR /app
+COPY package.json package-lock.json tsconfig.base.json ./
+COPY apps/api/package.json apps/api/
+COPY apps/web/package.json apps/web/
+COPY packages/autorizacao/package.json packages/autorizacao/
+COPY packages/banco/package.json packages/banco/
+COPY packages/compartilhado/package.json packages/compartilhado/
+RUN npm ci --include-workspace-root -w @gabinete/web
+COPY packages packages
+COPY apps/web apps/web
+RUN npm run build -w @gabinete/web
+
+FROM caddy:2
+COPY infra/caddy/Caddyfile /etc/caddy/Caddyfile
+COPY --from=web /app/apps/web/dist /srv/web

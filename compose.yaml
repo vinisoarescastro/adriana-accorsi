@@ -1,0 +1,51 @@
+# Ambiente LOCAL de desenvolvimento. Não é o de produção (ver compose.producao.yaml, fase 1.I).
+# As credenciais abaixo são apenas para desenvolvimento local e nunca devem ser reutilizadas.
+# Todas as portas escutam somente em 127.0.0.1.
+
+name: gabinete
+
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: gabinete
+      TZ: America/Sao_Paulo
+    ports:
+      # A porta do computador é configurável (POSTGRES_PORTA) porque a 5432 costuma estar ocupada.
+      - '127.0.0.1:${POSTGRES_PORTA:-5432}:5432'
+    volumes:
+      - postgres_dados:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U dev -d gabinete']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Servidor S3 de DESENVOLVIMENTO (o MinIO deixou de ser publicado no Docker Hub).
+  # Em produção o armazenamento é o Cloudflare R2. Não use este serviço fora do desenvolvimento.
+  s3:
+    image: adobe/s3mock:latest
+    restart: unless-stopped
+    environment:
+      COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS: gabinete
+      COM_ADOBE_TESTING_S3MOCK_STORE_ROOT: /dados
+      COM_ADOBE_TESTING_S3MOCK_STORE_RETAIN_FILES_ON_EXIT: 'true'
+    ports:
+      - '127.0.0.1:9090:9090'
+    volumes:
+      - s3_dados:/dados
+
+  # Caixa de e-mail de desenvolvimento: recebe tudo e não envia nada para fora.
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:1025:1025' # SMTP
+      - '127.0.0.1:8025:8025' # Interface web
+
+volumes:
+  postgres_dados:
+  s3_dados:

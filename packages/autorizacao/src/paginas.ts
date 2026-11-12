@@ -1,0 +1,31 @@
+import { pode, type Autoridade } from './decisor.js';
+import type { NomeDeOperacao } from './operacoes.js';
+
+/**
+ * Páginas da área interna e a operação que cada uma exige. A barra de navegação usa
+ * o MESMO decisor das rotas: página sem permissão não aparece, nem vazia nem bloqueada.
+ */
+export const paginas = {
+  painel: { caminho: '/g/painel', titulo: 'Painel', operacao: 'painel.abrir' },
+  equipe: { caminho: '/g/equipe', titulo: 'Equipe', operacao: 'equipe.ver' },
+  fluxos: { caminho: '/g/fluxos', titulo: 'Fluxos', operacao: 'fluxos.consultar' },
+  auditoria: {
+    caminho: '/g/auditoria',
+    titulo: 'Auditoria',
+    operacao: 'auditoria.consultar_gabinete',
+  },
+  configuracoes: {
+    caminho: '/g/configuracoes',
+    titulo: 'Configurações',
+    operacao: 'gabinete.consultar',
+  },
+} as const satisfies Record<string, { caminho: string; titulo: string; operacao: NomeDeOperacao }>;
+
+export type IdDePagina = keyof typeof paginas;
+
+/** Falha fechada: só aparece o que está declarado e permitido. */
+export function paginasAlcancaveis(autoridade: Autoridade): IdDePagina[] {
+  return (Object.keys(paginas) as IdDePagina[]).filter((id) =>
+    pode(paginas[id].operacao, autoridade),
+  );
+}

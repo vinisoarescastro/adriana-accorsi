@@ -1,0 +1,189 @@
+/* Layout da área interna: barra fixa em tela larga, gaveta em tela estreita. */
+.aplicacao {
+  display: grid;
+  grid-template-columns: var(--largura-lateral) 1fr;
+  min-height: 100vh;
+}
+
+.lateral {
+  background: var(--cor-lateral);
+  color: var(--cor-lateral-texto);
+  padding: var(--espaco-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.lateral__marca {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.lateral__nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+}
+
+.lateral__link {
+  display: block;
+  padding: var(--espaco-2) var(--espaco-3);
+  border-radius: var(--raio);
+  color: var(--cor-lateral-texto);
+  text-decoration: none;
+}
+
+.lateral__link:hover {
+  background: rgb(255 255 255 / 12%);
+}
+
+.lateral__link[aria-current='page'] {
+  background: var(--cor-primaria);
+  color: var(--cor-primaria-texto);
+  font-weight: 600;
+}
+
+.lateral__rodape {
+  margin-top: auto;
+}
+
+.principal {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-4);
+  padding: var(--espaco-3) var(--espaco-5);
+  background: var(--cor-superficie);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.cabecalho__titulo {
+  flex: 1;
+  min-width: 0;
+}
+
+.cabecalho__nome {
+  font-weight: 700;
+}
+
+.cabecalho__subtitulo {
+  color: var(--cor-texto-suave);
+  font-size: 0.9rem;
+}
+
+.cabecalho__usuario {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+
+.botao-menu {
+  display: none;
+}
+
+.conteudo {
+  padding: var(--espaco-5);
+}
+
+.grade-formulario {
+  display: grid;
+  gap: 0 var(--espaco-5);
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+/* Entrada e troca de senha */
+.pagina-centralizada {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--espaco-5);
+}
+
+.pagina-centralizada .cartao {
+  width: 100%;
+  max-width: 26rem;
+}
+
+/* Senha inicial mostrada uma única vez */
+.senha-inicial {
+  display: block;
+  margin: var(--espaco-2) 0;
+  padding: var(--espaco-3);
+  font-family: var(--fonte-mono);
+  font-size: 1.15rem;
+  letter-spacing: 0.05em;
+  background: var(--cor-superficie);
+  border: 1px dashed currentcolor;
+  border-radius: var(--raio);
+  word-break: break-all;
+  user-select: all;
+}
+
+.painel-do-usuario {
+  padding: var(--espaco-4);
+  background: var(--cor-fundo);
+  border-radius: var(--raio);
+}
+
+.etapa-inativa {
+  color: var(--cor-texto-suave);
+  text-decoration: line-through;
+}
+
+.catalogo-secao {
+  margin-bottom: var(--espaco-6);
+}
+
+.catalogo-amostras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  align-items: center;
+}
+
+/* Tela estreita: a barra lateral vira gaveta. */
+@media (max-width: 900px) {
+  .aplicacao {
+    grid-template-columns: 1fr;
+  }
+
+  .lateral {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 50;
+    width: min(var(--largura-lateral), 85vw);
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+  }
+
+  .lateral--aberta {
+    transform: translateX(0);
+  }
+
+  .botao-menu {
+    display: inline-flex;
+  }
+
+  .cabecalho {
+    padding: var(--espaco-3) var(--espaco-4);
+  }
+
+  .conteudo {
+    padding: var(--espaco-4);
+  }
+
+  .cabecalho__usuario span {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lateral {
+    transition: none;
+  }
+}

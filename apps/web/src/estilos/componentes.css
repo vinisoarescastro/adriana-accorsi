@@ -1,0 +1,229 @@
+/* Botões */
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
+  min-height: 2.75rem; /* alvo de toque confortável no celular */
+  padding: var(--espaco-2) var(--espaco-4);
+  border: 1px solid var(--cor-primaria);
+  border-radius: var(--raio);
+  background: var(--cor-primaria);
+  color: var(--cor-primaria-texto);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.botao:hover:not(:disabled) {
+  background: var(--cor-primaria-escura);
+}
+
+.botao:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.botao--secundario {
+  background: var(--cor-superficie);
+  color: var(--cor-primaria);
+}
+
+.botao--secundario:hover:not(:disabled) {
+  background: var(--cor-fundo);
+}
+
+.botao--perigo {
+  background: var(--cor-perigo);
+  border-color: var(--cor-perigo);
+}
+
+.botao--perigo:hover:not(:disabled) {
+  background: #7d1313;
+}
+
+.botao--pequeno {
+  min-height: 2.25rem;
+  padding: var(--espaco-1) var(--espaco-3);
+  font-size: 0.9rem;
+}
+
+/* Campos de formulário */
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  margin-bottom: var(--espaco-4);
+}
+
+.campo__rotulo {
+  font-weight: 600;
+}
+
+.campo__ajuda {
+  color: var(--cor-texto-suave);
+  font-size: 0.9rem;
+}
+
+.campo__erro {
+  color: var(--cor-perigo);
+  font-size: 0.9rem;
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+  min-height: 2.75rem;
+  padding: var(--espaco-2) var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  font: inherit;
+}
+
+.campo input[type='checkbox'] {
+  min-height: auto;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.grupo-de-opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-4);
+  margin: 0 0 var(--espaco-4);
+  padding: 0;
+  border: 0;
+}
+
+.grupo-de-opcoes legend {
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: var(--espaco-2);
+}
+
+.opcao {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+}
+
+/* Avisos: nunca dependem só de cor (há sempre um texto e um ícone textual). */
+.aviso {
+  display: flex;
+  gap: var(--espaco-3);
+  padding: var(--espaco-3) var(--espaco-4);
+  margin-bottom: var(--espaco-4);
+  border: 1px solid currentcolor;
+  border-radius: var(--raio);
+}
+
+.aviso--erro {
+  color: var(--cor-perigo);
+  background: var(--cor-perigo-fundo);
+}
+
+.aviso--sucesso {
+  color: var(--cor-sucesso);
+  background: var(--cor-sucesso-fundo);
+}
+
+.aviso--atencao {
+  color: var(--cor-aviso);
+  background: var(--cor-aviso-fundo);
+}
+
+.aviso__titulo {
+  font-weight: 700;
+}
+
+.aviso ul {
+  margin: var(--espaco-1) 0 0;
+  padding-left: var(--espaco-5);
+}
+
+/* Cartão */
+.cartao {
+  padding: var(--espaco-5);
+  margin-bottom: var(--espaco-5);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+}
+
+/* Selos */
+.selo {
+  display: inline-block;
+  padding: 0 var(--espaco-2);
+  border: 1px solid var(--cor-borda);
+  border-radius: 999px;
+  background: var(--cor-fundo);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.selo--ativo {
+  color: var(--cor-sucesso);
+  border-color: var(--cor-sucesso);
+  background: var(--cor-sucesso-fundo);
+}
+
+.selo--inativo {
+  color: var(--cor-texto-suave);
+}
+
+/* Tabela: no celular rola na horizontal dentro do próprio contêiner. */
+.tabela-rolavel {
+  overflow-x: auto;
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabela caption {
+  text-align: left;
+  font-weight: 700;
+  padding-bottom: var(--espaco-2);
+}
+
+.tabela th,
+.tabela td {
+  padding: var(--espaco-2) var(--espaco-3);
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.tabela th {
+  font-size: 0.9rem;
+  color: var(--cor-texto-suave);
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.foto {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--cor-borda);
+}
+
+.foto--grande {
+  width: 6rem;
+  height: 6rem;
+}
+
+.carregando {
+  padding: var(--espaco-5);
+  color: var(--cor-texto-suave);
+}

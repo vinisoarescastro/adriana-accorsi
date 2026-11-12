@@ -1,0 +1,37 @@
+/*
+ * Tokens do sistema de design. A paleta é PROVISÓRIA (a identidade visual da Deputada
+ * entra com a PV-D). O teste contraste.test.ts confere os pares de cor abaixo.
+ */
+:root {
+  --cor-fundo: #f4f6f9;
+  --cor-superficie: #ffffff;
+  --cor-texto: #1b2430;
+  --cor-texto-suave: #4a5668;
+  --cor-borda: #c9d1dc;
+  --cor-primaria: #1d4f91;
+  --cor-primaria-texto: #ffffff;
+  --cor-primaria-escura: #153a6b;
+  --cor-lateral: #14233b;
+  --cor-lateral-texto: #e8eef7;
+  --cor-perigo: #a61b1b;
+  --cor-perigo-fundo: #fdecec;
+  --cor-sucesso: #1b6b3a;
+  --cor-sucesso-fundo: #e6f4ec;
+  --cor-aviso: #7a4a00;
+  --cor-aviso-fundo: #fff3dc;
+  --cor-foco: #ffb000;
+
+  --fonte: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --fonte-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --espaco-1: 0.25rem;
+  --espaco-2: 0.5rem;
+  --espaco-3: 0.75rem;
+  --espaco-4: 1rem;
+  --espaco-5: 1.5rem;
+  --espaco-6: 2rem;
+
+  --raio: 0.5rem;
+  --sombra: 0 1px 2px rgb(20 35 59 / 12%), 0 1px 3px rgb(20 35 59 / 8%);
+  --largura-lateral: 15rem;
+}

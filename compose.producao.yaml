@@ -1,0 +1,59 @@
+# Produção (VPS). Só o Caddy publica portas. Segredos ficam em .env.producao (fora do repositório).
+# O worker e o app público entram nas fases 3 e 4, quando existirem.
+
+name: gabinete
+
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    env_file: .env.producao
+    environment:
+      POSTGRES_DB: gabinete
+      TZ: America/Sao_Paulo
+    volumes:
+      - postgres_dados:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d gabinete']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # Sem "ports": o banco só é alcançável pelos outros serviços desta rede.
+
+  api:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.api
+    image: ${IMAGEM_API:-gabinete-api:local}
+    restart: unless-stopped
+    env_file: .env.producao
+    environment:
+      NODE_ENV: production
+      HOST_API: 0.0.0.0
+      PORTA_API: '3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Sem "ports": só o Caddy fala com a API.
+
+  caddy:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.caddy
+    image: ${IMAGEM_CADDY:-gabinete-caddy:local}
+    restart: unless-stopped
+    env_file: .env.producao
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    volumes:
+      - caddy_dados:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+
+volumes:
+  postgres_dados:
+  caddy_dados:
+  caddy_config:

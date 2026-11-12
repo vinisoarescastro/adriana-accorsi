@@ -1,0 +1,32 @@
+# Dependências
+node_modules/
+
+# Build
+dist/
+build/
+.vite/
+coverage/
+*.tsbuildinfo
+
+# Ambiente e segredos
+.env
+.env.*
+!.env.exemplo
+!.env.*.exemplo
+
+# Dados locais
+*.log
+*.sqlite
+tmp/
+.cache/
+
+# Playwright
+test-results/
+playwright-report/
+
+# Editor e sistema
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db

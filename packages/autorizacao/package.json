@@ -1,0 +1,18 @@
+{
+  "name": "@gabinete/autorizacao",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Decisor único de autorização: operações, perfis, habilitações e alcance",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@gabinete/compartilhado": "*"
+  }
+}

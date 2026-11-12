@@ -1,0 +1,40 @@
+# Borda da aplicação: HTTPS automático (Let's Encrypt), cabeçalhos de segurança, SPA e proxy da API.
+# Só o Caddy publica portas (80 e 443). A API e o banco ficam na rede interna.
+#
+# HOSTNAME_APP vem do ambiente (.env.producao). Trocar de domínio é só mudar essa variável.
+# A área pública do cidadão (HOSTNAME_PUBLICO) entra na fase 3, com o seu próprio bloco.
+
+{$HOSTNAME_APP} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		# CSP restritiva: só código e estilos da própria origem, sem scripts em linha.
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+		-Server
+	}
+
+	# A API. O Caddy repassa o IP real no cabeçalho X-Forwarded-For (a API confia nele em produção).
+	handle /api/* {
+		reverse_proxy api:3000 {
+			header_up X-Forwarded-For {remote_host}
+		}
+	}
+
+	# A SPA: arquivos estáticos; qualquer outro caminho cai no index.html (rotas do React).
+	handle {
+		root * /srv/web
+		try_files {path} /index.html
+		file_server
+		# Os arquivos com hash no nome podem ficar em cache por muito tempo; o index.html, nunca.
+		@estaticos path /assets/*
+		header @estaticos Cache-Control "public, max-age=31536000, immutable"
+		@index path / /index.html
+		header @index Cache-Control "no-store"
+	}
+}

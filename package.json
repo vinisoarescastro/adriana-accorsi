@@ -1,0 +1,43 @@
+{
+  "name": "gabinete-adriana-accorsi",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Sistema de gestão do gabinete da Deputada Federal Adriana Accorsi",
+  "engines": {
+    "node": ">=24.0.0 <25"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:conferir": "prettier --check .",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run",
+    "test:unidade": "vitest run --project unidade",
+    "test:integracao": "vitest run --project integracao",
+    "test:observar": "vitest",
+    "banco:papeis": "npm run papeis -w @gabinete/banco",
+    "banco:migrar": "npm run migrar -w @gabinete/banco",
+    "banco:verificar": "npm run verificar -w @gabinete/banco",
+    "banco:criar-administrador": "npm run criar-administrador -w @gabinete/banco --",
+    "banco:semear": "npm run semear -w @gabinete/banco",
+    "banco:preparar": "npm run banco:papeis && npm run banco:migrar",
+    "ambiente:subir": "docker compose up -d",
+    "ambiente:descer": "docker compose down",
+    "ambiente:limpar": "docker compose down -v"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.19.2",
+    "eslint": "^10.14.0",
+    "prettier": "^3.10.1",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  }
+}

@@ -1,0 +1,23 @@
+# Imagem da API. Contexto de construção: a RAIZ do repositório.
+FROM node:24-slim
+ENV NODE_ENV=production
+WORKDIR /app
+
+# Dependências de produção só da API (e dos pacotes que ela usa).
+COPY package.json package-lock.json ./
+COPY apps/api/package.json apps/api/
+COPY apps/web/package.json apps/web/
+COPY packages/autorizacao/package.json packages/autorizacao/
+COPY packages/banco/package.json packages/banco/
+COPY packages/compartilhado/package.json packages/compartilhado/
+RUN npm ci --omit=dev -w @gabinete/api && npm cache clean --force
+
+COPY tsconfig.base.json ./
+COPY packages packages
+COPY apps/api apps/api
+
+USER node
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:3000/api/saude').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+CMD ["node_modules/.bin/tsx", "apps/api/src/principal.ts"]
