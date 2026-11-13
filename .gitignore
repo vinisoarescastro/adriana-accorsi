@@ -30,3 +30,6 @@ playwright-report/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Arquivos do armazenamento local de desenvolvimento (ARMAZENAMENTO_LOCAL=1)
+.dados/

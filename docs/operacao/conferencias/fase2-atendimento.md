@@ -25,7 +25,7 @@ Roteiro de conferência manual. Os testes automatizados garantem as regras; este
 | 8 | Anexar o arquivo de teste EICAR (texto do antivírus de teste) dentro de um ZIP ou PDF | Recusado como infectado; nada é guardado | sim (cliente), manual (contêiner real) | |
 | 9 | Parar o contêiner `clamav` e tentar anexar | Recusa por "verificação indisponível"; nada é guardado | sim | |
 | 10 | Como Supervisor, cancelar com justificativa curta | O botão de confirmar fica desabilitado até 10 caracteres | sim | |
-| 11 | Depois de cancelada, tentar mover, comentar ou editar | Nenhuma ação é oferecida; a API recusa | sim | |
+| 11 | Depois de cancelada, tentar mover, editar, reatribuir ou cancelar de novo | Nenhuma ação é oferecida; a API recusa (409). Comentários e documentos continuam permitidos (ver "Defeitos e decisões") | sim | |
 | 12 | Como Assessor Externo, abrir Demandas | Só aparecem as demandas de que ele é responsável | sim | |
 | 13 | Como Assessor Externo, abrir pelo endereço a demanda de outra pessoa | "Não encontrada" | sim | |
 | 14 | Como Assessor Externo, abrir a própria demanda | Ficha reduzida, sem comentários, documentos nem histórico | sim | |
@@ -43,6 +43,16 @@ Repita os itens 1, 3, 6, 10 e 17 numa tela de 360 px e confira:
 - [ ] Nenhuma informação depende só de cor (Atrasada, Urgente, Cancelada aparecem em texto).
 - [ ] Os campos do formulário de nova demanda têm rótulo e não são cobertos pelo teclado.
 
-## Defeitos encontrados
+## Execução contra o ambiente real (2026-11-13)
 
-_(preencher durante a conferência)_
+Antes da conferência visual, a API foi exercitada por HTTP contra o ambiente local de verdade: Postgres 17, **ClamAV real** (1.5.4) e dados semeados, com um usuário de cada perfil. **28 verificações: 27 corretas e 1 divergente** (o comentário em demanda cancelada, ver "Defeitos e decisões"; as demais falhas iniciais eram do meu script de teste). Cobre os itens 1, 2, 4 a 8, 9 a 18 pela API. **Não cobre** nada visual nem tela pequena: esses itens seguem pendentes.
+
+- Item 8: o EICAR dentro de um ZIP foi recusado (400) e nada foi guardado. O EICAR solto dentro de um PDF **não** é detectado pelo ClamAV (a assinatura só vale no início do arquivo); por isso o teste correto é o ZIP.
+- Item 9: com o contêiner do ClamAV parado, o envio respondeu **503 "verificação indisponível"** e nada foi guardado (falha fechada).
+- Armazenamento: nesta execução usou-se disco local (`ARMAZENAMENTO_LOCAL=1`), porque o S3Mock do ambiente respondeu 500 a qualquer chamada nesta máquina (o S3 é coberto pelos testes de integração).
+- Porta do Postgres: a 5432 estava ocupada; usou-se `POSTGRES_PORTA=55432`, como o `como-rodar.md` prevê.
+
+## Defeitos e decisões
+
+- **Comentário em demanda cancelada:** a API aceita (201), e a ficha continua mostrando o campo. A regra diz que a **demanda** não se altera; o comentário é um registro à parte. Decisão pendente: manter (permite explicar o cancelamento depois) ou bloquear. Hoje o comportamento é "permitido" e o item 11 foi reescrito para refletir isso.
+- _(preencher o que a conferência visual encontrar)_
