@@ -1,6 +1,6 @@
 # Como rodar
 
-Estado: fase 1 implementada. Existem a API (`apps/api`), o front (`apps/web`) e os pacotes `banco`, `autorizacao` e `compartilhado`. O app público e o worker entram nas fases 3 e 4. Implantação na VPS: ver [implantacao.md](implantacao.md).
+Estado: fase 3 implementada. Existem a API (`apps/api`), o front (`apps/web`), a área do cidadão (`apps/publico`), o worker de e-mail (`apps/worker`) e os pacotes `banco`, `autorizacao` e `compartilhado`. Implantação na VPS: ver [implantacao.md](implantacao.md).
 
 ## Requisitos
 
@@ -81,11 +81,15 @@ Com o ambiente local no ar (`npm run ambiente:subir`), o `.env` preenchido e o b
 npm run banco:criar-administrador -- --email voce@exemplo.com --nome "Seu Nome"   # ou: npm run banco:semear
 npm run dev -w @gabinete/api    # API em http://127.0.0.1:3000
 npm run dev -w @gabinete/web    # front em http://localhost:5173 (o Vite encaminha /api para a API)
+npm run dev -w @gabinete/publico  # área do cidadão em http://127.0.0.1:3100
+npm run dev -w @gabinete/worker   # envia os e-mails da fila (o Mailpit recebe, sem enviar para fora)
 ```
 
 Para a API guardar fotos em disco, sem o servidor S3 local, defina `ARMAZENAMENTO_LOCAL=1` (só vale em `NODE_ENV=development`).
 
-Variáveis da API (validadas na subida; o processo recusa configuração inválida): `NODE_ENV`, `HOSTNAME_APP`, `HOSTNAME_PUBLICO`, `DATABASE_URL_API`, `SESSAO_SEGREDO` (32+ caracteres), `S3_*`, `HOST_API` e `PORTA_API` (opcionais). A API também **recusa** subir com `DATABASE_URL_ADMIN` ou `DATABASE_URL_MIGRACAO` definidas.
+Variáveis da API (validadas na subida; o processo recusa configuração inválida): `NODE_ENV`, `HOSTNAME_APP`, `HOSTNAME_PUBLICO`, `DATABASE_URL_API`, `SESSAO_SEGREDO` (32+ caracteres), `S3_*`, `HOST_API` e `PORTA_API` (opcionais). Em **produção** a API recusa subir com `DATABASE_URL_ADMIN` ou `DATABASE_URL_MIGRACAO` definidas, o app público recusa o segredo da aplicação e as credenciais do armazenamento, e o worker recusa as conexões da API e administrativa (cada um tem o seu arquivo de ambiente). Em desenvolvimento há um único `.env`, e a recusa não vale.
+
+Variáveis do app público: `DATABASE_URL_PUBLICO`, `HOST_PUBLICO`, `PORTA_PUBLICO`. Do worker: `DATABASE_URL_WORKER`, `SESSAO_SEGREDO`, `EMAIL_PROVEDOR` (`smtp` em desenvolvimento, `resend` em produção), `EMAIL_API_KEY`, `EMAIL_REMETENTE`, `SMTP_HOST`, `SMTP_PORTA`, `LIMITE_EMAILS_POR_HORA`, `INTERVALO_DO_WORKER_SEGUNDOS`.
 
 ## Testes
 
@@ -93,4 +97,4 @@ Variáveis da API (validadas na subida; o processo recusa configuração inváli
 
 ## O que ainda não existe
 
-App público e e-mail ao cidadão (fase 3), worker de avisos (fase 4), módulos de negócio (fases 4 a 7). O atendimento (fase 2) já existe. Ver [o plano](../plano/plano-de-implementacao.md).
+Avisos internos e agendamento de prazos (fase 4), módulos de negócio (fases 4 a 7). O atendimento (fase 2) e o cidadão (fase 3) já existem. Ver [o plano](../plano/plano-de-implementacao.md).

@@ -14,6 +14,7 @@ Cada decisão relevante vira um arquivo `NNNN-titulo-curto.md`, numerado em sequ
 | [0006](0006-monorepo-e-dominios.md) | Monorepo e domínios | proposta |
 | [0007](0007-chave-primaria.md) | Chave primária das tabelas | aceita |
 | [0008](0008-documentos-link-e-antivirus.md) | Documentos, segredo do link e antivírus | aceita |
+| [0009](0009-area-publica-e-envio-de-email.md) | Área pública, projeção em visões e envio de e-mail | aceita |
 
 ## Modelo
 

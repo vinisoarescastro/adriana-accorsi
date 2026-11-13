@@ -80,6 +80,48 @@ export const operacoes = {
   'documentos.baixar': { descricao: 'Baixar documento', nivelMinimo: 2, habilitacao: ['AT'] },
   'documentos.remover': { descricao: 'Remover documento', nivelMinimo: 3, habilitacao: ['AT'] },
 
+  // Cidadão (fase 3): política, link, andamentos, consentimento e fila de e-mails.
+  'publicacao.consultar_politica': {
+    descricao: 'Consultar a política de publicação e o histórico de versões',
+    nivelMinimo: 2,
+    habilitacao: ['AT'],
+  },
+  'publicacao.alterar_politica': {
+    descricao: 'Alterar a política de publicação (fecha a versão vigente e abre a seguinte)',
+    nivelMinimo: 5,
+    habilitacao: ['AT'],
+  },
+  'link.obter': {
+    descricao: 'Obter o link de acompanhamento e pré-visualizar o que o cidadão vê',
+    nivelMinimo: 2,
+    habilitacao: ['AT'],
+  },
+  'link.gerir': {
+    descricao: 'Revogar, regenerar, suspender e retomar o link de acompanhamento',
+    nivelMinimo: 3,
+    habilitacao: ['AT'],
+  },
+  'andamentos.publicar': {
+    descricao: 'Publicar andamento para o cidadão',
+    nivelMinimo: 2,
+    habilitacao: ['AT'],
+  },
+  'andamentos.remover': {
+    descricao: 'Remover andamento publicado',
+    nivelMinimo: 3,
+    habilitacao: ['AT'],
+  },
+  'consentimento.registrar': {
+    descricao: 'Registrar ou cancelar o consentimento de notificação por e-mail',
+    nivelMinimo: 2,
+    habilitacao: ['AT'],
+  },
+  'notificacoes.consultar_fila': {
+    descricao: 'Ver a fila de e-mails ao cidadão (enviado, falhou, cancelado)',
+    nivelMinimo: 3,
+    habilitacao: ['AT'],
+  },
+
   // Equipe
   'equipe.ver': { descricao: 'Ver a equipe', nivelMinimo: 1 },
   'equipe.administrar': {

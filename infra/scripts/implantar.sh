@@ -10,6 +10,8 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 COMPOSE="compose.producao.yaml"
+# A interpolação das variáveis do compose vem de .env.producao.
+dc() { docker compose --env-file .env.producao -f "$COMPOSE" "$@"; }
 [ -f .env.producao ] || { echo "Falta .env.producao (modelo: .env.producao.exemplo)." >&2; exit 1; }
 [ -f .env.administrativo ] || { echo "Falta .env.administrativo (modelo: .env.administrativo.exemplo)." >&2; exit 1; }
 if grep -q "TROQUE" .env.producao .env.administrativo; then
@@ -18,23 +20,23 @@ if grep -q "TROQUE" .env.producao .env.administrativo; then
 fi
 
 echo "1/5 Construindo as imagens..."
-docker compose -f "$COMPOSE" build
+dc build
 
 echo "2/5 Subindo o banco..."
-docker compose -f "$COMPOSE" up -d postgres
+dc up -d postgres
 for _ in $(seq 1 60); do
-  [ "$(docker compose -f "$COMPOSE" ps --format '{{.Health}}' postgres | head -1)" = "healthy" ] && break
+  [ "$(dc ps --format '{{.Health}}' postgres | head -1)" = "healthy" ] && break
   sleep 2
 done
 
 echo "3/5 Criando os papéis e aplicando as migrações..."
 # A conexão administrativa é passada só a este contêiner de uso único.
-docker compose -f "$COMPOSE" run --rm --no-deps --env-file .env.administrativo \
+dc run --rm --no-deps --env-file .env.administrativo \
   -e DATABASE_URL_ADMIN -e DATABASE_URL_MIGRACAO -e DATABASE_URL_API -e DATABASE_URL_WORKER -e DATABASE_URL_PUBLICO \
   api npm run banco:preparar
 
 echo "4/5 Subindo os serviços..."
-docker compose -f "$COMPOSE" up -d
+dc up -d
 
 echo "5/5 Conferindo..."
 sleep 5

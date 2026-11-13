@@ -6,7 +6,9 @@ WORKDIR /app
 # Dependências de produção só da API (e dos pacotes que ela usa).
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/
+COPY apps/publico/package.json apps/publico/
 COPY apps/web/package.json apps/web/
+COPY apps/worker/package.json apps/worker/
 COPY packages/autorizacao/package.json packages/autorizacao/
 COPY packages/banco/package.json packages/banco/
 COPY packages/compartilhado/package.json packages/compartilhado/

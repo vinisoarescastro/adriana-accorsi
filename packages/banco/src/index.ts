@@ -1,4 +1,7 @@
 export * from './atendimento/protocolo.js';
+export * from './cidadao/consentimento.js';
+export * from './cidadao/outbox.js';
+export * from './cidadao/segredo-de-link.js';
 export * from './conexao.js';
 export * from './esquema/index.js';
 export * from './fluxos/movimentacao.js';

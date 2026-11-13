@@ -9,9 +9,11 @@ Estado: scripts e imagens **testados localmente** (construção das imagens, API
 | `caddy` | construída de `infra/docker/Dockerfile.caddy` (Caddy + a SPA já construída) | 80 e 443 |
 | `api` | construída de `infra/docker/Dockerfile.api` | nenhuma |
 | `postgres` | `postgres:17` | nenhuma |
+| `publico` | construída de `infra/docker/Dockerfile.publico` | nenhuma (o Caddy fala com ele; `HOSTNAME_PUBLICO`) |
+| `worker` | construída de `infra/docker/Dockerfile.worker` | nenhuma (só fala com o banco e com o provedor de e-mail) |
 | `clamav` | `clamav/clamav` | nenhuma (a API fala com ele pela rede interna; `CLAMAV_HOST=clamav`) |
 
-Só o Caddy aparece na internet. A API e o banco ficam na rede interna do compose. O app público e o worker entram nas fases 3 e 4.
+Só o Caddy aparece na internet. A API e o banco ficam na rede interna do compose. O app público e o worker não usam o mesmo arquivo de ambiente da API: recebem só o que precisam. Por isso o compose é chamado com `--env-file .env.producao` (os scripts já fazem isso).
 
 ## Antes da primeira vez
 
@@ -58,7 +60,14 @@ Confere: serviços de pé, `/api/saude`, validade do certificado, espaço em dis
 
 ## Imagens publicadas pela CI
 
-Em push para `main`, depois que os testes passam, a CI publica `api` e `caddy` no GHCR (`ghcr.io/<dono>/<repositório>/api:main` e `...:<hash do commit>`). Para usá-las em vez de construir no servidor, defina `IMAGEM_API` e `IMAGEM_CADDY` e use `docker compose pull`. A CI **ainda não rodou** (o diretório não é um repositório git).
+Em push para `main`, depois que os testes passam, a CI publica `api`, `publico`, `worker` e `caddy` no GHCR (`ghcr.io/<dono>/<repositório>/api:main` e `...:<hash do commit>`). Para usá-las em vez de construir no servidor, defina `IMAGEM_API`, `IMAGEM_PUBLICO`, `IMAGEM_WORKER` e `IMAGEM_CADDY` e use `docker compose pull`. A CI **ainda não rodou** (o diretório não é um repositório git).
+
+## Área do cidadão e e-mail (fase 3)
+
+1. **DNS:** crie o registro `A` de `HOSTNAME_PUBLICO` (por exemplo `acompanhe.dominio.nucleodedados.com`) para o IP da VPS. O Caddy emite o certificado sozinho.
+2. **E-mail:** preencha `EMAIL_API_KEY` (Resend) e `EMAIL_REMETENTE` em `.env.producao` e configure **SPF, DKIM e DMARC** do domínio remetente **antes do primeiro envio real** (ver [dominio-e-dns.md](dominio-e-dns.md)). Comece com volume baixo (`LIMITE_EMAILS_POR_HORA`).
+3. O Caddy **não registra log de acesso** do domínio público: o segredo do link vai no caminho da URL.
+4. `verificar.sh` confere também `publico` e `worker`. Acompanhe a fila na tela **E-mails** (Supervisor em diante).
 
 ## Antivírus (fase 2)
 

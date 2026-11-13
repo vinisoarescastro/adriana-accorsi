@@ -2,7 +2,7 @@
 # Só o Caddy publica portas (80 e 443). A API e o banco ficam na rede interna.
 #
 # HOSTNAME_APP vem do ambiente (.env.producao). Trocar de domínio é só mudar essa variável.
-# A área pública do cidadão (HOSTNAME_PUBLICO) entra na fase 3, com o seu próprio bloco.
+# A área pública do cidadão (HOSTNAME_PUBLICO) tem o seu próprio bloco, mais abaixo.
 
 {$HOSTNAME_APP} {
 	encode zstd gzip
@@ -36,5 +36,26 @@
 		header @estaticos Cache-Control "public, max-age=31536000, immutable"
 		@index path / /index.html
 		header @index Cache-Control "no-store"
+	}
+}
+
+# Área pública do cidadão: sem login, sem cookie, somente leitura. O endereço de acompanhamento leva
+# um segredo no caminho (/a/<segredo>): nunca vai para log de acesso, nem para Referer, nem para cache.
+{$HOSTNAME_PUBLICO} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Robots-Tag "noindex, nofollow, noarchive"
+		-Server
+	}
+
+	# Sem log de acesso: o caminho do link é uma credencial.
+	log {
+		output discard
+	}
+
+	reverse_proxy publico:3100 {
+		header_up X-Forwarded-For {remote_host}
 	}
 }

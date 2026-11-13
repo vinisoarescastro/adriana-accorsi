@@ -2,13 +2,15 @@ import { randomInt } from 'node:crypto';
 import { protocoloEmitido } from '../esquema/index.js';
 import type { Transacao } from '../conexao.js';
 
-/**
- * Protocolo: 12 caracteres aleatórios de um alfabeto de 31 símbolos, sem `0 O 1 I L` (confundíveis).
- * Mostrado em três grupos de quatro (`K7M2-9PQ4-XA3N`); guardado sem hífens e em maiúsculas.
- * Não é sequencial: não dá para adivinhar o seguinte nem contar quantos existem.
- */
-export const alfabetoDoProtocolo = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
-export const tamanhoDoProtocolo = 12;
+// As funções puras (alfabeto, formato, normalização) são do pacote compartilhado: o app público
+// também as usa. Aqui ficam a geração e a emissão, que dependem do banco.
+import { alfabetoDoProtocolo, tamanhoDoProtocolo } from '@gabinete/compartilhado';
+export {
+  alfabetoDoProtocolo,
+  formatarProtocolo,
+  normalizarProtocolo,
+  tamanhoDoProtocolo,
+} from '@gabinete/compartilhado';
 
 export function gerarProtocolo(): string {
   let protocolo = '';
@@ -16,20 +18,6 @@ export function gerarProtocolo(): string {
     protocolo += alfabetoDoProtocolo[randomInt(alfabetoDoProtocolo.length)];
   }
   return protocolo;
-}
-
-export function formatarProtocolo(protocolo: string): string {
-  return `${protocolo.slice(0, 4)}-${protocolo.slice(4, 8)}-${protocolo.slice(8, 12)}`;
-}
-
-/**
- * Aceita com ou sem hífens, com espaços e em qualquer caixa. Devolve o protocolo canônico
- * (12 caracteres) ou `null` se não tiver o formato.
- */
-export function normalizarProtocolo(entrada: string): string | null {
-  const limpo = entrada.replace(/[\s-]/g, '').toUpperCase();
-  if (limpo.length !== tamanhoDoProtocolo) return null;
-  return [...limpo].every((c) => alfabetoDoProtocolo.includes(c)) ? limpo : null;
 }
 
 export class ErroDeProtocolo extends Error {

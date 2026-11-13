@@ -25,10 +25,13 @@ export function ComentariosDaDemanda({
   demandaId,
   comentarios,
   sessao,
+  somenteLeitura = false,
 }: {
   demandaId: number;
   comentarios: readonly ComentarioDto[];
   sessao: RespostaDaSessao;
+  /** Demanda cancelada: nada se acrescenta nem se remove. */
+  somenteLeitura?: boolean;
 }) {
   const atualizar = useAtualizarFicha();
   const { data: equipe } = useEquipe();
@@ -80,7 +83,8 @@ export function ComentariosDaDemanda({
             ) : (
               <>
                 <p>{c.texto}</p>
-                {pode('comentarios.remover', autoridade) &&
+                {!somenteLeitura &&
+                pode('comentarios.remover', autoridade) &&
                 (c.autor.id === sessao.usuario.id || nivelDoPerfil[sessao.usuario.perfil] >= 3) ? (
                   <Botao
                     pequeno
@@ -98,7 +102,7 @@ export function ComentariosDaDemanda({
         {comentarios.length === 0 ? <li>Nenhum comentário ainda.</li> : null}
       </ul>
 
-      {pode('comentarios.criar', autoridade) ? (
+      {!somenteLeitura && pode('comentarios.criar', autoridade) ? (
         <>
           <Campo rotulo="Novo comentário">
             {(p) => (
@@ -161,10 +165,13 @@ export function DocumentosDaDemanda({
   demandaId,
   documentos,
   sessao,
+  somenteLeitura = false,
 }: {
   demandaId: number;
   documentos: readonly DocumentoDto[];
   sessao: RespostaDaSessao;
+  /** Demanda cancelada: nada se acrescenta nem se remove. */
+  somenteLeitura?: boolean;
 }) {
   const atualizar = useAtualizarFicha();
   const autoridade = { perfil: sessao.usuario.perfil, habilitacoes: sessao.usuario.habilitacoes };
@@ -210,7 +217,7 @@ export function DocumentosDaDemanda({
                 <span className="campo__ajuda">
                   {formatarTamanho(d.tamanho)} · {d.enviadoPor} · {formatarDataHora(d.enviadoEm)}
                 </span>{' '}
-                {pode('documentos.remover', autoridade) ? (
+                {!somenteLeitura && pode('documentos.remover', autoridade) ? (
                   <Botao
                     pequeno
                     variante="secundario"
@@ -227,7 +234,7 @@ export function DocumentosDaDemanda({
         {documentos.length === 0 ? <li>Nenhum documento anexado.</li> : null}
       </ul>
 
-      {pode('documentos.anexar', autoridade) ? (
+      {!somenteLeitura && pode('documentos.anexar', autoridade) ? (
         <div className="grade-formulario">
           <Campo rotulo="Natureza">
             {(p) => (

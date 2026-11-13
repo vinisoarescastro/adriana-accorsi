@@ -1,0 +1,22 @@
+# Imagem do worker (envio dos e-mails da fila). Contexto de construção: a RAIZ do repositório.
+FROM node:24-slim
+ENV NODE_ENV=production
+WORKDIR /app
+
+# Dependências de produção só do worker (e dos pacotes que ele usa).
+COPY package.json package-lock.json ./
+COPY apps/api/package.json apps/api/
+COPY apps/publico/package.json apps/publico/
+COPY apps/web/package.json apps/web/
+COPY apps/worker/package.json apps/worker/
+COPY packages/autorizacao/package.json packages/autorizacao/
+COPY packages/banco/package.json packages/banco/
+COPY packages/compartilhado/package.json packages/compartilhado/
+RUN npm ci --omit=dev -w @gabinete/worker && npm cache clean --force
+
+COPY tsconfig.base.json ./
+COPY packages packages
+COPY apps/worker apps/worker
+
+USER node
+CMD ["node_modules/.bin/tsx", "apps/worker/src/principal.ts"]

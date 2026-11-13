@@ -14,7 +14,12 @@ import { ServicoDeDemandas } from './demandas/servico.js';
 import type { Antivirus } from './documentos/antivirus.js';
 import { registrarRotasDeDocumentos } from './documentos/rotas.js';
 import { ServicoDeDocumentos } from './documentos/servico.js';
+import { registrarRotasDeNotificacoes } from './notificacoes/rotas.js';
+import { ServicoDeNotificacoes } from './notificacoes/servico.js';
 import { registrarRotasDoPainel } from './painel/rotas.js';
+import { ServicoDeAcompanhamento } from './publicacao/acompanhamento.js';
+import { ServicoDePoliticaDePublicacao } from './publicacao/politica.js';
+import { registrarRotasDePublicacao } from './publicacao/rotas.js';
 import { ServicoDoPainel } from './painel/servico.js';
 import { registrarRotasDePessoas } from './pessoas/rotas.js';
 import { ServicoDePessoas } from './pessoas/servico.js';
@@ -160,6 +165,17 @@ export async function construirServidor(dep: DependenciasDoServidor): Promise<Fa
     new ServicoDeDocumentos(bd, dep.armazenamento, consultasDeDemandas, dep.antivirus, agora),
   );
   registrarRotasDoPainel(app, new ServicoDoPainel(bd, agora));
+  registrarRotasDePublicacao(
+    app,
+    new ServicoDePoliticaDePublicacao(bd),
+    new ServicoDeAcompanhamento({
+      conexao: dep.conexao,
+      agora,
+      segredoDaAplicacao: dep.ambiente.SESSAO_SEGREDO,
+      hostnamePublico: dep.ambiente.HOSTNAME_PUBLICO,
+    }),
+  );
+  registrarRotasDeNotificacoes(app, new ServicoDeNotificacoes(bd, agora));
 
   await dep.registrarRotas?.(app);
   return app;

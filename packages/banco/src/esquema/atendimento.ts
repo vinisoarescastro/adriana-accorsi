@@ -1,4 +1,4 @@
-import { bigint, date, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { bigint, boolean, date, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { usuario } from './acesso.js';
 import { etapa, type TipoDeRegistro } from './fluxos.js';
 
@@ -16,6 +16,7 @@ export const pessoa = pgTable('pessoa', {
   nomeCompleto: text('nome_completo'),
   telefoneNormalizado: text('telefone_normalizado'),
   email: text('email'),
+  emailInvalido: boolean('email_invalido').notNull().default(false),
   contatos: text('contatos'),
   endereco: text('endereco'),
   situacao: text('situacao').$type<SituacaoDePessoa>().notNull().default('ativa'),

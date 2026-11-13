@@ -371,6 +371,10 @@ describe('ficha da demanda', () => {
       within(gaveta).queryByRole('button', { name: 'Cancelar demanda' }),
     ).not.toBeInTheDocument();
     expect(within(gaveta).queryByRole('button', { name: 'Mover' })).not.toBeInTheDocument();
+    expect(within(gaveta).queryByLabelText('Novo comentário')).not.toBeInTheDocument();
+    expect(
+      within(gaveta).queryByLabelText('Anexar documento', { exact: false }),
+    ).not.toBeInTheDocument();
   });
 
   it('comentar envia o texto e as menções', async () => {

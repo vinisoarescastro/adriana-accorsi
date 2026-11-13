@@ -1,6 +1,6 @@
 # @gabinete/api
 
-API Fastify da área interna: sessão, autorização, equipe, identidade do gabinete, auditoria, fluxos e atendimento (pessoas, demandas, comentários, documentos e painel).
+API Fastify da área interna: sessão, autorização, equipe, identidade do gabinete, auditoria, fluxos, atendimento (pessoas, demandas, comentários, documentos e painel) e o lado da equipe do cidadão (política, link, andamentos, consentimento e fila de e-mails).
 
 ## Organização
 
@@ -19,6 +19,8 @@ Uma pasta por módulo, cada uma com `rotas.ts` (HTTP), `servico.ts` (regras e tr
 | `comentarios/`   | Comentários internos com menção (nunca públicos)                                                     |
 | `documentos/`    | Envio com verificação de tipo e antivírus (ClamAV), download como anexo                              |
 | `painel/`        | Números do painel de atendimento                                                                     |
+| `publicacao/`    | Política de publicação versionada, link de acompanhamento, prévia e andamentos publicáveis           |
+| `notificacoes/`  | Consentimento de e-mail (LGPD) e a fila de e-mails visível ao Supervisor                             |
 
 ## Regras que valem para toda rota
 

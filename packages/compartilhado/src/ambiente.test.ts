@@ -116,7 +116,7 @@ describe('validarAmbiente', () => {
     expect(() =>
       validarAmbiente(esquemaWorker, {
         ...base,
-        ...armazenamento,
+        SESSAO_SEGREDO: 'x'.repeat(40),
         DATABASE_URL_WORKER: 'postgresql://app_worker:x@127.0.0.1:5432/gabinete',
         EMAIL_PROVEDOR: 'resend',
         EMAIL_API_KEY: 'chave',

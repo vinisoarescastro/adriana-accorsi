@@ -1,4 +1,12 @@
-import { pessoa, registrarTrilha, type BancoDeDados } from '@gabinete/banco';
+import {
+  cancelarEnviosPendentes,
+  consentimentosVigentes,
+  pessoa,
+  registrarConsentimento,
+  registrarTrilha,
+  type BancoDeDados,
+  type Leitor,
+} from '@gabinete/banco';
 import {
   formatarTelefone,
   normalizarTelefone,
@@ -15,11 +23,13 @@ import { erros } from '../erros.js';
 
 type Linha = typeof pessoa.$inferSelect;
 
-export const paraPessoaDto = (l: Linha): PessoaDto => ({
+export const paraPessoaDto = (l: Linha, consentimento = false): PessoaDto => ({
   id: l.id,
   nomeCompleto: l.nomeCompleto,
   telefone: l.telefoneNormalizado ? formatarTelefone(l.telefoneNormalizado) : null,
   email: l.email,
+  emailInvalido: l.emailInvalido,
+  consentimento,
   contatos: l.contatos,
   endereco: l.endereco,
   situacao: l.situacao,
@@ -33,10 +43,22 @@ export const paraPessoaDto = (l: Linha): PessoaDto => ({
 export class ServicoDePessoas {
   constructor(private readonly bd: BancoDeDados) {}
 
+  /** O DTO com o consentimento vigente (uma consulta só, para uma ou várias pessoas). */
+  private async comConsentimento(
+    linhas: readonly Linha[],
+    leitor: Leitor = this.bd,
+  ): Promise<PessoaDto[]> {
+    const vigentes = await consentimentosVigentes(
+      leitor,
+      linhas.map((l) => l.id),
+    );
+    return linhas.map((l) => paraPessoaDto(l, vigentes.get(l.id) ?? false));
+  }
+
   async obter(id: number): Promise<PessoaDto> {
     const [linha] = await this.bd.select().from(pessoa).where(eq(pessoa.id, id)).limit(1);
     if (!linha) throw erros.naoEncontrado();
-    return paraPessoaDto(linha);
+    return (await this.comConsentimento([linha]))[0] as PessoaDto;
   }
 
   /** A pessoa ATIVA com esse telefone, se houver (qualquer forma de escrever o número serve). */
@@ -48,7 +70,7 @@ export class ServicoDePessoas {
       .from(pessoa)
       .where(and(eq(pessoa.telefoneNormalizado, normalizado), eq(pessoa.situacao, 'ativa')))
       .limit(1);
-    return linha ? paraPessoaDto(linha) : null;
+    return linha ? ((await this.comConsentimento([linha]))[0] as PessoaDto) : null;
   }
 
   async listar(filtro: {
@@ -80,7 +102,7 @@ export class ServicoDePessoas {
       .offset(deslocamento);
 
     return {
-      itens: itens.map(paraPessoaDto),
+      itens: await this.comConsentimento(itens),
       total: total?.total ?? 0,
       pagina: filtro.pagina,
       porPagina: filtro.porPagina,
@@ -108,7 +130,20 @@ export class ServicoDePessoas {
           entidade: 'pessoa',
           registroId: (criada as Linha).id,
         });
-        return paraPessoaDto(criada as Linha);
+        if (dados.consentimento) {
+          if (!dados.email)
+            throw erros.conflito('O consentimento por e-mail exige o e-mail da pessoa.');
+          await registrarConsentimento(tx, {
+            pessoaId: (criada as Linha).id,
+            consentido: dados.consentimento.consentido,
+            origem: dados.consentimento.origem,
+            registradoPor: ator.usuarioId,
+            ...(dados.consentimento.consentido
+              ? { versaoTexto: dados.consentimento.versaoTexto }
+              : {}),
+          });
+        }
+        return paraPessoaDto(criada as Linha, dados.consentimento?.consentido === true);
       });
     } catch (erro) {
       this.traduzir(erro, dados.telefone);
@@ -121,7 +156,11 @@ export class ServicoDePessoas {
     const mudancas: Partial<typeof pessoa.$inferInsert> = {};
     if (dados.nome !== undefined) mudancas.nomeCompleto = dados.nome;
     if (dados.telefone !== undefined) mudancas.telefoneNormalizado = dados.telefone;
-    if (dados.email !== undefined) mudancas.email = dados.email;
+    if (dados.email !== undefined) {
+      mudancas.email = dados.email;
+      // Um e-mail corrigido merece nova chance: o marcador de inválido era do endereço antigo.
+      if (dados.email !== atual.email) mudancas.emailInvalido = false;
+    }
     if (dados.contatos !== undefined) mudancas.contatos = dados.contatos;
     if (dados.endereco !== undefined) mudancas.endereco = dados.endereco;
 
@@ -141,7 +180,7 @@ export class ServicoDePessoas {
           // Só os NOMES dos campos: o valor é dado pessoal e não pode ficar na trilha.
           valorNovo: { campos: Object.keys(mudancas) },
         });
-        return paraPessoaDto(salva as Linha);
+        return (await this.comConsentimento([salva as Linha], tx))[0] as PessoaDto;
       });
     } catch (erro) {
       this.traduzir(erro, dados.telefone);
@@ -150,7 +189,7 @@ export class ServicoDePessoas {
 
   async alterarSituacao(ator: Ator, id: number, situacao: 'ativa' | 'inativa'): Promise<PessoaDto> {
     const atual = await this.exigirEditavel(id);
-    if (atual.situacao === situacao) return paraPessoaDto(atual);
+    if (atual.situacao === situacao) return (await this.comConsentimento([atual]))[0] as PessoaDto;
 
     try {
       return await this.bd.transaction(async (tx) => {
@@ -168,7 +207,7 @@ export class ServicoDePessoas {
           valorAnterior: { situacao: atual.situacao },
           valorNovo: { situacao },
         });
-        return paraPessoaDto(salva as Linha);
+        return (await this.comConsentimento([salva as Linha], tx))[0] as PessoaDto;
       });
     } catch (erro) {
       this.traduzir(erro, atual.telefoneNormalizado ?? undefined);
@@ -205,7 +244,15 @@ export class ServicoDePessoas {
         valorNovo: { situacao: 'dados_eliminados' },
         justificativa: 'Eliminação de dados pessoais',
       });
-      return paraPessoaDto(salva as Linha);
+      // Eliminar encerra o consentimento e cancela o que ainda não saiu (e o e-mail já foi apagado).
+      await registrarConsentimento(tx, {
+        pessoaId: id,
+        consentido: false,
+        origem: 'dados_eliminados',
+        registradoPor: ator.usuarioId,
+      });
+      await cancelarEnviosPendentes(tx, id, 'Dados pessoais eliminados');
+      return paraPessoaDto(salva as Linha, false);
     });
   }
 

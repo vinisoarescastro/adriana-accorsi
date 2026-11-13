@@ -1,0 +1,26 @@
+{
+  "name": "@gabinete/publico",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Área pública do cidadão: acompanhamento por link ou por protocolo e telefone. Só leitura, sem login e sem cookie",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "dev": "tsx watch --env-file-if-exists=../../.env src/principal.ts",
+    "start": "tsx --env-file-if-exists=../../.env src/principal.ts"
+  },
+  "dependencies": {
+    "@fastify/formbody": "^8.0.2",
+    "@gabinete/banco": "*",
+    "@gabinete/compartilhado": "*",
+    "fastify": "^5.12.8",
+    "postgres": "^4.1.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tsx": "^4.23.15"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0"
+  }
+}

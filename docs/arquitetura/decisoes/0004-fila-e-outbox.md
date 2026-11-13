@@ -1,6 +1,6 @@
 # 0004. Fila de tarefas e padrão outbox
 
-- Estado: proposta
+- Estado: proposta (a fase 3 seguiu o padrão outbox sem o pg-boss; ver [0009](0009-area-publica-e-envio-de-email.md))
 - Data: 2026-11-10
 
 ## Contexto

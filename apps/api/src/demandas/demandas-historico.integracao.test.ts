@@ -81,3 +81,62 @@ describe('atomicidade (RN-DEM-01)', () => {
     return l;
   }
 });
+
+describe('demanda cancelada é só de leitura (RN-DEM-09)', () => {
+  it('não recebe comentário nem documento, não perde os existentes, e o download segue valendo', async () => {
+    const { cookie } = await preparar();
+    const { demanda } = await registrar(cookie.interno);
+    const pdf = Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n');
+    const anexo = (cookieDe: string) =>
+      a.chamar('POST', `/api/demandas/${demanda.id}/documentos?nome=a.pdf&natureza=outro`, {
+        cookie: cookieDe,
+        corpo: pdf,
+        cabecalhos: { 'content-type': 'application/pdf' },
+      });
+    const comentario = (
+      await a.chamar('POST', `/api/demandas/${demanda.id}/comentarios`, {
+        cookie: cookie.interno,
+        corpo: { texto: 'antes do cancelamento', mencoes: [] },
+      })
+    ).json();
+    const documentos = (await anexo(cookie.interno)).json();
+    expect(documentos).toHaveLength(1);
+
+    await a.chamar('POST', `/api/demandas/${demanda.id}/cancelar`, {
+      cookie: cookie.supervisor,
+      corpo: { justificativa: 'Pedido duplicado do cidadão' },
+    });
+
+    const novo = await a.chamar('POST', `/api/demandas/${demanda.id}/comentarios`, {
+      cookie: cookie.interno,
+      corpo: { texto: 'depois', mencoes: [] },
+    });
+    expect(novo.statusCode).toBe(409);
+    expect((await anexo(cookie.interno)).statusCode).toBe(409);
+    expect(
+      (
+        await a.chamar('DELETE', `/api/comentarios/${comentario[0].id}`, {
+          cookie: cookie.supervisor,
+        })
+      ).statusCode,
+    ).toBe(409);
+    expect(
+      (
+        await a.chamar('DELETE', `/api/documentos/${documentos[0].id}`, {
+          cookie: cookie.supervisor,
+        })
+      ).statusCode,
+    ).toBe(409);
+
+    const ficha = (
+      await a.chamar('GET', `/api/demandas/${demanda.id}`, { cookie: cookie.interno })
+    ).json();
+    expect(ficha.comentarios).toHaveLength(1);
+    expect(ficha.comentarios[0].removido).toBe(false);
+    expect(ficha.documentos).toHaveLength(1);
+    const baixar = await a.chamar('GET', `/api/documentos/${documentos[0].id}/conteudo`, {
+      cookie: cookie.interno,
+    });
+    expect(baixar.statusCode).toBe(200);
+  });
+});

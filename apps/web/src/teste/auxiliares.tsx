@@ -52,6 +52,12 @@ export const todasAsPaginas = [
   { id: 'painel', caminho: '/g/painel', titulo: 'Painel', operacao: 'painel.abrir' },
   { id: 'demandas', caminho: '/g/demandas', titulo: 'Demandas', operacao: 'demandas.consultar' },
   { id: 'pessoas', caminho: '/g/pessoas', titulo: 'Pessoas', operacao: 'pessoas.consultar' },
+  {
+    id: 'emails',
+    caminho: '/g/emails',
+    titulo: 'E-mails',
+    operacao: 'notificacoes.consultar_fila',
+  },
   { id: 'equipe', caminho: '/g/equipe', titulo: 'Equipe', operacao: 'equipe.ver' },
   { id: 'fluxos', caminho: '/g/fluxos', titulo: 'Fluxos', operacao: 'fluxos.consultar' },
   {

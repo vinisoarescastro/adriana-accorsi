@@ -45,15 +45,41 @@ export const esquemaApi = esquemaBase.extend({
 
 export const esquemaPublico = esquemaBase.extend({
   DATABASE_URL_PUBLICO: urlPostgres,
+  HOST_PUBLICO: z.string().min(1).default('127.0.0.1'),
+  PORTA_PUBLICO: z.coerce.number().int().min(1).max(65535).default(3100),
 });
 
-export const esquemaWorker = esquemaBase.extend({
-  DATABASE_URL_WORKER: urlPostgres,
-  EMAIL_PROVEDOR: z.enum(['resend', 'ses', 'brevo', 'smtp']),
-  EMAIL_API_KEY: z.string().min(1),
-  EMAIL_REMETENTE: z.email(),
-  ...armazenamento,
-});
+export const esquemaWorker = esquemaBase
+  .extend({
+    DATABASE_URL_WORKER: urlPostgres,
+    /** Para decifrar o segredo do link e montar o endereço do acompanhamento no e-mail. */
+    SESSAO_SEGREDO: z.string().min(32, 'deve ter ao menos 32 caracteres'),
+    EMAIL_PROVEDOR: z.enum(['resend', 'smtp']),
+    EMAIL_API_KEY: z.string().min(1).optional(),
+    EMAIL_REMETENTE: z.email(),
+    /** SMTP: só em desenvolvimento (Mailpit) ou se o gabinete escolher um servidor próprio. */
+    SMTP_HOST: z.string().min(1).optional(),
+    SMTP_PORTA: z.coerce.number().int().min(1).max(65535).default(1025),
+    /** Proteção da reputação do domínio (RN-NOT-07). */
+    LIMITE_EMAILS_POR_HORA: z.coerce.number().int().min(1).max(10_000).default(30),
+    INTERVALO_DO_WORKER_SEGUNDOS: z.coerce.number().int().min(1).max(3600).default(15),
+  })
+  .superRefine((v, contexto) => {
+    if (v.EMAIL_PROVEDOR === 'resend' && !v.EMAIL_API_KEY) {
+      contexto.addIssue({
+        code: 'custom',
+        path: ['EMAIL_API_KEY'],
+        message: 'obrigatória com o provedor resend',
+      });
+    }
+    if (v.EMAIL_PROVEDOR === 'smtp' && !v.SMTP_HOST) {
+      contexto.addIssue({
+        code: 'custom',
+        path: ['SMTP_HOST'],
+        message: 'obrigatório com o provedor smtp',
+      });
+    }
+  });
 
 /** Comando de migração: roda com o papel dono do esquema. */
 export const esquemaMigracao = z.object({

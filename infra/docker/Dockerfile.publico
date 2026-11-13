@@ -1,0 +1,25 @@
+# Imagem do app público (área do cidadão). Contexto de construção: a RAIZ do repositório.
+FROM node:24-slim
+ENV NODE_ENV=production
+WORKDIR /app
+
+# Dependências de produção só do app público (e dos pacotes que ele usa).
+COPY package.json package-lock.json ./
+COPY apps/api/package.json apps/api/
+COPY apps/publico/package.json apps/publico/
+COPY apps/web/package.json apps/web/
+COPY apps/worker/package.json apps/worker/
+COPY packages/autorizacao/package.json packages/autorizacao/
+COPY packages/banco/package.json packages/banco/
+COPY packages/compartilhado/package.json packages/compartilhado/
+RUN npm ci --omit=dev -w @gabinete/publico && npm cache clean --force
+
+COPY tsconfig.base.json ./
+COPY packages packages
+COPY apps/publico apps/publico
+
+USER node
+EXPOSE 3100
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:3100/saude').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+CMD ["node_modules/.bin/tsx", "apps/publico/src/principal.ts"]

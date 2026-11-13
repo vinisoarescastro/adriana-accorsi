@@ -5,6 +5,7 @@ import { Aviso, AvisoDeErro, Botao, Carregando, Selo } from '../componentes/ui';
 import { formatarDataHora } from '../formatos';
 import { rotuloDaPrioridade, rotuloDoStatus } from '../rotulos';
 import { AcoesDaDemanda } from './AcoesDaDemanda';
+import { AcompanhamentoDoCidadao } from './AcompanhamentoDoCidadao';
 import { ComentariosDaDemanda, DocumentosDaDemanda } from './ComentariosEDocumentos';
 
 /**
@@ -90,10 +91,18 @@ export function FichaDaDemanda({
                 demandaId={ficha.id}
                 comentarios={ficha.comentarios}
                 sessao={sessao}
+                somenteLeitura={ficha.status === 'cancelada'}
               />
               <DocumentosDaDemanda
                 demandaId={ficha.id}
                 documentos={ficha.documentos}
+                sessao={sessao}
+                somenteLeitura={ficha.status === 'cancelada'}
+              />
+              <AcompanhamentoDoCidadao
+                demandaId={ficha.id}
+                solicitanteId={ficha.solicitante.nome === null ? null : ficha.solicitante.id}
+                cancelada={ficha.status === 'cancelada'}
                 sessao={sessao}
               />
               <div className="painel-do-usuario">

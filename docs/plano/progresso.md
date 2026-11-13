@@ -9,13 +9,63 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | 0 | Planejamento | **concluída** | 2026-11-12 | Aprovada. Validações externas (PV-A a PV-F) seguem abertas; as perguntas estão em [perguntas-ao-gabinete.md](perguntas-ao-gabinete.md) |
 | 1 | Fundação | **implementada; falta fechar** (CI verde) | | Código, testes e infraestrutura prontos e verificados **localmente**. Faltam dois itens da definição de pronto: implantação no ambiente de apresentação (decidido: será feita ao fim de todas as fases, PV-E) e conferência manual ([roteiro](../operacao/conferencias/fase1-fundacao.md)). Ver "Fase 1" abaixo |
 | 2 | Atendimento | **implementada; falta fechar** (conferência manual, implantação) | | Código e testes prontos; **CI verde no GitHub** (324 testes). Ver "Fase 2" abaixo |
-| 3 | Cidadão (área pública e e-mail) | não iniciada | | Marco de apresentação à deputada |
+| 3 | Cidadão (área pública e e-mail) | **implementada; falta fechar** (conferência manual, SPF/DKIM/DMARC reais, implantação) | | Marco de apresentação à deputada. Código e testes prontos, verificados **localmente** com Postgres, API, app público, worker e Mailpit de verdade (425 testes verdes e um fluxo completo de 25 verificações). Ver "Fase 3" abaixo |
 | 4 | Trabalho da equipe | não iniciada | | |
 | 5 | Legislativo | não iniciada | | Depende de PV-A |
 | 6 | Financeiro (emendas e CEAP) | não iniciada | | Depende de PV-A e PV-B |
 | 7 | Consolidação | não iniciada | | |
 | 8 | Endurecimento | não iniciada | | |
 | 9 | Opcional (verba de gabinete, WhatsApp) | não iniciada | | Só se o gabinete pedir |
+
+## Fase 3: blocos
+
+| Bloco | Conteúdo | Estado |
+| --- | --- | --- |
+| 3.A | Banco: política de publicação versionada, andamentos, consentimento, fila de envio, três visões públicas e funções nominais (migração 0008) | feito |
+| 3.B | Política de publicação, link (obter, prévia, revogar, regenerar, suspender, retomar) e andamentos na API | feito |
+| 3.C | App público (`apps/publico`): link, protocolo e telefone, descadastro, limite de tentativas | feito |
+| 3.D | Consentimento LGPD: registro, histórico, cancelamento | feito |
+| 3.E | Outbox e worker (`apps/worker`): canal plugável, Resend e SMTP, recuo, limite por hora, reconferência | feito |
+| 3.F | Front: bloco do cidadão na ficha, consentimento, política em Configurações, página E-mails | feito |
+| 3.G | Infra: serviços `publico` e `worker` no compose de produção, bloco do Caddy, imagens na CI | feito e construído localmente; **não executado numa VPS** |
+
+### Verificação da fase 3 (2026-11-13)
+
+- **425 testes verdes** em 45 arquivos (unidade, interface e integração com Postgres real). Formatação, lint, tipos e build do front limpos. As imagens `api`, `publico` e `worker` constroem.
+- **Fluxo completo contra processos reais** (API, app público e worker rodando, Postgres 17 e Mailpit): registrar com e-mail e consentimento, publicar andamento, **e-mail recebido no Mailpit** (assunto, protocolo, links, sem título nem prioridade, cabeçalhos `List-Unsubscribe`), página do cidadão pelo link e por protocolo e telefone, descadastro em dois passos, nenhum e-mail depois do descadastro, fila do Supervisor, revogar o link (404 na área pública, protocolo e telefone seguem valendo) e mudar a política (reflete na página). **25 de 25**.
+- A migração 0008 foi aplicada sobre um banco que já tinha dados da fase 2, e os invariantes de subida passaram.
+- **Não verificado ainda:** conferência manual com navegador e em tela pequena ([roteiro](../operacao/conferencias/fase3-cidadao.md)); envio com o provedor real (Resend) e SPF, DKIM e DMARC (dependem do domínio, PV-E); CI desta fase; implantação.
+
+### Critérios de aceite da fase 3 (plano)
+
+| # | Critério | Estado |
+| --- | --- | --- |
+| 1 | A resposta pública contém exclusivamente o conjunto publicável, conferido campo a campo | verificado (teste lista as colunas das visões) |
+| 2 | Nenhum campo interno aparece, nem oculto na apresentação (inspeção do HTML) | verificado |
+| 3 | Link inválido, revogado, expirado, inexistente e suspenso: mesmo 404 e mesmo corpo | verificado |
+| 4 | Nenhuma rota pública aceita escrita, exceto a consulta por protocolo (e o descadastro, ver desvios) | verificado |
+| 5 | Prioridade, comentários, tarefas, documentos e dado financeiro ou legislativo nunca chegam ao cidadão | verificado |
+| 6 | 5 falhas na consulta bloqueiam a origem por 5 minutos | verificado |
+| 7 | A prévia mostra exatamente o que o cidadão verá | verificado (mesma função, teste de igualdade) |
+| 8 | Ao publicar um andamento, quem consentiu recebe o e-mail; quem não consentiu não | verificado |
+| 9 | O descadastro funciona em um clique e vale na hora | verificado |
+| 10 | Falha do provedor não impede o andamento, e o envio é repetido | verificado |
+| 11 | O link expira conforme a política | verificado |
+
+### Decisões e desvios durante a fase 3
+
+- **Visões com os direitos do dono**, não `security_invoker` (o item 7 do modelo de dados): com `security_invoker` o papel público precisaria de acesso às tabelas internas. A garantia vem de o `app_publico` não ter direito algum nelas, o que um teste confere tabela a tabela.
+- **Expiração do link derivada**, sem coluna: vale desfecho mais os dias da política vigente, calculada na visão.
+- **Segunda escrita nominal na área pública:** o descadastro de e-mail (o plano só previa a consulta por protocolo). Ele é um POST por trás de uma página com botão, porque programas de e-mail abrem links para gerar prévia.
+- **Sem pg-boss nesta fase:** o worker consulta a fila periodicamente (`FOR UPDATE SKIP LOCKED`). Basta para o volume de um gabinete; o pg-boss volta a ser avaliado na fase 4 (avisos agendados). Ver [ADR 0009](../arquitetura/decisoes/0009-area-publica-e-envio-de-email.md).
+- **Um e-mail por desfecho:** mover para a etapa de conclusão gera só o aviso de conclusão, não também o de "etapa visível".
+- **Consentimento é histórico**, não colunas na pessoa: o vigente é o mais recente. A versão 1 do texto é minuta (PV-F).
+- **E-mail inválido:** um erro permanente do provedor marca o e-mail da pessoa até a equipe corrigi-lo; corrigir o e-mail desfaz a marca.
+- **Política de publicação usa o relógio do banco**: o relógio injetável da aplicação, em teste, produzia vigência invertida (a versão inicial nasce com `now()` do banco). Defeito real achado pelos testes.
+- **Protocolo formatado em todas as saídas** (prévia, fila, página pública): as funções puras foram para o pacote compartilhado, porque o app público também as usa. Defeito achado pelos testes (saía sem hífens).
+- **Recusa de variáveis alheias só em produção:** a API, o público e o worker recusavam subir com o `.env` único de desenvolvimento (que tem a conexão administrativa). Defeito achado ao rodar o sistema de verdade; agora a recusa vale em produção, onde os arquivos são separados.
+- `PessoaDto` ganhou `emailInvalido` e `consentimento`; a lista de pessoas mostra os avisos em texto.
+- A prévia e o app público leem pela **mesma função** (`@gabinete/banco/publico`).
 
 ## Fase 2: blocos
 
@@ -156,6 +206,8 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | 2026-11-12 | Fluxo da despesa da CEAP **com** etapas pós-aprovação (Apresentada à Câmara, Ressarcida, Glosada) |
 | 2026-11-12 | Chave primária **`bigint` com identidade** (ADR 0007). Nenhum identificador sequencial exposto ao cidadão |
 | 2026-11-12 | Fase 0 aprovada; fase 1 implementada por inteiro |
+| 2026-11-13 | Fase 3 implementada por inteiro (ver "Fase 3" acima) |
+| 2026-11-13 | Demanda cancelada é **só de leitura**: sem comentário nem documento novo, e sem remover os existentes (ler e baixar seguem). Fase 3 aprovada para começar |
 
 ## Decisões abertas
 

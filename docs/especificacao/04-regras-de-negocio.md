@@ -31,7 +31,7 @@ Estado: rascunho da fase 0. Cada regra tem um identificador estável (`RN-`) par
 | RN-DEM-06 | Não existe coluna de status: o status é derivado do papel da etapa |
 | RN-DEM-07 | Registrar e consultar: Assessor Externo ou superior, mas o Assessor Externo só vê as demandas de que é responsável. Ficha completa: Assessor Interno ou superior |
 | RN-DEM-08 | Editar e mover: Supervisor ou superior, ou o responsável. Reatribuir e cancelar: Supervisor ou superior |
-| RN-DEM-09 | Cancelar exige justificativa de 10 caracteres ou mais; demanda cancelada não se altera |
+| RN-DEM-09 | Cancelar exige justificativa de 10 caracteres ou mais; demanda cancelada não se altera, e a ficha fica só de leitura: não recebe nem perde comentário ou documento (ler e baixar continuam) |
 | RN-DEM-10 | Concluir a última tarefa de uma demanda não a conclui; o serviço só conta tarefas pendentes, para avisar |
 | RN-DEM-11 | Demanda não é apagada |
 

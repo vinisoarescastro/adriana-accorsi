@@ -6,6 +6,7 @@ import { chamar } from '../api/cliente';
 import { chaves, useGabinete } from '../api/consultas';
 import { EnvioDeFoto } from '../componentes/EnvioDeFoto';
 import { Aviso, AvisoDeErro, Botao, Campo, Carregando } from '../componentes/ui';
+import { PoliticaDePublicacao } from './PoliticaDePublicacao';
 
 type Campos = Record<
   | 'nome'
@@ -144,6 +145,8 @@ export function PaginaConfiguracoes({ sessao }: { sessao: RespostaDaSessao }) {
         inicial={gabinete ?? null}
         edita={edita}
       />
+
+      <PoliticaDePublicacao sessao={sessao} />
 
       {gabinete?.temFoto ? (
         <div className="cartao">

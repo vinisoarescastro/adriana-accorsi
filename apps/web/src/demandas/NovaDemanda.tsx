@@ -1,6 +1,8 @@
 import { nivelDoPerfil } from '@gabinete/autorizacao';
 import {
+  origensDeConsentimentoRegistravel,
   prioridades,
+  textoDeConsentimento,
   type DemandaRegistrada,
   type PessoaDto,
   type Prioridade,
@@ -12,7 +14,7 @@ import { chamar } from '../api/cliente';
 import { buscarPessoaPorTelefone, chavesDoAtendimento } from '../api/atendimento';
 import { useEquipe } from '../api/consultas';
 import { Aviso, AvisoDeErro, Botao, Campo } from '../componentes/ui';
-import { rotuloDaPrioridade } from '../rotulos';
+import { rotuloDaOrigemDoConsentimento, rotuloDaPrioridade } from '../rotulos';
 
 /**
  * Registro de demanda em UMA tela: busca a pessoa pelo telefone (e usa o cadastro que existir) ou
@@ -33,6 +35,10 @@ export function NovaDemanda({
   const [existente, setExistente] = useState<PessoaDto | null>(null);
   const [verificado, setVerificado] = useState(false);
   const [nome, setNome] = useState('');
+  const [email, setEmail] = useState('');
+  const [consentiu, setConsentiu] = useState(false);
+  const [origem, setOrigem] =
+    useState<(typeof origensDeConsentimentoRegistravel)[number]>('atendimento_telefonico');
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
   const [prioridade, setPrioridade] = useState<Prioridade>('media');
@@ -59,7 +65,23 @@ export function NovaDemanda({
     mutationFn: () =>
       chamar<DemandaRegistrada>('POST', '/api/demandas', {
         corpo: {
-          solicitante: existente ? { pessoaId: existente.id } : { nome, telefone },
+          solicitante: existente
+            ? { pessoaId: existente.id }
+            : {
+                nome,
+                telefone,
+                ...(email.trim() ? { email: email.trim() } : {}),
+                // O consentimento só vale com e-mail, e começa desmarcado.
+                ...(email.trim() && consentiu
+                  ? {
+                      consentimento: {
+                        consentido: true,
+                        origem,
+                        versaoTexto: textoDeConsentimento.versao,
+                      },
+                    }
+                  : {}),
+              },
           titulo,
           prioridade,
           ...(descricao ? { descricao } : {}),
@@ -84,7 +106,7 @@ export function NovaDemanda({
           <strong className="protocolo">{demanda.protocolo}</strong>
         </p>
         <p className="campo__ajuda">
-          Link de acompanhamento (só funciona quando a área pública entrar no ar, na fase 3):{' '}
+          Link de acompanhamento (entregue só ao próprio cidadão):{' '}
           <code>{linkDeAcompanhamento}</code>
         </p>
         <div className="acoes">
@@ -151,6 +173,59 @@ export function NovaDemanda({
             />
           )}
         </Campo>
+      ) : null}
+
+      {precisaDeNome ? (
+        <fieldset className="grupo-de-opcoes">
+          <legend>Avisos por e-mail (opcional)</legend>
+          <Campo rotulo="E-mail" ajuda="Só é usado para avisar o andamento desta solicitação.">
+            {(p) => (
+              <input
+                {...p}
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (!e.target.value.trim()) setConsentiu(false);
+                }}
+                maxLength={254}
+              />
+            )}
+          </Campo>
+          {email.trim() ? (
+            <>
+              <p className="campo__ajuda">Leia ao cidadão e só marque se ele disser sim:</p>
+              <blockquote className="texto-de-consentimento">
+                {textoDeConsentimento.texto}
+              </blockquote>
+              <label className="opcao">
+                <input
+                  type="checkbox"
+                  checked={consentiu}
+                  onChange={(e) => setConsentiu(e.target.checked)}
+                />
+                Li o texto ao cidadão e ele concordou em receber avisos por e-mail
+              </label>
+              {consentiu ? (
+                <Campo rotulo="Como o cidadão autorizou">
+                  {(p) => (
+                    <select
+                      {...p}
+                      value={origem}
+                      onChange={(e) => setOrigem(e.target.value as typeof origem)}
+                    >
+                      {origensDeConsentimentoRegistravel.map((o) => (
+                        <option key={o} value={o}>
+                          {rotuloDaOrigemDoConsentimento[o]}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </Campo>
+              ) : null}
+            </>
+          ) : null}
+        </fieldset>
       ) : null}
 
       <Campo rotulo="Título">

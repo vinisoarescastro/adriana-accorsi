@@ -5,6 +5,7 @@ import { Fragment, useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
 import { chavesDoAtendimento, usePessoas } from '../api/atendimento';
 import { chamar } from '../api/cliente';
+import { ConsentimentoDeNotificacao } from '../componentes/ConsentimentoDeNotificacao';
 import { Aviso, AvisoDeErro, Botao, Campo, Carregando, Selo } from '../componentes/ui';
 
 const rotuloDaSituacao = {
@@ -12,6 +13,14 @@ const rotuloDaSituacao = {
   inativa: 'Inativa',
   dados_eliminados: 'Dados eliminados',
 } as const;
+
+/** Em texto, nunca só por cor: consentimento, e-mail ausente ou recusado pelo provedor. */
+function rotuloDosAvisos(p: PessoaDto): string {
+  if (p.situacao === 'dados_eliminados') return '-';
+  if (!p.email) return 'Sem e-mail';
+  if (p.emailInvalido) return 'E-mail recusado';
+  return p.consentimento ? 'Ativados' : 'Desativados';
+}
 
 function FormularioDePessoa({
   pessoa,
@@ -132,6 +141,7 @@ function AcoesDaPessoa({ pessoa, sessao }: { pessoa: PessoaDto; sessao: Resposta
   const cliente = useQueryClient();
   const autoridade = { perfil: sessao.usuario.perfil, habilitacoes: sessao.usuario.habilitacoes };
   const [editando, setEditando] = useState(false);
+  const [avisos, setAvisos] = useState(false);
   const atualizar = () => cliente.invalidateQueries({ queryKey: chavesDoAtendimento.tudo });
 
   const situacao = useMutation({
@@ -192,6 +202,16 @@ function AcoesDaPessoa({ pessoa, sessao }: { pessoa: PessoaDto; sessao: Resposta
             Eliminar dados
           </Botao>
         ) : null}
+        {pode('consentimento.registrar', autoridade) ? (
+          <Botao
+            pequeno
+            variante="secundario"
+            onClick={() => setAvisos((v) => !v)}
+            aria-expanded={avisos}
+          >
+            Avisos por e-mail
+          </Botao>
+        ) : null}
         <Link
           className="botao botao--secundario botao--pequeno"
           to={`/g/demandas?solicitante=${pessoa.id}`}
@@ -202,6 +222,7 @@ function AcoesDaPessoa({ pessoa, sessao }: { pessoa: PessoaDto; sessao: Resposta
       {editando ? (
         <FormularioDePessoa pessoa={pessoa} aoConcluir={() => setEditando(false)} />
       ) : null}
+      {avisos ? <ConsentimentoDeNotificacao pessoaId={pessoa.id} sessao={sessao} /> : null}
     </div>
   );
 }
@@ -291,6 +312,7 @@ export function PaginaPessoas({ sessao }: { sessao: RespostaDaSessao }) {
                 <th scope="col">Telefone</th>
                 <th scope="col">E-mail</th>
                 <th scope="col">Situação</th>
+                <th scope="col">Avisos por e-mail</th>
                 <th scope="col">Ações</th>
               </tr>
             </thead>
@@ -306,6 +328,7 @@ export function PaginaPessoas({ sessao }: { sessao: RespostaDaSessao }) {
                         {rotuloDaSituacao[p.situacao]}
                       </Selo>
                     </td>
+                    <td>{rotuloDosAvisos(p)}</td>
                     <td>
                       <AcoesDaPessoa pessoa={p} sessao={sessao} />
                     </td>

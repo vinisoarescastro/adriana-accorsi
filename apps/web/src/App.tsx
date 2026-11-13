@@ -5,6 +5,7 @@ import { PaginaTrocarSenha } from './acesso/PaginaTrocarSenha';
 import { PaginaAuditoria } from './auditoria/PaginaAuditoria';
 import { PaginaConfiguracoes } from './configuracoes/PaginaConfiguracoes';
 import { PaginaDemandas } from './demandas/PaginaDemandas';
+import { PaginaEmails } from './emails/PaginaEmails';
 import { PaginaEquipe } from './equipe/PaginaEquipe';
 import { PaginaFluxos } from './fluxos/PaginaFluxos';
 import { Layout } from './layout/Layout';
@@ -59,6 +60,14 @@ function RotasDaArea() {
             element={
               <ExigePagina id="pessoas" sessao={sessao}>
                 <PaginaPessoas sessao={sessao} />
+              </ExigePagina>
+            }
+          />
+          <Route
+            path="emails"
+            element={
+              <ExigePagina id="emails" sessao={sessao}>
+                <PaginaEmails />
               </ExigePagina>
             }
           />

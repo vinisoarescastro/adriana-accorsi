@@ -6,7 +6,7 @@ import {
   type NaturezaDeDocumento,
 } from '@gabinete/compartilhado';
 import { eq } from 'drizzle-orm';
-import { carregarDemandaAlcancavel } from '../atendimento/comum.js';
+import { carregarDemandaAlcancavel, exigirDemandaAberta } from '../atendimento/comum.js';
 import type { Armazenamento } from '../armazenamento/armazenamento.js';
 import type { ConsultasDeDemandas } from '../demandas/consultas.js';
 import type { Ator } from '../equipe/regras.js';
@@ -38,7 +38,7 @@ export class ServicoDeDocumentos {
     demandaId: number,
     dados: { nome: string; natureza: NaturezaDeDocumento; bytes: Buffer },
   ): Promise<DocumentoDto[]> {
-    await carregarDemandaAlcancavel(this.bd, ator, demandaId);
+    exigirDemandaAberta(await carregarDemandaAlcancavel(this.bd, ator, demandaId));
 
     if (dados.bytes.length === 0) throw erros.arquivoInvalido('O arquivo está vazio.');
     if (dados.bytes.length > tamanhoMaximoDoDocumento) {
@@ -128,7 +128,7 @@ export class ServicoDeDocumentos {
   /** Remover MARCA o documento como removido; os bytes e o registro ficam (prestação de contas). */
   async remover(ator: Ator, documentoId: number): Promise<DocumentoDto[]> {
     const doc = await this.carregar(documentoId);
-    await carregarDemandaAlcancavel(this.bd, ator, doc.registroId);
+    exigirDemandaAberta(await carregarDemandaAlcancavel(this.bd, ator, doc.registroId));
     if (doc.situacao === 'removido') throw erros.conflito('O documento já foi removido.');
 
     await this.bd.transaction(async (tx) => {

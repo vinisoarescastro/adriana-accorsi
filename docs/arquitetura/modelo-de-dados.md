@@ -62,7 +62,7 @@ Restrições: uma etapa de Entrada, uma de Arquivamento e ao menos uma de Conclu
 | Tabela | Colunas principais | Observações |
 | --- | --- | --- |
 | `pessoa` | `nome_completo`, `telefone_normalizado`, `email`, `contatos`, `endereco`, `situacao` (ativa, inativa, dados_eliminados) | Telefone único entre pessoas ativas (índice parcial) |
-| `consentimento_notificacao` | `pessoa_id`, `consentido` (bool), `registrado_por`, `registrado_em`, `origem`, `versao_texto`, `cancelado_em` | Histórico; o vigente é o mais recente |
+| `consentimento_notificacao` | `pessoa_id`, `consentido` (bool), `registrado_por`, `registrado_em`, `origem` (atendimento telefônico ou presencial, pedido ao gabinete, descadastro do cidadão, dados eliminados), `versao_texto` | **Só acrescenta** (gatilho). O vigente é o mais recente; "sim" exige versão do texto e quem registrou. Sem `cancelado_em`: cancelar é um registro novo. A pessoa ganhou `email_invalido` |
 
 ## 6. Atendimento
 
@@ -70,7 +70,8 @@ Restrições: uma etapa de Entrada, uma de Arquivamento e ao menos uma de Conclu
 | --- | --- | --- |
 | `protocolo_emitido` | `protocolo` (único) | Garante unicidade e nunca reutilização. Só acrescenta (gatilho); guardado sem hífens |
 | `demanda` | `protocolo`, `segredo_link_hash`, `solicitante_id`, `responsavel_id`, `autor_id`, `titulo`, `descricao`, `prioridade`, `etapa_atual_id`, `prazo`, `publicacao_link` (ativa, suspensa, revogada, expirada), `desfecho_em`, `link_expira_em`, `cancelada_em`, `justificativa_cancelamento`, `criado_em`, `atualizado_em` | Sem coluna de status. Gatilho: `protocolo` imutável. O segredo do link é guardado como hash SHA-256 **e** como cópia cifrada (AES-256-GCM), ver ADR 0008 |
-| `publicacao_andamento` | `demanda_id`, `autor_id`, `texto`, `publicado_em`, `situacao` (publicada, removida) | Entidade distinta de `comentario_interno` |
+| `andamento_publicado` | `demanda_id`, `texto` (até 600), `autor_id`, `publicado_em`, `situacao` (publicado, removido), `removido_por`, `removido_em` | Entidade distinta de `comentario_interno`. Gatilho: só se marca como removido; o texto fica. (Nome diferente do rascunho) |
+| `politica_publicacao` | `exibir_titulo`, `exibicao_nome`, `exibicao_telefone`, `expiracao_dias` (7 a 1.825), `vigente_desde`, `vigente_ate`, `criado_por` | Versionada: uma só vigente (índice parcial); versão encerrada não muda; nada se apaga. A inicial é a mais restritiva |
 
 ## 7. Ligação
 
@@ -155,7 +156,7 @@ Não existe coluna de saldo. O acúmulo é limitado ao exercício (zera na virad
 
 | Tabela | Colunas principais | Observações |
 | --- | --- | --- |
-| `envio_notificacao` | `pessoa_id`, `demanda_id`, `evento` (andamento_publicado, etapa_visivel, conclusao, cancelamento), `canal` (email), `payload`, `estado` (pendente, enviando, enviado, falhou, cancelado), `tentativas`, `proxima_tentativa_em`, `provedor_id_mensagem`, `erro`, `criado_em`, `enviado_em` | Inserido na mesma transação do ato. O worker lê e envia. `app_worker` só insere em `aviso` e atualiza `envio_notificacao` |
+| `envio_notificacao` | `pessoa_id`, `demanda_id`, `evento` (andamento_publicado, etapa_visivel, conclusao, cancelamento), `canal` (email), `payload` (jsonb), `descadastro_hash` (único por mensagem), `estado` (pendente, enviando, enviado, falhou, cancelado), `tentativas`, `proxima_tentativa_em`, `provedor_id_mensagem`, `erro`, `criado_em`, `enviado_em` | Inserido na mesma transação do ato, só se a pessoa pode ser notificada. O worker lê pela visão `vw_envio_para_enviar` e só atualiza esta tabela. O `payload` nunca leva título, descrição nem prioridade |
 
 ## 14. Auditoria
 
@@ -165,25 +166,29 @@ Não existe coluna de saldo. O acúmulo é limitado ao exercício (zera na virad
 
 ## 15. Visão pública
 
-A área pública só lê a visão `vw_acompanhamento_publico`, que expõe exclusivamente o conjunto publicável:
+A área pública só lê três visões, todas montadas sobre a mesma regra de quem aparece (link ativo ou revogado, não expirado; suspenso fecha as duas vias):
 
-- protocolo, data de cadastro, data da última atualização;
-- etapa atual pelo rótulo público e status derivado do papel;
-- etapas concluídas e próximas previstas (sem data), só as visíveis;
-- andamentos publicados;
-- título, nome e telefone do solicitante **conforme a política vigente** (já filtrados e mascarados na visão);
-- nome, apresentação e contato do gabinete.
+| Visão | O que expõe |
+| --- | --- |
+| `vw_acompanhamento_publico` | Protocolo, segredo do link (só se ativo), se o link está ativo, datas de cadastro e de última atualização, situação derivada do papel da etapa (em andamento, concluída, arquivada, cancelada), título, nome e telefone **conforme a política vigente** (já filtrados e mascarados aqui), nome, parlamentar e contato do gabinete |
+| `vw_acompanhamento_etapas` | Só as etapas de rótulo público, sem lacunas e sem o nome interno; concluídas e a atual com data, previstas sem data (e só enquanto a demanda anda) |
+| `vw_acompanhamento_andamentos` | Os andamentos publicados (texto e data), sem autor |
 
-O papel `app_publico` só tem `SELECT` nessa visão. Valores monetários, legislativo, comentários, documentos, tarefas e usuários **não existem** para esse papel.
+- A **expiração é derivada**: o link vale até `desfecho + dias da política vigente` (o desfecho é o cancelamento, ou a última entrada na etapa de conclusão ou arquivamento). Demanda em andamento nunca expira.
+- As visões valem com os direitos do dono do esquema (não `security_invoker`): o papel público só precisa de `SELECT` nelas. Valores monetários, legislativo, comentários, documentos, tarefas, prioridade, responsável e usuários **não existem** para esse papel. Um teste lista as colunas de cada visão.
+- A pré-visualização da equipe (`app_api`) lê as **mesmas** visões, pela mesma função.
+- `vw_envio_para_enviar` é a visão do worker: o envio, o e-mail e o primeiro nome da pessoa, o consentimento vigente, o protocolo, o estado do link, a cópia cifrada do segredo e o contato do gabinete.
 
 ## 16. Papéis de banco
 
 | Papel | Pode |
 | --- | --- |
 | `app_migracao` | Dono do esquema; só usado para migrar |
-| `app_api` | CRUD nas tabelas de aplicação, exceto UPDATE e DELETE em `trilha`; sem propriedade; sem `BYPASSRLS` |
-| `app_worker` | `INSERT` em `aviso`; `SELECT` e `UPDATE` de estado em `envio_notificacao`; leitura do necessário para gerar prazos |
-| `app_publico` | `SELECT` em `vw_acompanhamento_publico`. O registro de acesso do cidadão na trilha entra na fase 3, por uma função própria (hoje não tem nenhuma permissão de tabela) |
+| `app_api` | CRUD nas tabelas de aplicação, exceto UPDATE e DELETE em `trilha`; lê as visões públicas (prévia); sem propriedade; sem `BYPASSRLS` |
+| `app_worker` | `SELECT` em `vw_envio_para_enviar`; `SELECT` e `UPDATE` em `envio_notificacao`; executa `marcar_email_invalido`. Nada mais |
+| `app_publico` | `SELECT` nas três visões públicas; executa `consultar_protocolo`, `registrar_acesso_publico` (grava na trilha, sem dado do visitante) e `descadastrar_por_token`. **Nenhum direito em tabelas** |
+
+As funções são `SECURITY DEFINER`, com `search_path` fixo e `EXECUTE` revogado de `PUBLIC`.
 
 ## 17. Invariantes verificados na subida
 
@@ -197,7 +202,7 @@ O processo não sobe se qualquer um falhar:
 4. Nenhuma coluna de saldo armazenado.
 5. Toda coluna monetária declarada e com restrição de não negativo.
 6. Sessão com ticket no servidor.
-7. Visões em `security_invoker`.
+7. Visões públicas sem direito do papel público nas tabelas de base (ver seção 15: não usam `security_invoker`).
 8. `app_publico` sem escrita, exceto o registro de acesso.
 9. `app_worker` só com as escritas declaradas.
 10. Gatilho do "sempre um administrador" presente.

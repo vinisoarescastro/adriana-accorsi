@@ -57,6 +57,24 @@ jobs:
           tags: |
             ghcr.io/${{ steps.nome.outputs.repo }}/api:main
             ghcr.io/${{ steps.nome.outputs.repo }}/api:${{ github.sha }}
+      - name: Imagem do app público
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/Dockerfile.publico
+          push: true
+          tags: |
+            ghcr.io/${{ steps.nome.outputs.repo }}/publico:main
+            ghcr.io/${{ steps.nome.outputs.repo }}/publico:${{ github.sha }}
+      - name: Imagem do worker
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/Dockerfile.worker
+          push: true
+          tags: |
+            ghcr.io/${{ steps.nome.outputs.repo }}/worker:main
+            ghcr.io/${{ steps.nome.outputs.repo }}/worker:${{ github.sha }}
       - name: Imagem do Caddy (com a SPA)
         uses: docker/build-push-action@v6
         with:

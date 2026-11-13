@@ -1,0 +1,22 @@
+{
+  "name": "@gabinete/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Worker: envia os e-mails da fila (outbox) ao cidadão. Nenhuma automação decide: só envia o que o ato gravou",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "dev": "tsx watch --env-file-if-exists=../../.env src/principal.ts",
+    "start": "tsx --env-file-if-exists=../../.env src/principal.ts"
+  },
+  "dependencies": {
+    "@gabinete/banco": "*",
+    "@gabinete/compartilhado": "*",
+    "nodemailer": "^7.0.10",
+    "postgres": "^4.1.1",
+    "tsx": "^4.23.15"
+  },
+  "devDependencies": {
+    "@types/nodemailer": "^7.0.4"
+  }
+}

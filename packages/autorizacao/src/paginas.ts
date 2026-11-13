@@ -9,6 +9,11 @@ export const paginas = {
   painel: { caminho: '/g/painel', titulo: 'Painel', operacao: 'painel.abrir' },
   demandas: { caminho: '/g/demandas', titulo: 'Demandas', operacao: 'demandas.consultar' },
   pessoas: { caminho: '/g/pessoas', titulo: 'Pessoas', operacao: 'pessoas.consultar' },
+  emails: {
+    caminho: '/g/emails',
+    titulo: 'E-mails',
+    operacao: 'notificacoes.consultar_fila',
+  },
   equipe: { caminho: '/g/equipe', titulo: 'Equipe', operacao: 'equipe.ver' },
   fluxos: { caminho: '/g/fluxos', titulo: 'Fluxos', operacao: 'fluxos.consultar' },
   auditoria: {

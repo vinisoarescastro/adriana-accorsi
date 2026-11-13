@@ -14,8 +14,11 @@ import { construirServidor } from './servidor.js';
  */
 async function iniciar(): Promise<void> {
   // A conexão administrativa só existe para o comando de papéis: o processo da API recusa tê-la.
+  // Em produção cada processo recebe só o que é seu (arquivos de ambiente separados) e RECUSA o resto.
+  // Em desenvolvimento há um único .env com tudo, então a recusa só vale em produção.
+  const emProducao = process.env.NODE_ENV === 'production';
   const ambiente = validarAmbiente(esquemaApi, process.env, {
-    proibidas: ['DATABASE_URL_ADMIN', 'DATABASE_URL_MIGRACAO'],
+    proibidas: emProducao ? ['DATABASE_URL_ADMIN', 'DATABASE_URL_MIGRACAO'] : [],
   });
   const conexao = abrirConexao(ambiente.DATABASE_URL_API);
 

@@ -13,7 +13,7 @@ import {
   type CorpoNovoComentario,
 } from '@gabinete/compartilhado';
 import { and, eq, inArray } from 'drizzle-orm';
-import { carregarDemandaAlcancavel } from '../atendimento/comum.js';
+import { carregarDemandaAlcancavel, exigirDemandaAberta } from '../atendimento/comum.js';
 import type { ConsultasDeDemandas } from '../demandas/consultas.js';
 import type { Ator } from '../equipe/regras.js';
 import { erros } from '../erros.js';
@@ -51,7 +51,7 @@ export class ServicoDeComentarios {
   }
 
   async criar(ator: Ator, demandaId: number, dados: CorpoNovoComentario): Promise<ComentarioDto[]> {
-    await carregarDemandaAlcancavel(this.bd, ator, demandaId);
+    exigirDemandaAberta(await carregarDemandaAlcancavel(this.bd, ator, demandaId));
     const mencionados = await this.mencionaveis(dados.mencoes);
 
     await this.bd.transaction(async (tx) => {
@@ -91,7 +91,7 @@ export class ServicoDeComentarios {
       .where(eq(comentarioInterno.id, comentarioId))
       .limit(1);
     if (!comentario || comentario.registroTipo !== 'demanda') throw erros.naoEncontrado();
-    await carregarDemandaAlcancavel(this.bd, ator, comentario.registroId);
+    exigirDemandaAberta(await carregarDemandaAlcancavel(this.bd, ator, comentario.registroId));
 
     if (comentario.autorId !== ator.usuarioId && nivelDoPerfil[ator.perfil] < 3) {
       throw erros.semPermissao('Só o autor ou um Supervisor remove um comentário.');

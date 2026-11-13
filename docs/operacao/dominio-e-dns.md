@@ -7,7 +7,7 @@ Estado: **a configurar** (depende de PV-E: acesso ao DNS de `nucleodedados.com` 
 | Uso | Endereço | Quando |
 | --- | --- | --- |
 | Aplicação da equipe | `dominio.nucleodedados.com` (o nome real do subdomínio é pendência) | Fase 1 |
-| Página do cidadão | `acompanhe.dominio.nucleodedados.com` | Fase 3 |
+| Página do cidadão | `acompanhe.dominio.nucleodedados.com` | Fase 3 (implementada) |
 
 As duas ficam em **origens separadas**, para que o cookie e a política de segurança não se misturem.
 
@@ -23,7 +23,7 @@ O certificado HTTPS é obtido e renovado **sozinho** pelo Caddy (Let's Encrypt),
 
 ## E-mail ao cidadão (fase 3)
 
-O e-mail de andamento sairá de um domínio remetente. Antes do primeiro envio real, configurar:
+O e-mail de andamento sai do domínio de `EMAIL_REMETENTE`. Antes do primeiro envio real, configurar:
 
 | Registro | O que faz |
 | --- | --- |

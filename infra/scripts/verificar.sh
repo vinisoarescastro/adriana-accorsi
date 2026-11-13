@@ -18,8 +18,10 @@ ok() { echo "ok     $1"; }
 falha() { echo "FALHOU $1"; falhas=$((falhas + 1)); }
 
 # 1. Serviços de pé
-for servico in postgres api caddy; do
-  estado="$(docker compose -f "$COMPOSE" ps --format '{{.State}}' "$servico" 2>/dev/null | head -1)"
+ENV_COMPOSE=()
+[ -f .env.producao ] && ENV_COMPOSE=(--env-file .env.producao)
+for servico in postgres api publico worker caddy; do
+  estado="$(docker compose "${ENV_COMPOSE[@]}" -f "$COMPOSE" ps --format '{{.State}}' "$servico" 2>/dev/null | head -1)"
   if [ "$estado" = "running" ]; then ok "serviço $servico em execução"; else falha "serviço $servico não está em execução (estado: ${estado:-desconhecido})"; fi
 done
 

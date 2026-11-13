@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { esquemaConsentimento } from './cidadao.js';
 
 /** Contratos do atendimento: pessoas, demandas, comentários internos, documentos e painel. */
 
@@ -64,6 +65,8 @@ export const esquemaNovaPessoa = z.object({
   email: z.email().max(254).optional(),
   contatos: texto(500).optional(),
   endereco: texto(300).optional(),
+  /** Consentimento de notificação por e-mail, já na hora do cadastro (exige e-mail). */
+  consentimento: esquemaConsentimento.optional(),
 });
 export type CorpoNovaPessoa = z.infer<typeof esquemaNovaPessoa>;
 
@@ -91,6 +94,10 @@ export interface PessoaDto {
   readonly nomeCompleto: string | null;
   readonly telefone: string | null;
   readonly email: string | null;
+  /** O provedor recusou este e-mail em definitivo: não se envia até alguém corrigi-lo. */
+  readonly emailInvalido: boolean;
+  /** Consentimento vigente para notificação por e-mail (histórico em /api/pessoas/:id/consentimento). */
+  readonly consentimento: boolean;
   readonly contatos: string | null;
   readonly endereco: string | null;
   readonly situacao: SituacaoDePessoaDto;
@@ -121,7 +128,12 @@ export const esquemaNovaDemanda = z.object({
   /** Pessoa já cadastrada, ou os dados para cadastrá-la na mesma operação. */
   solicitante: z.union([
     z.object({ pessoaId: id }),
-    z.object({ nome: texto(160).min(1), telefone, email: z.email().max(254).optional() }),
+    z.object({
+      nome: texto(160).min(1),
+      telefone,
+      email: z.email().max(254).optional(),
+      consentimento: esquemaConsentimento.optional(),
+    }),
   ]),
   titulo: texto(200).min(1),
   descricao: texto(5000).optional(),

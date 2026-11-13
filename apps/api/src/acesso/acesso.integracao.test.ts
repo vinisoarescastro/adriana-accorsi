@@ -35,6 +35,7 @@ describe('entrar', () => {
       'painel',
       'demandas',
       'pessoas',
+      'emails',
       'equipe',
       'fluxos',
       'auditoria',

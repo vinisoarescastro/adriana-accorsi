@@ -1,5 +1,7 @@
 # Produção (VPS). Só o Caddy publica portas. Segredos ficam em .env.producao (fora do repositório).
-# O worker e o app público entram nas fases 3 e 4, quando existirem.
+# O app público e o worker NÃO usam env_file: recebem só o que precisam (o público nunca vê o segredo
+# da aplicação nem as credenciais do armazenamento). Por isso os scripts passam --env-file .env.producao
+# ao compose, para a interpolação das variáveis abaixo.
 
 name: gabinete
 
@@ -46,6 +48,45 @@ services:
         condition: service_started
     # Sem "ports": só o Caddy fala com a API.
 
+  # Área pública do cidadão: só lê as visões públicas, com o papel app_publico. Sem portas publicadas.
+  publico:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.publico
+    image: ${IMAGEM_PUBLICO:-gabinete-publico:local}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOSTNAME_APP: ${HOSTNAME_APP}
+      HOSTNAME_PUBLICO: ${HOSTNAME_PUBLICO}
+      DATABASE_URL_PUBLICO: ${DATABASE_URL_PUBLICO}
+      HOST_PUBLICO: 0.0.0.0
+      PORTA_PUBLICO: '3100'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Worker: envia os e-mails da fila (outbox). Só fala com o banco (papel app_worker) e com o provedor.
+  worker:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.worker
+    image: ${IMAGEM_WORKER:-gabinete-worker:local}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOSTNAME_APP: ${HOSTNAME_APP}
+      HOSTNAME_PUBLICO: ${HOSTNAME_PUBLICO}
+      DATABASE_URL_WORKER: ${DATABASE_URL_WORKER}
+      SESSAO_SEGREDO: ${SESSAO_SEGREDO}
+      EMAIL_PROVEDOR: ${EMAIL_PROVEDOR:-resend}
+      EMAIL_API_KEY: ${EMAIL_API_KEY:-}
+      EMAIL_REMETENTE: ${EMAIL_REMETENTE}
+      LIMITE_EMAILS_POR_HORA: ${LIMITE_EMAILS_POR_HORA:-30}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   caddy:
     build:
       context: .
@@ -62,6 +103,7 @@ services:
       - caddy_config:/config
     depends_on:
       - api
+      - publico
 
 volumes:
   postgres_dados:

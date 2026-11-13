@@ -9,6 +9,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./senha": "./src/senha.ts",
+    "./publico": "./src/publico.ts",
     "./teste": "./src/teste/auxiliares.ts"
   },
   "scripts": {

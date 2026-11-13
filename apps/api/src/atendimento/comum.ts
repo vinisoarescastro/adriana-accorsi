@@ -1,11 +1,11 @@
-import { demanda, habilitacao, usuario, type BancoDeDados, type Transacao } from '@gabinete/banco';
+import { demanda, habilitacao, usuario, type Leitor } from '@gabinete/banco';
 import { composicaoDeAlcance } from '@gabinete/autorizacao';
 import { perfisComTodasAsHabilitacoes } from '@gabinete/compartilhado';
 import { and, eq } from 'drizzle-orm';
 import type { Ator } from '../equipe/regras.js';
 import { erros } from '../erros.js';
 
-export type Leitor = Pick<BancoDeDados, 'select'> | Pick<Transacao, 'select'>;
+export type { Leitor };
 
 const fusoDoGabinete = 'America/Sao_Paulo';
 
@@ -56,6 +56,11 @@ export async function exigirResponsavelValido(leitor: Leitor, usuarioId: number)
   if (!atendimento) {
     throw erros.conflito('O responsável precisa ter a habilitação de Atendimento.');
   }
+}
+
+/** A demanda cancelada é só de leitura: nada novo se acrescenta nem se remove nela (RN-DEM-09). */
+export function exigirDemandaAberta(demandaCarregada: { canceladaEm: Date | null }): void {
+  if (demandaCarregada.canceladaEm) throw erros.conflito('Demanda cancelada não se altera.');
 }
 
 /**

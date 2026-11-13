@@ -365,6 +365,8 @@ Escopo de uma ficha de demanda tende a crescer. Mitigação: dividir a tela por 
 
 **Objetivo.** O cidadão acompanha a própria solicitação sem criar conta, e é avisado por e-mail. **É o marco de apresentação à deputada.**
 
+**Estado:** implementada (ver [progresso](progresso.md)). Decisões e desvios em [ADR 0009](../arquitetura/decisoes/0009-area-publica-e-envio-de-email.md): sem pg-boss nesta fase, e o descadastro é a segunda escrita nominal da área pública.
+
 ### 3.A Área pública
 
 | Id | Tarefa |

@@ -2,6 +2,8 @@ import { nivelDoPerfil } from '@gabinete/autorizacao';
 import {
   demanda,
   emitirProtocolo,
+  enfileirarNotificacao,
+  registrarConsentimento,
   etapa,
   etapaDeEntrada,
   pessoa,
@@ -110,6 +112,21 @@ export class ServicoDeDemandas {
           entidade: 'pessoa',
           registroId: solicitanteId,
         });
+        if (nova.consentimento) {
+          if (!nova.email) {
+            throw erros.conflito('O consentimento por e-mail exige o e-mail da pessoa.');
+          }
+          await registrarConsentimento(tx, {
+            pessoaId: solicitanteId,
+            consentido: nova.consentimento.consentido,
+            origem: nova.consentimento.origem,
+            registradoPor: ator.usuarioId,
+            registradoEm: this.o.agora(),
+            ...(nova.consentimento.consentido
+              ? { versaoTexto: nova.consentimento.versaoTexto }
+              : {}),
+          });
+        }
       }
 
       const protocolo = await emitirProtocolo(tx, this.o.gerarProtocolo);
@@ -201,7 +218,12 @@ export class ServicoDeDemandas {
       if (atual.etapaAtualId === etapaId) throw erros.conflito('A demanda já está nesta etapa.');
 
       const [destino] = await tx
-        .select({ id: etapa.id, situacao: etapa.situacao, nome: etapa.nomeInterno })
+        .select({
+          id: etapa.id,
+          situacao: etapa.situacao,
+          papel: etapa.papel,
+          visivelPublico: etapa.visivelPublico,
+        })
         .from(etapa)
         .innerJoin(tipoProcesso, eq(tipoProcesso.id, etapa.tipoProcessoId))
         .where(and(eq(etapa.id, etapaId), eq(tipoProcesso.tipo, 'demanda')))
@@ -228,6 +250,21 @@ export class ServicoDeDemandas {
         valorAnterior: { etapa: atual.etapaAtualId },
         valorNovo: { etapa: etapaId },
       });
+      // Aviso ao cidadão (outbox, na mesma transação): conclusão, ou etapa que ele enxerga. Etapa
+      // interna nunca gera e-mail, e quem não consentiu não recebe (a função confere).
+      if (destino.papel === 'conclusao') {
+        await enfileirarNotificacao(tx, {
+          demandaId: id,
+          evento: 'conclusao',
+          criadoEm: this.o.agora(),
+        });
+      } else if (destino.visivelPublico) {
+        await enfileirarNotificacao(tx, {
+          demandaId: id,
+          evento: 'etapa_visivel',
+          criadoEm: this.o.agora(),
+        });
+      }
     });
     return this.o.consultas.ficha(ator, id);
   }
@@ -274,6 +311,11 @@ export class ServicoDeDemandas {
           registroId: id,
           valorAnterior: { etapa: atual.etapaAtualId },
           justificativa,
+        });
+        await enfileirarNotificacao(tx, {
+          demandaId: id,
+          evento: 'cancelamento',
+          criadoEm: this.o.agora(),
         });
       });
     } catch (erro) {

@@ -1,6 +1,10 @@
 import type {
   Area,
+  EstadoDeEnvioDto,
+  EstadoDoLink,
+  EventoDeNotificacaoDto,
   NaturezaDeDocumento,
+  OrigemDeConsentimentoDto,
   PapelDeEtapaDto,
   Perfil,
   Prioridade,
@@ -65,4 +69,45 @@ export const rotuloDaNatureza: Record<NaturezaDeDocumento, string> = {
   foto: 'Foto',
   lista_assinada: 'Lista assinada',
   outro: 'Outro',
+};
+
+export const rotuloDoEstadoDoLink: Record<EstadoDoLink, string> = {
+  ativa: 'Link ativo',
+  suspensa: 'Link suspenso',
+  revogada: 'Link revogado',
+};
+
+export const rotuloDoEventoDeEmail: Record<EventoDeNotificacaoDto, string> = {
+  andamento_publicado: 'Andamento publicado',
+  etapa_visivel: 'Mudança de situação',
+  conclusao: 'Conclusão',
+  cancelamento: 'Cancelamento',
+};
+
+export const rotuloDoEstadoDeEnvio: Record<EstadoDeEnvioDto, string> = {
+  pendente: 'Na fila',
+  enviando: 'Enviando',
+  enviado: 'Enviado',
+  falhou: 'Falhou',
+  cancelado: 'Cancelado',
+};
+
+export const rotuloDaOrigemDoConsentimento: Record<OrigemDeConsentimentoDto, string> = {
+  atendimento_telefonico: 'Atendimento por telefone',
+  atendimento_presencial: 'Atendimento presencial',
+  pedido_ao_gabinete: 'Pedido feito ao gabinete',
+  descadastro_cidadao: 'Descadastro pelo próprio cidadão',
+  dados_eliminados: 'Dados pessoais eliminados',
+};
+
+export const rotuloDaExibicaoDeNome: Record<'completo' | 'primeiro_nome' | 'nao_exibir', string> = {
+  completo: 'Nome completo',
+  primeiro_nome: 'Só o primeiro nome',
+  nao_exibir: 'Não exibir',
+};
+
+export const rotuloDaExibicaoDeTelefone: Record<'completo' | 'mascarado' | 'nao_exibir', string> = {
+  completo: 'Telefone completo',
+  mascarado: 'Telefone parcialmente oculto',
+  nao_exibir: 'Não exibir',
 };
