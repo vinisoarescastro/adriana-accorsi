@@ -34,6 +34,9 @@ describe('entrar', () => {
     expect(corpo.paginasAlcancaveis.map((p: { id: string }) => p.id)).toEqual([
       'painel',
       'demandas',
+      'tarefas',
+      'agenda',
+      'eventos',
       'pessoas',
       'emails',
       'equipe',
@@ -393,8 +396,10 @@ describe('autorização nas rotas', () => {
     const corpo = (
       await a.chamar('GET', '/api/acesso/sessao', { cookie: await a.sessaoDe(externo.email) })
     ).json();
+    // Sem habilitação alguma, só as páginas que não a exigem (tarefas não têm habilitação).
     expect(corpo.paginasAlcancaveis.map((p: { id: string }) => p.id)).toEqual([
       'painel',
+      'tarefas',
       'equipe',
       'fluxos',
       'configuracoes',

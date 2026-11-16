@@ -119,8 +119,8 @@ describe('o worker de prazos', () => {
     await worker`INSERT INTO aviso (destinatario_id, natureza, registro_tipo, registro_id, expira_em, chave_unica)
       VALUES (${usuarioId}, 'prazo_proximo', 'tarefa', ${id}, now() + interval '60 days', 'prazo_proximo:tarefa:1:2026-11-12')
       ON CONFLICT DO NOTHING`;
-    const [{ total }] = await api<{ total: number }[]>`SELECT count(*)::int AS total FROM aviso`;
-    expect(total).toBe(1);
+    const [contagem] = await api<{ total: number }[]>`SELECT count(*)::int AS total FROM aviso`;
+    expect(contagem?.total).toBe(1);
 
     for (const recusado of [
       worker`SELECT 1 FROM tarefa`,
@@ -164,11 +164,11 @@ describe('o worker de prazos', () => {
     await api`INSERT INTO aviso (destinatario_id, natureza, registro_tipo, registro_id, expira_em)
       VALUES (${usuarioId}, 'tarefa_designada', 'tarefa', ${id}, '2026-01-01T00:00:00Z'),
              (${usuarioId}, 'tarefa_designada', 'tarefa', ${id}, '2027-01-01T00:00:00Z')`;
-    const [{ apagados }] = await worker<{ apagados: number }[]>`
+    const [feito] = await worker<{ apagados: number }[]>`
       SELECT expurgar_avisos('2026-06-01T00:00:00Z') AS apagados`;
-    expect(apagados).toBe(1);
-    const [{ restam }] = await api<{ restam: number }[]>`SELECT count(*)::int AS restam FROM aviso`;
-    expect(restam).toBe(1);
+    expect(feito?.apagados).toBe(1);
+    const [restante] = await api<{ restam: number }[]>`SELECT count(*)::int AS restam FROM aviso`;
+    expect(restante?.restam).toBe(1);
   });
 });
 
