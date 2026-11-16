@@ -8,8 +8,10 @@ import type {
   PapelDeEtapaDto,
   Perfil,
   Prioridade,
+  RespostaDeParticipanteDto,
   StatusDeDemanda,
   TipoDeProcessoDto,
+  VisibilidadeDeCompromissoDto,
 } from '@gabinete/compartilhado';
 
 /** Textos da interface para os valores técnicos. */
@@ -110,4 +112,16 @@ export const rotuloDaExibicaoDeTelefone: Record<'completo' | 'mascarado' | 'nao_
   completo: 'Telefone completo',
   mascarado: 'Telefone parcialmente oculto',
   nao_exibir: 'Não exibir',
+};
+
+export const rotuloDaVisibilidade: Record<VisibilidadeDeCompromissoDto, string> = {
+  aberto: 'Aberto (todos veem o compromisso)',
+  participantes: 'Participantes (os demais veem só o horário ocupado)',
+  restrito: 'Restrito (some para quem não participa)',
+};
+
+export const rotuloDaResposta: Record<RespostaDeParticipanteDto, string> = {
+  sem_resposta: 'Sem resposta',
+  confirmado: 'Confirmado',
+  recusado: 'Recusado',
 };

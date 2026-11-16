@@ -1,9 +1,17 @@
-import { demanda, etapa, parametro, tipoProcesso, type BancoDeDados } from '@gabinete/banco';
-import type { PainelDeAtendimento } from '@gabinete/compartilhado';
-import { and, asc, count, eq, gte, inArray, isNull, lt, sql } from 'drizzle-orm';
+import {
+  demanda,
+  etapa,
+  parametro,
+  tarefa,
+  tipoProcesso,
+  type BancoDeDados,
+} from '@gabinete/banco';
+import type { PainelDeAtendimento, PainelDeTarefas } from '@gabinete/compartilhado';
+import { and, asc, count, eq, gte, inArray, isNull, lt, sql, type SQL } from 'drizzle-orm';
 import { hojeNoGabinete, inicioDoMesNoGabinete } from '../atendimento/comum.js';
 import { ConsultasDeDemandas } from '../demandas/consultas.js';
 import type { Ator } from '../equipe/regras.js';
+import { ConsultasDeTarefas } from '../tarefas/consultas.js';
 
 const limiteParadoPadraoEmDias = 14;
 const umDiaEmMs = 86_400_000;
@@ -98,5 +106,29 @@ export class ServicoDoPainel {
         total: porEtapa.find((p) => p.etapaId === e.id)?.total ?? 0,
       })),
     };
+  }
+
+  /** Bloco de tarefas. Usa as mesmas condições de alcance da listagem de tarefas. */
+  async tarefas(ator: Ator): Promise<PainelDeTarefas> {
+    const hoje = hojeNoGabinete(this.agora());
+    const alcance = ConsultasDeTarefas.condicoesDeAlcance(ator);
+    const emAndamento = ConsultasDeTarefas.emAndamento();
+    const contar = async (...extra: (SQL | undefined)[]) => {
+      const [linha] = await this.bd
+        .select({ total: count() })
+        .from(tarefa)
+        .innerJoin(etapa, eq(etapa.id, tarefa.etapaAtualId))
+        .where(and(...alcance, emAndamento, ...extra));
+      return linha?.total ?? 0;
+    };
+    const minha = eq(tarefa.responsavelId, ator.usuarioId);
+    const vencida = lt(tarefa.prazo, hoje);
+    const [abertas, atrasadas, minhasAbertas, minhasAtrasadas] = await Promise.all([
+      contar(),
+      contar(vencida),
+      contar(minha),
+      contar(minha, vencida),
+    ]);
+    return { abertas, atrasadas, minhasAbertas, minhasAtrasadas };
   }
 }

@@ -2,18 +2,21 @@ import { pode } from '@gabinete/autorizacao';
 import type { RespostaDaSessao } from '@gabinete/compartilhado';
 import { Link } from 'react-router';
 import { usePainelDeAtendimento } from '../api/atendimento';
+import { usePainelDeTarefas } from '../api/trabalho';
 import { AvisoDeErro, Aviso, Carregando } from '../componentes/ui';
 import { rotuloDoPerfil } from '../rotulos';
 
 /**
- * Painel. Hoje só há o bloco de ATENDIMENTO (os de tarefas, agenda, legislativo, emendas e CEAP
- * chegam com os módulos). Os números vêm das mesmas consultas das listagens, e cada um leva à
+ * Painel. Há os blocos de ATENDIMENTO e de TAREFAS (agenda, legislativo, emendas e CEAP chegam com
+ * os módulos). Os números vêm das mesmas consultas das listagens, e cada um leva à
  * lista correspondente. Há sempre a tabela com os mesmos números: nada depende só de cor.
  */
 export function PaginaPainel({ sessao }: { sessao: RespostaDaSessao }) {
   const autoridade = { perfil: sessao.usuario.perfil, habilitacoes: sessao.usuario.habilitacoes };
   const veAtendimento = pode('painel.atendimento', autoridade);
   const { data, isLoading, error } = usePainelDeAtendimento(veAtendimento);
+  const veTarefas = pode('painel.tarefas', autoridade);
+  const tarefas = usePainelDeTarefas();
 
   return (
     <section>
@@ -22,6 +25,34 @@ export function PaginaPainel({ sessao }: { sessao: RespostaDaSessao }) {
         Olá, {sessao.usuario.nome}. Seu perfil:{' '}
         <strong>{rotuloDoPerfil[sessao.usuario.perfil]}</strong>.
       </p>
+
+      {veTarefas ? (
+        <>
+          <h2>Tarefas</h2>
+          <AvisoDeErro erro={tarefas.error} />
+          {tarefas.isLoading ? <Carregando /> : null}
+          {tarefas.data ? (
+            <div className="cartoes-do-painel">
+              <Link className="cartao-numero" to="/g/tarefas?status=em_andamento">
+                <span className="cartao-numero__valor">{tarefas.data.abertas}</span>
+                <span>Tarefas em andamento</span>
+              </Link>
+              <Link className="cartao-numero" to="/g/tarefas?atrasadas=true">
+                <span className="cartao-numero__valor">{tarefas.data.atrasadas}</span>
+                <span>Tarefas atrasadas</span>
+              </Link>
+              <Link className="cartao-numero" to="/g/tarefas?status=em_andamento&minhas=true">
+                <span className="cartao-numero__valor">{tarefas.data.minhasAbertas}</span>
+                <span>Minhas tarefas em andamento</span>
+              </Link>
+              <Link className="cartao-numero" to="/g/tarefas?atrasadas=true&minhas=true">
+                <span className="cartao-numero__valor">{tarefas.data.minhasAtrasadas}</span>
+                <span>Minhas tarefas atrasadas</span>
+              </Link>
+            </div>
+          ) : null}
+        </>
+      ) : null}
 
       {veAtendimento ? (
         <>
@@ -79,11 +110,11 @@ export function PaginaPainel({ sessao }: { sessao: RespostaDaSessao }) {
             </>
           ) : null}
         </>
-      ) : (
+      ) : !veTarefas ? (
         <Aviso tipo="atencao" titulo="Sem blocos disponíveis ainda.">
           Os blocos do painel aparecem conforme as suas habilitações e os módulos já construídos.
         </Aviso>
-      )}
+      ) : null}
     </section>
   );
 }

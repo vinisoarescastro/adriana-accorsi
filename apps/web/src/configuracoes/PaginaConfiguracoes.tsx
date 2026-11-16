@@ -6,6 +6,7 @@ import { chamar } from '../api/cliente';
 import { chaves, useGabinete } from '../api/consultas';
 import { EnvioDeFoto } from '../componentes/EnvioDeFoto';
 import { Aviso, AvisoDeErro, Botao, Campo, Carregando } from '../componentes/ui';
+import { AvisosDePrazo } from './AvisosDePrazo';
 import { PoliticaDePublicacao } from './PoliticaDePublicacao';
 
 type Campos = Record<
@@ -147,6 +148,13 @@ export function PaginaConfiguracoes({ sessao }: { sessao: RespostaDaSessao }) {
       />
 
       <PoliticaDePublicacao sessao={sessao} />
+
+      {pode('avisos.configurar', {
+        perfil: sessao.usuario.perfil,
+        habilitacoes: sessao.usuario.habilitacoes,
+      }) ? (
+        <AvisosDePrazo />
+      ) : null}
 
       {gabinete?.temFoto ? (
         <div className="cartao">

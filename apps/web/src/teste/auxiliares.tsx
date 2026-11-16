@@ -51,6 +51,9 @@ export const semSessao: RespostaSimulada = {
 export const todasAsPaginas = [
   { id: 'painel', caminho: '/g/painel', titulo: 'Painel', operacao: 'painel.abrir' },
   { id: 'demandas', caminho: '/g/demandas', titulo: 'Demandas', operacao: 'demandas.consultar' },
+  { id: 'tarefas', caminho: '/g/tarefas', titulo: 'Tarefas', operacao: 'tarefas.consultar' },
+  { id: 'agenda', caminho: '/g/agenda', titulo: 'Agenda', operacao: 'agenda.consultar' },
+  { id: 'eventos', caminho: '/g/eventos', titulo: 'Eventos', operacao: 'eventos.consultar' },
   { id: 'pessoas', caminho: '/g/pessoas', titulo: 'Pessoas', operacao: 'pessoas.consultar' },
   {
     id: 'emails',

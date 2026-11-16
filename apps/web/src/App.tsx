@@ -4,15 +4,18 @@ import { PaginaEntrar } from './acesso/PaginaEntrar';
 import { PaginaTrocarSenha } from './acesso/PaginaTrocarSenha';
 import { PaginaAuditoria } from './auditoria/PaginaAuditoria';
 import { PaginaConfiguracoes } from './configuracoes/PaginaConfiguracoes';
+import { PaginaAgenda } from './agenda/PaginaAgenda';
 import { PaginaDemandas } from './demandas/PaginaDemandas';
 import { PaginaEmails } from './emails/PaginaEmails';
 import { PaginaEquipe } from './equipe/PaginaEquipe';
+import { PaginaEventos } from './eventos/PaginaEventos';
 import { PaginaFluxos } from './fluxos/PaginaFluxos';
 import { Layout } from './layout/Layout';
 import { PaginaPainel } from './painel/PaginaPainel';
 import { PaginaPessoas } from './pessoas/PaginaPessoas';
 import { PaginaPerfil } from './perfil/PaginaPerfil';
 import { PaginaSistema } from './sistema/PaginaSistema';
+import { PaginaTarefas } from './tarefas/PaginaTarefas';
 
 /** Rotas da aplicação. O roteador e o cliente de consultas são fornecidos por quem monta (main.tsx). */
 export function App() {
@@ -52,6 +55,30 @@ function RotasDaArea() {
             element={
               <ExigePagina id="demandas" sessao={sessao}>
                 <PaginaDemandas sessao={sessao} />
+              </ExigePagina>
+            }
+          />
+          <Route
+            path="tarefas"
+            element={
+              <ExigePagina id="tarefas" sessao={sessao}>
+                <PaginaTarefas sessao={sessao} />
+              </ExigePagina>
+            }
+          />
+          <Route
+            path="agenda"
+            element={
+              <ExigePagina id="agenda" sessao={sessao}>
+                <PaginaAgenda sessao={sessao} />
+              </ExigePagina>
+            }
+          />
+          <Route
+            path="eventos"
+            element={
+              <ExigePagina id="eventos" sessao={sessao}>
+                <PaginaEventos sessao={sessao} />
               </ExigePagina>
             }
           />

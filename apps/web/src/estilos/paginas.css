@@ -350,3 +350,59 @@ a.cartao-numero:hover {
   list-style: none;
   padding: 0;
 }
+
+/* Trabalho da equipe: o sino de avisos e a agenda por dia. */
+.sino {
+  position: relative;
+}
+
+.sino__painel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--espaco-2));
+  z-index: 20;
+  width: min(24rem, calc(100vw - 2rem));
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: var(--espaco-4);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+}
+
+.sino__item {
+  padding: var(--espaco-2) 0;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.sino__item--novo {
+  font-weight: 600;
+}
+
+.agenda-dia {
+  margin-bottom: var(--espaco-4);
+}
+
+.agenda-item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  align-items: baseline;
+  padding: var(--espaco-2) 0;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.agenda-item__hora {
+  min-width: 8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.presenca-rapida {
+  display: grid;
+  gap: var(--espaco-3);
+}
+
+.presenca-rapida input {
+  min-height: 3rem;
+  font-size: 1.125rem;
+}

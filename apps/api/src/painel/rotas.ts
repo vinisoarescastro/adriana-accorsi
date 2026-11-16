@@ -6,4 +6,8 @@ export function registrarRotasDoPainel(app: FastifyInstance, servico: ServicoDoP
   app.get('/api/painel/atendimento', { config: { operacao: 'painel.atendimento' } }, (request) =>
     servico.atendimento(atorDaSessao(request.sessao)),
   );
+
+  app.get('/api/painel/tarefas', { config: { operacao: 'painel.tarefas' } }, (request) =>
+    servico.tarefas(atorDaSessao(request.sessao)),
+  );
 }

@@ -311,3 +311,37 @@ describe('listagem', () => {
     ).toBe(400);
   });
 });
+
+describe('painel de tarefas', () => {
+  it('conta abertas e atrasadas pelo mesmo alcance da lista (o Externo só as dele)', async () => {
+    const e = await preparar();
+    const minha = (await criar(e.cookie.externo, { prazo: '2026-11-12' })).json();
+    await a.chamar('PATCH', `/api/tarefas/${minha.id}`, {
+      cookie: e.cookie.externo,
+      corpo: { prazo: '2026-10-01' },
+    });
+    await criar(e.cookie.interno, { prazo: '2026-12-01' });
+    await criar(e.cookie.interno, {});
+    const concluida = (await criar(e.cookie.interno, {})).json();
+    await a.chamar('POST', `/api/tarefas/${concluida.id}/mover`, {
+      cookie: e.cookie.interno,
+      corpo: { etapaId: await etapaDeTarefa(e.cookie.interno, 'Concluída') },
+    });
+
+    const painel = async (cookie: string) =>
+      (await a.chamar('GET', '/api/painel/tarefas', { cookie })).json();
+    expect(await painel(e.cookie.supervisor)).toEqual({
+      abertas: 3,
+      atrasadas: 1,
+      minhasAbertas: 0,
+      minhasAtrasadas: 0,
+    });
+    expect(await painel(e.cookie.externo)).toEqual({
+      abertas: 1,
+      atrasadas: 1,
+      minhasAbertas: 1,
+      minhasAtrasadas: 1,
+    });
+    expect((await painel(e.cookie.interno)).minhasAbertas).toBe(2);
+  });
+});

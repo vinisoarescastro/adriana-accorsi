@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { chamar } from '../api/cliente';
 import { useGabinete } from '../api/consultas';
+import { SinoDeAvisos } from '../avisos/SinoDeAvisos';
 import { Botao } from '../componentes/ui';
 import { iniciais } from '../formatos';
 import { rotuloDoPerfil } from '../rotulos';
@@ -75,6 +76,7 @@ export function Layout({ sessao }: { sessao: RespostaDaSessao }) {
             </div>
             {gabinete ? <div className="cabecalho__subtitulo">{gabinete.cargo}</div> : null}
           </div>
+          <SinoDeAvisos />
           <div className="cabecalho__usuario">
             {usuario.perfil ? (
               <span>
