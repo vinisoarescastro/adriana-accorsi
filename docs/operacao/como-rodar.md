@@ -1,6 +1,6 @@
 # Como rodar
 
-Estado: fase 3 implementada. Existem a API (`apps/api`), o front (`apps/web`), a área do cidadão (`apps/publico`), o worker de e-mail (`apps/worker`) e os pacotes `banco`, `autorizacao` e `compartilhado`. Implantação na VPS: ver [implantacao.md](implantacao.md).
+Estado: fase 4 implementada. Existem a API (`apps/api`), o front (`apps/web`), a área do cidadão (`apps/publico`), o worker (`apps/worker`: e-mails ao cidadão e avisos de prazo) e os pacotes `banco`, `autorizacao` e `compartilhado`. Implantação na VPS: ver [implantacao.md](implantacao.md).
 
 ## Requisitos
 
@@ -82,12 +82,14 @@ npm run banco:criar-administrador -- --email voce@exemplo.com --nome "Seu Nome" 
 npm run dev -w @gabinete/api    # API em http://127.0.0.1:3000
 npm run dev -w @gabinete/web    # front em http://localhost:5173 (o Vite encaminha /api para a API)
 npm run dev -w @gabinete/publico  # área do cidadão em http://127.0.0.1:3100
-npm run dev -w @gabinete/worker   # envia os e-mails da fila (o Mailpit recebe, sem enviar para fora)
+npm run dev -w @gabinete/worker   # envia os e-mails da fila (o Mailpit recebe) e gera os avisos de prazo, de hora em hora
 ```
 
 Para a API guardar fotos em disco, sem o servidor S3 local, defina `ARMAZENAMENTO_LOCAL=1` (só vale em `NODE_ENV=development`).
 
 Variáveis da API (validadas na subida; o processo recusa configuração inválida): `NODE_ENV`, `HOSTNAME_APP`, `HOSTNAME_PUBLICO`, `DATABASE_URL_API`, `SESSAO_SEGREDO` (32+ caracteres), `S3_*`, `HOST_API` e `PORTA_API` (opcionais). Em **produção** a API recusa subir com `DATABASE_URL_ADMIN` ou `DATABASE_URL_MIGRACAO` definidas, o app público recusa o segredo da aplicação e as credenciais do armazenamento, e o worker recusa as conexões da API e administrativa (cada um tem o seu arquivo de ambiente). Em desenvolvimento há um único `.env`, e a recusa não vale.
+
+O worker gera os avisos de prazo na subida e depois de hora em hora (um por prazo por dia); para ver o efeito logo, reinicie-o. A antecedência (padrão 3 dias) muda em Configurações, para Chefe ou Administrador.
 
 Variáveis do app público: `DATABASE_URL_PUBLICO`, `HOST_PUBLICO`, `PORTA_PUBLICO`. Do worker: `DATABASE_URL_WORKER`, `SESSAO_SEGREDO`, `EMAIL_PROVEDOR` (`smtp` em desenvolvimento, `resend` em produção), `EMAIL_API_KEY`, `EMAIL_REMETENTE`, `SMTP_HOST`, `SMTP_PORTA`, `LIMITE_EMAILS_POR_HORA`, `INTERVALO_DO_WORKER_SEGUNDOS`.
 
@@ -97,4 +99,4 @@ Variáveis do app público: `DATABASE_URL_PUBLICO`, `HOST_PUBLICO`, `PORTA_PUBLI
 
 ## O que ainda não existe
 
-Avisos internos e agendamento de prazos (fase 4), módulos de negócio (fases 4 a 7). O atendimento (fase 2) e o cidadão (fase 3) já existem. Ver [o plano](../plano/plano-de-implementacao.md).
+Os módulos de negócio das fases 5 a 7 (legislativo, emendas, CEAP, consolidação). O atendimento (fase 2), o cidadão (fase 3) e o trabalho da equipe, com tarefas, agenda, eventos e avisos (fase 4), já existem. Ver [o plano](../plano/plano-de-implementacao.md).

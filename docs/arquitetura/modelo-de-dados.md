@@ -84,8 +84,8 @@ Restrições: uma etapa de Entrada, uma de Arquivamento e ao menos uma de Conclu
 
 | Tabela | Colunas principais |
 | --- | --- |
-| `tarefa` | `criador_id`, `responsavel_id`, `titulo`, `descricao`, `prioridade`, `prazo`, `etapa_atual_id`, `concluida_em`, `concluida_por`, `cancelada_em`, `justificativa_cancelamento` |
-| `aviso` | `destinatario_id`, `natureza` (9 valores), `vinculo_id`, `gerado_em`, `lido_em`, `expira_em`; sem texto, sem valor |
+| `tarefa` | `criador_id`, `responsavel_id`, `titulo`, `descricao`, `prioridade`, `prazo`, `etapa_atual_id`, `vinculo_tipo`, `vinculo_id`, `cancelada_em`, `cancelada_por`, `justificativa_cancelamento`. **Desvio (fase 4):** sem `concluida_em` e `concluida_por` (a conclusão deriva do papel da etapa) e com o vínculo direto na tarefa, sem a tabela `vinculo` |
+| `aviso` | `destinatario_id`, `natureza` (**10 valores**: as 9 do plano e `mencao`), `registro_tipo`, `registro_id`, `gerado_em`, `lido_em`, `expira_em`, `chave_unica`; sem texto, sem valor. **Desvio (fase 4):** aponta para o registro direto (`registro_tipo`, `registro_id`), sem `vinculo_id`. Ver [ADR 0010](decisoes/0010-trabalho-da-equipe-avisos-e-agenda.md) |
 | `compromisso` | `criador_id`, `titulo`, `local`, `inicio`, `fim`, `dia_inteiro`, `visibilidade` (aberto, participantes, restrito), `envolve_parlamentar` (bool, padrão verdadeiro), `serie_id`, `cancelado_em` |
 | `participante_interno` | `compromisso_id`, `usuario_id`, `resposta` (sem_resposta, confirmado, recusado) |
 | `participante_externo` | `compromisso_id`, `pessoa_id` ou `beneficiario_id` |

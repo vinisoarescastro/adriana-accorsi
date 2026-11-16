@@ -10,7 +10,7 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | 1 | Fundação | **concluída** (aceite do usuário) | 2026-11-16 | Código, testes, CI verde e infraestrutura verificados. Encerrada por decisão do usuário; **segue pendente a implantação na VPS** (PV-E), feita ao fim de todas as fases. Ver "Fase 1" abaixo |
 | 2 | Atendimento | **concluída** (aceite do usuário) | 2026-11-16 | Código e testes prontos; **CI verde no GitHub** (324 testes). Encerrada por decisão do usuário; **segue pendente a implantação** (PV-E). Ver "Fase 2" abaixo |
 | 3 | Cidadão (área pública e e-mail) | **concluída** (aceite do usuário) | 2026-11-16 | Encerrada por decisão do usuário; **seguem pendentes** SPF/DKIM/DMARC reais, envio com o Resend e implantação (PV-E, PV-F). Marco de apresentação à deputada. Código e testes prontos, verificados **localmente** com Postgres, API, app público, worker e Mailpit de verdade (425 testes verdes e um fluxo completo de 25 verificações). Ver "Fase 3" abaixo |
-| 4 | Trabalho da equipe | **em andamento** | | Aprovada para começar em 2026-11-16 |
+| 4 | Trabalho da equipe | **implementada; falta fechar** (conferência manual, CI, implantação) | | Código e testes prontos, verificados **localmente** (546 testes verdes e um fluxo de 27 verificações contra API e worker reais). Ver "Fase 4" abaixo |
 | 5 | Legislativo | não iniciada | | Depende de PV-A |
 | 6 | Financeiro (emendas e CEAP) | não iniciada | | Depende de PV-A e PV-B |
 | 7 | Consolidação | não iniciada | | |
@@ -21,15 +21,50 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 
 | Bloco | Conteúdo | Estado |
 | --- | --- | --- |
-| 4.A | Banco (migração 0009): tarefa, aviso, compromisso, participantes, bloqueio, evento, participação, parâmetros; papel do worker só insere em `aviso` | a fazer |
-| 4.B | Autorização: operações de tarefa, agenda, evento, presença e aviso, com a matriz esperada | a fazer |
-| 4.C | Tarefas na API: criar, vincular (herda alcance), mover, reatribuir, cancelar, reabrir | a fazer |
-| 4.D | Avisos na API e menções: sino, marcar lido, aviso sem texto nem dado pessoal, alcance do registro de origem | a fazer |
-| 4.E | Agenda na API: compromissos, três visibilidades, "envolve a Parlamentar", resposta, bloqueios, conflito | a fazer |
-| 4.F | Eventos e presença na API: cadastro, encerrar, presença por telefone, correção em 30 minutos, remoção com justificativa | a fazer |
-| 4.G | Worker de prazos: prazo próximo e vencido, uma vez por dia, antecedência configurável, expurgo de avisos; falha de passagem não derruba o processo | a fazer |
-| 4.H | Front: tarefas, sino, agenda, eventos e presença em poucos toques no celular | a fazer |
-| 4.I | Roteiro de conferência, documentação e CI | a fazer |
+| 4.A | Banco (migração 0009): tarefa, aviso, compromisso, participantes, bloqueio, evento, participação; o worker só insere em `aviso` | feito |
+| 4.B | Autorização: 18 operações (tarefas, avisos, agenda, eventos e presença) e as páginas Tarefas, Agenda e Eventos, com a matriz esperada | feito |
+| 4.C | Tarefas na API: criar, vincular (herda alcance), mover, reabrir, reatribuir, cancelar, painel | feito |
+| 4.D | Avisos na API e menções: sino, marcar lido, aviso sem texto, alcance do registro de origem, antecedência configurável | feito |
+| 4.E | Agenda: compromissos, três visibilidades, "envolve a Parlamentar", resposta, bloqueios, conflito | feito |
+| 4.F | Eventos e presença: cadastro, encerrar, presença por telefone, correção em 30 minutos, remoção com justificativa | feito |
+| 4.G | Worker de prazos: próximo e vencido, uma vez por dia, expurgo; falha de passagem não derruba o processo | feito |
+| 4.H | Front: tarefas, sino, agenda, eventos e presença em poucos toques, painel e configuração | feito |
+| 4.I | Roteiro de conferência, documentação ([ADR 0010](../arquitetura/decisoes/0010-trabalho-da-equipe-avisos-e-agenda.md)) e verificação | feito; a CI desta fase ainda não rodou |
+
+### Verificação da fase 4 (2026-11-16)
+
+- **546 testes verdes** em 54 arquivos (unidade, interface e integração com Postgres real): 121 novos da fase 4 (banco, API, worker e interface). Formatação, lint e tipos limpos.
+- **Contra processos reais** (Postgres 17, API e worker rodando; a migração 0009 aplicada sobre um banco que já tinha dados das fases 2 e 3, e os invariantes de subida passaram): fluxo de tarefas, agenda, eventos, presença e painel, com usuários de cada perfil: **27 de 27**. O worker, com o processo real, gerou 3 avisos de prazo ao subir e **nenhum** ao ser reiniciado no mesmo dia. Detalhes em "Execução contra o ambiente real", no [roteiro](../operacao/conferencias/fase4-trabalho-da-equipe.md).
+- **Não verificado ainda:** conferência manual com navegador e em tela pequena ([roteiro](../operacao/conferencias/fase4-trabalho-da-equipe.md)); CI desta fase; implantação.
+
+### Critérios de aceite da fase 4 (plano)
+
+| # | Critério | Estado |
+| --- | --- | --- |
+| 1 | Compromisso Restrito não aparece, nem como horário ocupado, para quem não pode vê-lo (teste por perfil) | verificado (agenda, próximos, abrir, alterar, cancelar, conflito e aviso) |
+| 2 | Recusar um compromisso não o cancela nem remove o participante | verificado |
+| 3 | O aviso de prazo é gerado uma vez por dia por prazo, e a falha de uma passagem não derruba o processo | verificado (chave única por dia; item e passagem que falham) |
+| 4 | O worker, com credenciais próprias, só consegue inserir em `aviso` (teste tentando outra escrita) | verificado |
+| 5 | Concluir a última tarefa não conclui a demanda | verificado |
+| 6 | Evento passado não se encerra sozinho | verificado (40 dias depois, segue aberto e aceita presença) |
+| 7 | Presença no celular: registrar em até 3 toques, conferido em tela pequena | verificado em teste de interface (2 toques; 3 com pessoa nova). **A conferência em tela pequena é manual e segue pendente** |
+| 8 | Quem não alcança o registro de origem não recebe o aviso dele | verificado (o aviso some da caixa quando o alcance se perde) |
+
+### Decisões e desvios durante a fase 4
+
+- **Aviso aponta para o registro direto** (`registro_tipo`, `registro_id`), sem `vinculo_id`, e a **tarefa guarda o vínculo nela mesma** (`vinculo_tipo`, `vinculo_id`): mesma razão da movimentação e do comentário (evitar referência circular). Atualizado no modelo de dados.
+- **Décima natureza de aviso, `mencao`**: a regra RN-COM-03 pede aviso à menção, e nenhuma das nove naturezas do plano serve.
+- **Tarefa sem `concluida_em` e `concluida_por`**: a conclusão deriva do papel da etapa (o status nunca é coluna).
+- **O worker só insere em `aviso`**, lê a visão `vw_prazo_aberto` e chama duas funções (antecedência e expurgo). Sem `RETURNING` (o papel não lê `aviso`). O expurgo é função, porque o papel nem apaga.
+- **Sem pg-boss**, de novo: de hora em hora, com a chave única por dia como idempotência, basta. Descartado para o volume de um gabinete.
+- **Aviso não lido expira em 60 dias; lido, 30 dias depois da leitura.** O padrão da antecedência é 3 dias corridos (1 a 30), em Configurações, para Chefe ou Administrador.
+- **Visibilidade "Participantes"**: quem vê o conteúdo é participante, criador, Chefe, Administrador e Parlamentar; os demais veem só o horário ocupado. A especificação não dizia quem, além dos participantes, vê o conteúdo; esta foi a leitura conservadora.
+- **Criar e cancelar bloqueio de horário** é de Assessor Interno em diante (a especificação não dizia o nível; segue "marcar compromisso").
+- **Reabrir** é sair de "Concluída" ou "Arquivada" para uma etapa em andamento: só Supervisor em diante. **Reatribuir** é de Assessor Interno em diante, e o Assessor Externo só recebe tarefa ligada a uma demanda dele.
+- **Presença**: corrigir inclui trocar a pessoa registrada por engano (outro telefone). A janela de 30 minutos usa o relógio da aplicação.
+- **Agenda consultada por período de no máximo 62 dias** (RN-AGE-07 exigia o período; o limite protege a consulta).
+- **Sino**: a caixa mostra os 200 avisos mais recentes e é consultada a cada minuto (sem WebSocket).
+- Defeito achado pelos testes: `ON CONFLICT (coluna) DO NOTHING` pede `SELECT` na coluna; o worker usa `ON CONFLICT DO NOTHING` sem alvo.
 
 ## Fase 3: blocos
 
