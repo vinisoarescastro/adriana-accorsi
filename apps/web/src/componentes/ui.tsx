@@ -1,3 +1,4 @@
+import { AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 import { useId, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { ErroDaApi } from '../api/cliente';
 
@@ -76,6 +77,12 @@ const prefixoDoAviso: Record<TipoDeAviso, string> = {
   atencao: 'Atenção:',
 };
 
+const iconeDoAviso: Record<TipoDeAviso, ReactNode> = {
+  erro: <XCircle size={18} />,
+  sucesso: <CheckCircle2 size={18} />,
+  atencao: <AlertTriangle size={18} />,
+};
+
 /** O aviso nunca depende só de cor: sempre começa com uma palavra que diz o que é. */
 export function Aviso({
   tipo,
@@ -88,6 +95,9 @@ export function Aviso({
 }) {
   return (
     <div className={`aviso aviso--${tipo}`} role={tipo === 'erro' ? 'alert' : 'status'}>
+      <span className="aviso__icone" aria-hidden="true">
+        {iconeDoAviso[tipo]}
+      </span>
       <div>
         <span className="aviso__titulo">
           {prefixoDoAviso[tipo]} {titulo}

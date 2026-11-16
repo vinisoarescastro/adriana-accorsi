@@ -1,37 +1,223 @@
 /*
- * Tokens do sistema de design. A paleta é PROVISÓRIA (a identidade visual da Deputada
- * entra com a PV-D). O teste contraste.test.ts confere os pares de cor abaixo.
+ * Tokens do sistema de design. A linguagem visual (paleta, tipografia, espaços, raios, sombras e
+ * movimento) segue o design system de referência; a identidade da Deputada entra com a PV-D e muda
+ * só estes valores. O teste contraste.test.ts confere os pares de cor, nos dois temas.
+ *
+ * Os nomes antigos (--cor-*, --espaco-*) continuam valendo como apelidos dos tokens novos.
  */
 :root {
-  --cor-fundo: #f4f6f9;
-  --cor-superficie: #ffffff;
-  --cor-texto: #1b2430;
-  --cor-texto-suave: #4a5668;
-  --cor-borda: #c9d1dc;
-  --cor-primaria: #1d4f91;
-  --cor-primaria-texto: #ffffff;
-  --cor-primaria-escura: #153a6b;
-  --cor-lateral: #14233b;
-  --cor-lateral-texto: #e8eef7;
-  --cor-perigo: #a61b1b;
-  --cor-perigo-fundo: #fdecec;
-  --cor-sucesso: #1b6b3a;
-  --cor-sucesso-fundo: #e6f4ec;
-  --cor-aviso: #7a4a00;
-  --cor-aviso-fundo: #fff3dc;
-  --cor-foco: #ffb000;
+  color-scheme: light;
 
-  --fonte: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --fonte-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* Tipografia */
+  --font-sans:
+    'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 
-  --espaco-1: 0.25rem;
-  --espaco-2: 0.5rem;
-  --espaco-3: 0.75rem;
-  --espaco-4: 1rem;
-  --espaco-5: 1.5rem;
-  --espaco-6: 2rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2rem;
 
-  --raio: 0.5rem;
-  --sombra: 0 1px 2px rgb(20 35 59 / 12%), 0 1px 3px rgb(20 35 59 / 8%);
-  --largura-lateral: 15rem;
+  --leading-tight: 1.25;
+  --leading-snug: 1.4;
+  --leading-normal: 1.55;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* Espaçamento (base 4px) */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Alturas de controles (o de toque no celular tem ao menos 2,75rem) */
+  --control-sm: 2rem;
+  --control-md: 2.5rem;
+  --control-lg: 2.75rem;
+  --control-touch: 2.75rem;
+
+  /* Raios */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 999px;
+
+  /* Layout */
+  --sidebar-width: 15rem;
+  --topbar-height: 3.5rem;
+  --content-max: 80rem;
+
+  /* Movimento */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Camadas */
+  --z-sticky: 20;
+  --z-sidebar: 30;
+  --z-dropdown: 50;
+  --z-overlay: 60;
+  --z-modal: 70;
+  --z-toast: 80;
+
+  /* Neutros (tema claro) */
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --surface-muted: #f4f4f5;
+  --surface-hover: #f4f4f5;
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
+  --text: #18181b;
+  --text-muted: #52525b;
+  --text-subtle: #71717a;
+  --text-disabled: #a1a1aa;
+  --overlay: rgba(24, 24, 27, 0.4);
+
+  /* Primária (azul royal) */
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-active: #1e40af;
+  --primary-soft: #eff6ff;
+  --primary-soft-text: #1e40af;
+  --on-primary: #ffffff;
+  /* Fundo dos botões primários: o mesmo nos dois temas, para o texto branco manter 4,5:1. */
+  --btn-primary: #2563eb;
+  --btn-primary-hover: #1d4ed8;
+  --btn-primary-active: #1e40af;
+
+  /* Degradês (com intenção: destaque, barra lateral, cartão principal) */
+  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #2563eb 55%, #1d4ed8 100%);
+  --gradient-deep: linear-gradient(160deg, #1e3a8a 0%, #172554 60%, #0f1b3d 100%);
+  --gradient-soft: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%);
+
+  /* Barra lateral */
+  --sidebar-bg: var(--gradient-deep);
+  --sidebar-text: rgba(255, 255, 255, 0.78);
+  --sidebar-text-strong: #ffffff;
+  --sidebar-hover: rgba(255, 255, 255, 0.1);
+  --sidebar-active: rgba(255, 255, 255, 0.18);
+
+  /* Secundária */
+  --secondary: #f4f4f5;
+  --secondary-hover: #e4e4e7;
+  --secondary-active: #d4d4d8;
+  --on-secondary: #18181b;
+
+  /* Estados semânticos */
+  --success: #15803d;
+  --success-soft: #f0fdf4;
+  --success-border: #bbf7d0;
+  --warning: #b45309;
+  --warning-soft: #fffbeb;
+  --warning-border: #fde68a;
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --danger-active: #991b1b;
+  --danger-text: #b91c1c;
+  --danger-soft: #fef2f2;
+  --danger-border: #fecaca;
+  --info: #0369a1;
+  --info-soft: #f0f9ff;
+  --info-border: #bae6fd;
+
+  /* Foco: visível sempre, por teclado */
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--primary);
+
+  /* Sombras (suaves) */
+  --shadow-sm: 0 1px 2px rgba(24, 24, 27, 0.05);
+  --shadow-md: 0 4px 12px rgba(24, 24, 27, 0.08);
+  --shadow-lg: 0 12px 32px rgba(24, 24, 27, 0.12);
+  --shadow-card: 0 1px 2px rgba(24, 24, 27, 0.04), 0 6px 20px rgba(24, 24, 27, 0.05);
+
+  /* Apelidos dos nomes antigos */
+  --cor-fundo: var(--bg);
+  --cor-superficie: var(--surface);
+  --cor-texto: var(--text);
+  --cor-texto-suave: var(--text-muted);
+  --cor-borda: var(--border);
+  --cor-borda-forte: var(--border-strong);
+  --cor-superficie-suave: var(--surface-muted);
+  --cor-primaria: var(--primary);
+  --cor-primaria-texto: var(--on-primary);
+  --cor-primaria-escura: var(--primary-hover);
+  --cor-perigo: var(--danger-text);
+  --cor-sucesso: var(--success);
+  --cor-aviso: var(--warning);
+  --cor-foco: var(--primary);
+  --fonte: var(--font-sans);
+  --fonte-mono: var(--font-mono);
+  --espaco-1: var(--space-1);
+  --espaco-2: var(--space-2);
+  --espaco-3: var(--space-3);
+  --espaco-4: var(--space-4);
+  --espaco-5: var(--space-6);
+  --espaco-6: var(--space-8);
+  --raio: var(--radius-md);
+  --sombra: var(--shadow-card);
+  --largura-lateral: var(--sidebar-width);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #09090b;
+  --surface: #121214;
+  --surface-muted: #1a1a1d;
+  --surface-hover: #1c1c1f;
+  --border: #27272a;
+  --border-strong: #3f3f46;
+  --text: #fafafa;
+  --text-muted: #a1a1aa;
+  --text-subtle: #8b8b94;
+  --text-disabled: #52525b;
+  --overlay: rgba(0, 0, 0, 0.6);
+
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --primary-active: #93c5fd;
+  --primary-soft: #172554;
+  --primary-soft-text: #bfdbfe;
+  --on-primary: #ffffff;
+  --gradient-soft: linear-gradient(135deg, #14203f 0%, #1a1633 100%);
+  --gradient-deep: linear-gradient(160deg, #1e3a8a 0%, #14275e 55%, #0b1534 100%);
+
+  --secondary: #1f1f23;
+  --secondary-hover: #27272a;
+  --secondary-active: #3f3f46;
+  --on-secondary: #fafafa;
+
+  --success: #4ade80;
+  --success-soft: #052e16;
+  --success-border: #14532d;
+  --warning: #fbbf24;
+  --warning-soft: #2a1a04;
+  --warning-border: #78350f;
+  --danger: #ef4444;
+  --danger-hover: #f87171;
+  --danger-active: #fca5a5;
+  --danger-text: #f87171;
+  --danger-soft: #2a0a0a;
+  --danger-border: #7f1d1d;
+  --info: #38bdf8;
+  --info-soft: #082f49;
+  --info-border: #0c4a6e;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+  --shadow-card: none;
 }

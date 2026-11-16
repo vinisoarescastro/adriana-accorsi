@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import {
   descadastrarPorToken,
   lerAcompanhamento,
@@ -20,6 +22,26 @@ import {
   paginaMuitasTentativas,
   paginaNaoEncontrada,
 } from './paginas.js';
+
+const requisitar = createRequire(import.meta.url);
+const pesosDaFonte = ['400', '500', '600'] as const;
+const fontes = new Map<string, Buffer>();
+
+/** A fonte do design system, servida pela própria origem (a política de conteúdo só aceita `self`). */
+function lerFonte(peso: string): Buffer | null {
+  if (!pesosDaFonte.some((p) => p === peso)) return null;
+  const guardada = fontes.get(peso);
+  if (guardada) return guardada;
+  try {
+    const arquivo = readFileSync(
+      requisitar.resolve(`@fontsource/poppins/files/poppins-latin-${peso}-normal.woff2`),
+    );
+    fontes.set(peso, arquivo);
+    return arquivo;
+  } catch {
+    return null; // sem a fonte, vale a do sistema
+  }
+}
 
 export interface DependenciasDoPublico {
   /** Conexão com o papel `app_publico`: só enxerga as visões públicas e as funções nominais. */
@@ -73,7 +95,7 @@ export async function construirServidorPublico(
     reply.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     reply.header(
       'Content-Security-Policy',
-      "default-src 'none'; style-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+      "default-src 'none'; style-src 'self'; font-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
     );
     return carga;
   });
@@ -87,6 +109,14 @@ export async function construirServidorPublico(
   app.get('/robots.txt', (_request, reply) =>
     reply.type('text/plain').send('User-agent: *\nDisallow: /\n'),
   );
+  app.get<{ Params: { peso: string } }>('/fonte/:peso', (request, reply) => {
+    const arquivo = lerFonte(request.params.peso.replace('.woff2', ''));
+    if (!arquivo) return naoEncontrada(reply);
+    return reply
+      .type('font/woff2')
+      .header('Cache-Control', 'public, max-age=31536000, immutable')
+      .send(arquivo);
+  });
   app.get('/estilo.css', (_request, reply) =>
     reply
       .type('text/css; charset=utf-8')

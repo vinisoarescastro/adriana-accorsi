@@ -258,6 +258,7 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | 2026-11-13 | Fase 3 implementada por inteiro (ver "Fase 3" acima) |
 | 2026-11-13 | Demanda cancelada é **só de leitura**: sem comentário nem documento novo, e sem remover os existentes (ler e baixar seguem). Fase 3 aprovada para começar |
 
+| 2026-11-16 | Interface adota o design system de referência (tokens, barra lateral, tema escuro, Poppins, ícones), sem mudar funcionalidade. Ver [ADR 0011](../arquitetura/decisoes/0011-design-system-da-interface.md) |
 | 2026-11-16 | Fases 1, 2 e 3 encerradas por aceite do usuário. Ficam pendentes, para a implantação ao fim das fases: VPS e DNS (PV-E), e-mail real com SPF, DKIM e DMARC, revisão jurídica (PV-F) e os itens de infraestrutura dos roteiros. Fase 4 aprovada para começar |
 
 ## Decisões abertas

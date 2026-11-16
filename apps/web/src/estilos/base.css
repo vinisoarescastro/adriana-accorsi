@@ -5,54 +5,85 @@
 }
 
 html {
-  font-family: var(--fonte);
-  font-size: 100%;
-  color: var(--cor-texto);
-  background: var(--cor-fundo);
   -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  line-height: 1.5;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
 }
 
 h1,
 h2,
-h3 {
-  line-height: 1.25;
-  margin: 0 0 var(--espaco-3);
+h3,
+h4 {
+  margin: 0 0 var(--space-3);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
 }
 
 h1 {
-  font-size: 1.5rem;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.015em;
 }
 
 h2 {
-  font-size: 1.2rem;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
 }
 
 h3 {
-  font-size: 1.05rem;
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
 }
 
 p {
-  margin: 0 0 var(--espaco-3);
+  margin: 0 0 var(--space-3);
 }
 
 a {
-  color: var(--cor-primaria);
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
 }
 
 img {
   max-width: 100%;
 }
 
+svg {
+  flex-shrink: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
 /* Foco sempre visível, para uso por teclado. */
 :focus-visible {
-  outline: 3px solid var(--cor-foco);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
 }
 
 .somente-leitor {
@@ -69,14 +100,25 @@ img {
 
 .pular-para-conteudo {
   position: absolute;
-  left: var(--espaco-3);
+  left: var(--space-3);
   top: -4rem;
   z-index: 100;
-  padding: var(--espaco-2) var(--espaco-4);
-  background: var(--cor-superficie);
-  border-radius: var(--raio);
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
 }
 
 .pular-para-conteudo:focus {
-  top: var(--espaco-3);
+  top: var(--space-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -16,6 +16,7 @@ Cada decisão relevante vira um arquivo `NNNN-titulo-curto.md`, numerado em sequ
 | [0008](0008-documentos-link-e-antivirus.md) | Documentos, segredo do link e antivírus | aceita |
 | [0009](0009-area-publica-e-envio-de-email.md) | Área pública, projeção em visões e envio de e-mail | aceita |
 | [0010](0010-trabalho-da-equipe-avisos-e-agenda.md) | Trabalho da equipe: avisos, worker de prazos e visibilidade da agenda | aceita |
+| [0011](0011-design-system-da-interface.md) | Design system da interface | aceita |
 
 ## Modelo
 

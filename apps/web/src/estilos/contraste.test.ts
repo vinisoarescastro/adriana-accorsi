@@ -2,11 +2,19 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-/** Contraste medido por teste (RNF-USA-04): WCAG AA pede 4,5:1 para texto comum. */
+/** Contraste medido por teste (RNF-USA-04): WCAG AA pede 4,5:1 para texto comum. Nos dois temas. */
 const tokens = readFileSync(new URL('./tokens.css', import.meta.url), 'utf8');
-const cores = Object.fromEntries(
-  [...tokens.matchAll(/--([a-z-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)].map((m) => [m[1], m[2] as string]),
-);
+
+function lerCores(bloco: string): Record<string, string> {
+  return Object.fromEntries(
+    [...bloco.matchAll(/--([a-z-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)].map((m) => [m[1], m[2] as string]),
+  );
+}
+
+const inicioDoEscuro = tokens.indexOf(":root[data-theme='dark']");
+const claro = lerCores(tokens.slice(0, inicioDoEscuro));
+// O tema escuro herda do claro o que não redefine.
+const escuro = { ...claro, ...lerCores(tokens.slice(inicioDoEscuro)) };
 
 function luminancia(hex: string): number {
   const canais = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
@@ -22,22 +30,30 @@ function contraste(a: string, b: string): number {
 }
 
 const pares: ReadonlyArray<readonly [string, string]> = [
-  ['cor-texto', 'cor-fundo'],
-  ['cor-texto', 'cor-superficie'],
-  ['cor-texto-suave', 'cor-superficie'],
-  ['cor-texto-suave', 'cor-fundo'],
-  ['cor-primaria', 'cor-superficie'],
-  ['cor-primaria', 'cor-fundo'],
-  ['cor-primaria-texto', 'cor-primaria'],
-  ['cor-primaria-texto', 'cor-primaria-escura'],
-  ['cor-lateral-texto', 'cor-lateral'],
-  ['cor-perigo', 'cor-perigo-fundo'],
-  ['cor-perigo', 'cor-superficie'],
-  ['cor-sucesso', 'cor-sucesso-fundo'],
-  ['cor-aviso', 'cor-aviso-fundo'],
+  ['text', 'bg'],
+  ['text', 'surface'],
+  ['text-muted', 'surface'],
+  ['text-muted', 'bg'],
+  ['text-muted', 'surface-muted'],
+  ['text-subtle', 'surface'],
+  ['primary', 'surface'],
+  ['primary', 'bg'],
+  ['on-primary', 'btn-primary'],
+  ['on-primary', 'btn-primary-hover'],
+  ['on-primary', 'btn-primary-active'],
+  ['primary-soft-text', 'primary-soft'],
+  ['danger-text', 'danger-soft'],
+  ['danger-text', 'surface'],
+  ['success', 'success-soft'],
+  ['success', 'surface'],
+  ['warning', 'warning-soft'],
+  ['info', 'info-soft'],
 ];
 
-describe('contraste da paleta', () => {
+describe.each([
+  ['claro', claro],
+  ['escuro', escuro],
+] as const)('contraste da paleta (tema %s)', (_nome, cores) => {
   it('todos os pares de cor declarados existem', () => {
     for (const [a, b] of pares) {
       expect(cores[a], a).toBeDefined();
