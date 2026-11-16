@@ -5,6 +5,9 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import { registrarAutenticacao } from './acesso/autenticacao.js';
 import { registrarRotasDeAcesso } from './acesso/rotas.js';
 import { ServicoDeAcesso } from './acesso/servico.js';
+import { ConsultasDeAgenda } from './agenda/consultas.js';
+import { registrarRotasDeAgenda } from './agenda/rotas.js';
+import { ServicoDeAgenda } from './agenda/servico.js';
 import { registrarRotasDeAvisos } from './avisos/rotas.js';
 import { ServicoDeAvisos } from './avisos/servico.js';
 import type { Armazenamento } from './armazenamento/armazenamento.js';
@@ -182,6 +185,12 @@ export async function construirServidor(dep: DependenciasDoServidor): Promise<Fa
   );
   registrarRotasDeNotificacoes(app, new ServicoDeNotificacoes(bd, agora));
   registrarRotasDeAvisos(app, new ServicoDeAvisos(bd, agora));
+  const consultasDeAgenda = new ConsultasDeAgenda(bd, agora);
+  registrarRotasDeAgenda(
+    app,
+    consultasDeAgenda,
+    new ServicoDeAgenda({ bd, consultas: consultasDeAgenda, agora }),
+  );
   const consultasDeTarefas = new ConsultasDeTarefas(bd, agora);
   registrarRotasDeTarefas(
     app,
