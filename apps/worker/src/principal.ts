@@ -2,6 +2,7 @@ import { exigirInvariantes } from '@gabinete/banco';
 import { esquemaWorker, validarAmbiente } from '@gabinete/compartilhado';
 import postgres from 'postgres';
 import { CanalResend, CanalSmtp, type CanalDeNotificacao } from './canal.js';
+import { GeradorDeAvisosDePrazo } from './prazos.js';
 import { ProcessadorDeEnvios } from './processador.js';
 
 const nomeDoRemetente = 'Gabinete da Deputada Adriana Accorsi';
@@ -45,6 +46,11 @@ async function iniciar(): Promise<void> {
       limitePorHora: ambiente.LIMITE_EMAILS_POR_HORA,
     });
 
+    const prazos = new GeradorDeAvisosDePrazo({
+      sql,
+      registrar: (mensagem) => console.error(mensagem),
+    });
+
     let parar = false;
     const encerrar = () => {
       parar = true;
@@ -67,6 +73,13 @@ async function iniciar(): Promise<void> {
       } catch (erro) {
         // Uma passagem que falha não derruba o processo (o banco pode ter piscado).
         console.error('falha ao processar a fila:', erro instanceof Error ? erro.message : erro);
+      }
+      // Prazos: de hora em hora. Falhar aqui nunca derruba o processo nem atrasa os e-mails.
+      const resumoDePrazos = await prazos.passarSeDevido();
+      if (resumoDePrazos) {
+        console.log(
+          `prazos: ${resumoDePrazos.proximos} próximo(s), ${resumoDePrazos.vencidos} vencido(s), ${resumoDePrazos.expurgados} expurgado(s), ${resumoDePrazos.falhas} falha(s)`,
+        );
       }
       if (!cheio)
         await new Promise((r) => setTimeout(r, ambiente.INTERVALO_DO_WORKER_SEGUNDOS * 1000));
