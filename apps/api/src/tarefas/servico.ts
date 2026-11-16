@@ -2,7 +2,6 @@ import { nivelDoPerfil, pode } from '@gabinete/autorizacao';
 import {
   compromisso,
   criarAvisos,
-  demanda,
   etapa,
   etapaDeEntrada,
   evento,
@@ -12,8 +11,8 @@ import {
   registrarTrilha,
   tarefa,
   tipoProcesso,
-  usuario,
   type BancoDeDados,
+  type Leitor,
   type Transacao,
 } from '@gabinete/banco';
 import type {
@@ -27,6 +26,9 @@ import { nivelDeVisao } from '../agenda/visibilidade.js';
 import { carregarDemandaAlcancavel, hojeNoGabinete } from '../atendimento/comum.js';
 import { mensagemDoPostgres } from '../banco-util.js';
 import type { Ator } from '../equipe/regras.js';
+import { avisosDeMencao } from '../mencoes.js';
+import { respondePor, substituirCorresponsaveis } from '../responsaveis.js';
+import { carregarResponsavelAtivo, reatribuirTarefa } from './reatribuicao.js';
 import { erros } from '../erros.js';
 import type { ConsultasDeTarefas } from './consultas.js';
 
@@ -37,9 +39,14 @@ export interface OpcoesDoServicoDeTarefas {
 }
 
 /** Quem pode editar, mover e cancelar: Supervisor ou superior, ou o responsável (RN-TAR-04). */
-function exigirPodeAlterar(ator: Ator, responsavelId: number): void {
-  if (nivelDoPerfil[ator.perfil] >= 3 || responsavelId === ator.usuarioId) return;
-  throw erros.semPermissao('Só o responsável, o Supervisor ou superior alteram esta tarefa.');
+async function exigirPodeAlterar(
+  leitor: Leitor,
+  ator: Ator,
+  atual: { id: number; responsavelId: number },
+): Promise<void> {
+  if (nivelDoPerfil[ator.perfil] >= 3) return;
+  if (await respondePor(leitor, 'tarefa', atual.id, atual.responsavelId, ator.usuarioId)) return;
+  throw erros.semPermissao('Só os responsáveis, o Supervisor ou superior alteram esta tarefa.');
 }
 
 const papeisDeSaida = ['conclusao', 'arquivamento'] as const;
@@ -52,21 +59,6 @@ export class ServicoDeTarefas {
   }
 
   /** O usuário pode receber tarefa: ativo. (Tarefa não tem habilitação própria.) */
-  private async carregarResponsavel(
-    leitor: Pick<Transacao, 'select'>,
-    usuarioId: number,
-  ): Promise<{ id: number; perfil: Perfil }> {
-    const [alvo] = await leitor
-      .select({ id: usuario.id, perfil: usuario.perfil, situacao: usuario.situacao })
-      .from(usuario)
-      .where(eq(usuario.id, usuarioId))
-      .limit(1);
-    if (!alvo || alvo.situacao !== 'ativo') {
-      throw erros.conflito('O responsável precisa ser um usuário ativo da equipe.');
-    }
-    return { id: alvo.id, perfil: alvo.perfil };
-  }
-
   /**
    * O vínculo herda o alcance do registro: quem não o alcança não vincula (RN-TAR-03), e o
    * responsável Assessor Externo só recebe tarefa ligada a uma demanda sua.
@@ -83,7 +75,10 @@ export class ServicoDeTarefas {
         if (!pode('demandas.consultar', autoridade)) throw erros.naoEncontrado();
         const d = await carregarDemandaAlcancavel(tx, ator, vinculo.id);
         if (d.canceladaEm) throw erros.conflito('Demanda cancelada não recebe tarefa nova.');
-        if (responsavel.perfil === 'assessor_externo' && d.responsavelId !== responsavel.id) {
+        if (
+          responsavel.perfil === 'assessor_externo' &&
+          !(await respondePor(tx, 'demanda', d.id, d.responsavelId, responsavel.id))
+        ) {
           throw erros.conflito('O responsável não alcança esta demanda.');
         }
         return;
@@ -146,7 +141,7 @@ export class ServicoDeTarefas {
     }
 
     const id = await this.bd.transaction(async (tx) => {
-      const responsavel = await this.carregarResponsavel(tx, responsavelId);
+      const responsavel = await carregarResponsavelAtivo(tx, responsavelId);
       if (dados.vinculo) await this.validarVinculo(tx, ator, responsavel, dados.vinculo);
 
       const entrada = await etapaDeEntrada(tx, 'tarefa');
@@ -188,6 +183,28 @@ export class ServicoDeTarefas {
           vinculo: dados.vinculo ?? null,
         },
       });
+      const { adicionados } = await substituirCorresponsaveis(
+        tx,
+        'tarefa',
+        novaId,
+        responsavelId,
+        dados.corresponsaveis,
+        async (uid) => {
+          const co = await carregarResponsavelAtivo(tx, uid);
+          if (dados.vinculo) await this.validarVinculo(tx, ator, co, dados.vinculo);
+        },
+      );
+      await criarAvisos(
+        tx,
+        ator.usuarioId,
+        adicionados.map((destinatarioId) => ({
+          destinatarioId,
+          natureza: 'tarefa_designada' as const,
+          registroTipo: 'tarefa' as const,
+          registroId: novaId,
+          geradoEm: this.o.agora(),
+        })),
+      );
       await criarAvisos(tx, ator.usuarioId, [
         {
           destinatarioId: responsavelId,
@@ -196,6 +213,14 @@ export class ServicoDeTarefas {
           registroId: novaId,
           geradoEm: this.o.agora(),
         },
+        ...(await avisosDeMencao(tx, {
+          autorId: ator.usuarioId,
+          ids: dados.mencoes,
+          texto: dados.descricao,
+          registroTipo: 'tarefa',
+          registroId: novaId,
+          geradoEm: this.o.agora(),
+        })),
       ]);
       return novaId;
     });
@@ -206,7 +231,10 @@ export class ServicoDeTarefas {
     const [linha] = await tx.select().from(tarefa).where(eq(tarefa.id, id)).limit(1).for('update');
     if (!linha) throw erros.naoEncontrado();
     // Quem não alcança a tarefa recebe "não encontrada", igual a uma que não existe.
-    if (nivelDoPerfil[ator.perfil] < 2 && linha.responsavelId !== ator.usuarioId) {
+    if (
+      nivelDoPerfil[ator.perfil] < 2 &&
+      !(await respondePor(tx, 'tarefa', id, linha.responsavelId, ator.usuarioId))
+    ) {
       throw erros.naoEncontrado();
     }
     return linha;
@@ -225,9 +253,24 @@ export class ServicoDeTarefas {
 
     await this.bd.transaction(async (tx) => {
       const atual = await this.carregar(tx, ator, id);
-      exigirPodeAlterar(ator, atual.responsavelId);
+      await exigirPodeAlterar(tx, ator, atual);
       this.exigirNaoCancelada(atual.canceladaEm);
       await tx.update(tarefa).set(mudancas).where(eq(tarefa.id, id));
+      if (dados.descricao) {
+        await criarAvisos(
+          tx,
+          ator.usuarioId,
+          await avisosDeMencao(tx, {
+            autorId: ator.usuarioId,
+            ids: dados.mencoes,
+            texto: dados.descricao,
+            anterior: atual.descricao,
+            registroTipo: 'tarefa',
+            registroId: id,
+            geradoEm: this.o.agora(),
+          }),
+        );
+      }
       await registrarTrilha(tx, {
         origem: 'usuario',
         autorId: ator.usuarioId,
@@ -246,10 +289,16 @@ export class ServicoDeTarefas {
    * etapa em andamento) é do Supervisor ou superior (RN-TAR-04). Concluir a última tarefa de uma
    * demanda NÃO conclui a demanda: a tarefa não mexe em nenhum outro registro (RN-DEM-10).
    */
-  async mover(ator: Ator, id: number, etapaId: number, observacao?: string): Promise<TarefaFicha> {
+  async mover(
+    ator: Ator,
+    id: number,
+    etapaId: number,
+    observacao?: string,
+    mencoes: readonly number[] = [],
+  ): Promise<TarefaFicha> {
     await this.bd.transaction(async (tx) => {
       const atual = await this.carregar(tx, ator, id);
-      exigirPodeAlterar(ator, atual.responsavelId);
+      await exigirPodeAlterar(tx, ator, atual);
       this.exigirNaoCancelada(atual.canceladaEm);
       if (atual.etapaAtualId === etapaId) throw erros.conflito('A tarefa já está nesta etapa.');
 
@@ -285,6 +334,18 @@ export class ServicoDeTarefas {
         observacao: observacao ?? null,
         criadaEm: this.o.agora(),
       });
+      await criarAvisos(
+        tx,
+        ator.usuarioId,
+        await avisosDeMencao(tx, {
+          autorId: ator.usuarioId,
+          ids: mencoes,
+          texto: observacao,
+          registroTipo: 'tarefa',
+          registroId: id,
+          geradoEm: this.o.agora(),
+        }),
+      );
       await registrarTrilha(tx, {
         origem: 'usuario',
         autorId: ator.usuarioId,
@@ -298,42 +359,19 @@ export class ServicoDeTarefas {
     return this.o.consultas.ficha(ator, id);
   }
 
-  /** Designar a outra pessoa exige Assessor Interno (a operação). O novo responsável é avisado. */
-  async reatribuir(ator: Ator, id: number, responsavelId: number): Promise<TarefaFicha> {
+  /**
+   * Designar a outra pessoa exige Assessor Interno (a operação). Troca o responsável principal e/ou a
+   * lista dos demais; quem entra é avisado. Passar só o mesmo principal, sem mudar a lista, é conflito.
+   */
+  async reatribuir(
+    ator: Ator,
+    id: number,
+    corpo: { responsavelId?: number | undefined; corresponsaveis?: readonly number[] | undefined },
+  ): Promise<TarefaFicha> {
     await this.bd.transaction(async (tx) => {
       const atual = await this.carregar(tx, ator, id);
       this.exigirNaoCancelada(atual.canceladaEm);
-      if (atual.responsavelId === responsavelId) throw erros.conflito('Este já é o responsável.');
-      const novo = await this.carregarResponsavel(tx, responsavelId);
-      if (atual.vinculoTipo === 'demanda' && novo.perfil === 'assessor_externo') {
-        const [d] = await tx
-          .select({ responsavelId: demanda.responsavelId })
-          .from(demanda)
-          .where(eq(demanda.id, atual.vinculoId as number))
-          .limit(1);
-        if (d?.responsavelId !== novo.id) {
-          throw erros.conflito('O novo responsável não alcança a demanda desta tarefa.');
-        }
-      }
-      await tx.update(tarefa).set({ responsavelId }).where(eq(tarefa.id, id));
-      await registrarTrilha(tx, {
-        origem: 'usuario',
-        autorId: ator.usuarioId,
-        operacao: 'tarefa.reatribuir',
-        entidade: 'tarefa',
-        registroId: id,
-        valorAnterior: { responsavelId: atual.responsavelId },
-        valorNovo: { responsavelId },
-      });
-      await criarAvisos(tx, ator.usuarioId, [
-        {
-          destinatarioId: responsavelId,
-          natureza: 'tarefa_reatribuida',
-          registroTipo: 'tarefa',
-          registroId: id,
-          geradoEm: this.o.agora(),
-        },
-      ]);
+      await reatribuirTarefa(tx, ator, atual, corpo, this.o.agora());
     });
     return this.o.consultas.ficha(ator, id);
   }
@@ -343,7 +381,7 @@ export class ServicoDeTarefas {
     try {
       await this.bd.transaction(async (tx) => {
         const atual = await this.carregar(tx, ator, id);
-        exigirPodeAlterar(ator, atual.responsavelId);
+        await exigirPodeAlterar(tx, ator, atual);
         this.exigirNaoCancelada(atual.canceladaEm);
         await tx
           .update(tarefa)

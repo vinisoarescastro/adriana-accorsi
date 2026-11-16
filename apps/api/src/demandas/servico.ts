@@ -2,6 +2,7 @@ import { nivelDoPerfil } from '@gabinete/autorizacao';
 import {
   demanda,
   emitirProtocolo,
+  criarAvisos,
   enfileirarNotificacao,
   registrarConsentimento,
   etapa,
@@ -11,6 +12,7 @@ import {
   registrarTrilha,
   tipoProcesso,
   type BancoDeDados,
+  type Leitor,
 } from '@gabinete/banco';
 import type {
   CorpoAtualizarDemanda,
@@ -23,6 +25,9 @@ import { carregarDemandaAlcancavel, exigirResponsavelValido } from '../atendimen
 import { mensagemDoPostgres, violouUnicidade } from '../banco-util.js';
 import type { Ator } from '../equipe/regras.js';
 import { erros } from '../erros.js';
+import { avisosDeMencao } from '../mencoes.js';
+import { respondePor, substituirCorresponsaveis } from '../responsaveis.js';
+import { reatribuirDemanda } from './reatribuicao.js';
 import type { ConsultasDeDemandas } from './consultas.js';
 import {
   cifrarSegredoDeLink,
@@ -41,10 +46,15 @@ export interface OpcoesDoServicoDeDemandas {
   readonly gerarProtocolo?: () => string;
 }
 
-/** Quem pode editar e mover: Supervisor ou superior, ou o responsável (RN-DEM-08). */
-function exigirPodeAlterar(ator: Ator, responsavelId: number): void {
-  if (nivelDoPerfil[ator.perfil] >= 3 || responsavelId === ator.usuarioId) return;
-  throw erros.semPermissao('Só o responsável, o Supervisor ou superior alteram esta demanda.');
+/** Quem pode editar e mover: Supervisor ou superior, ou um dos responsáveis (RN-DEM-08). */
+async function exigirPodeAlterar(
+  leitor: Leitor,
+  ator: Ator,
+  atual: { id: number; responsavelId: number },
+): Promise<void> {
+  if (nivelDoPerfil[ator.perfil] >= 3) return;
+  if (await respondePor(leitor, 'demanda', atual.id, atual.responsavelId, ator.usuarioId)) return;
+  throw erros.semPermissao('Só os responsáveis, o Supervisor ou superior alteram esta demanda.');
 }
 
 export class ServicoDeDemandas {
@@ -159,6 +169,38 @@ export class ServicoDeDemandas {
         etapaDestinoId: entrada.id,
         autorId: ator.usuarioId,
       });
+      const { adicionados } = await substituirCorresponsaveis(
+        tx,
+        'demanda',
+        id,
+        responsavelId,
+        dados.corresponsaveis,
+        (uid) => exigirResponsavelValido(tx, uid),
+      );
+      await criarAvisos(
+        tx,
+        ator.usuarioId,
+        adicionados.map((destinatarioId) => ({
+          destinatarioId,
+          natureza: 'demanda_designada' as const,
+          registroTipo: 'demanda' as const,
+          registroId: id,
+          geradoEm: this.o.agora(),
+        })),
+      );
+      await criarAvisos(
+        tx,
+        ator.usuarioId,
+        await avisosDeMencao(tx, {
+          autorId: ator.usuarioId,
+          ids: dados.mencoes,
+          texto: dados.descricao,
+          area: 'AT',
+          registroTipo: 'demanda',
+          registroId: id,
+          geradoEm: this.o.agora(),
+        }),
+      );
       // O segredo do link NUNCA entra na trilha.
       await registrarTrilha(tx, {
         origem: 'usuario',
@@ -193,9 +235,25 @@ export class ServicoDeDemandas {
 
     await this.bd.transaction(async (tx) => {
       const atual = await carregarDemandaAlcancavel(tx, ator, id, { paraAtualizar: true });
-      exigirPodeAlterar(ator, atual.responsavelId);
+      await exigirPodeAlterar(tx, ator, atual);
       this.exigirNaoCancelada(atual.canceladaEm);
       await tx.update(demanda).set(mudancas).where(eq(demanda.id, id));
+      if (dados.descricao) {
+        await criarAvisos(
+          tx,
+          ator.usuarioId,
+          await avisosDeMencao(tx, {
+            autorId: ator.usuarioId,
+            ids: dados.mencoes,
+            texto: dados.descricao,
+            anterior: atual.descricao,
+            area: 'AT',
+            registroTipo: 'demanda',
+            registroId: id,
+            geradoEm: this.o.agora(),
+          }),
+        );
+      }
       await registrarTrilha(tx, {
         origem: 'usuario',
         autorId: ator.usuarioId,
@@ -210,10 +268,16 @@ export class ServicoDeDemandas {
   }
 
   /** Move pelo mecanismo ÚNICO de movimentação. O status deriva do papel da etapa de destino. */
-  async mover(ator: Ator, id: number, etapaId: number, observacao?: string): Promise<DemandaFicha> {
+  async mover(
+    ator: Ator,
+    id: number,
+    etapaId: number,
+    observacao?: string,
+    mencoes: readonly number[] = [],
+  ): Promise<DemandaFicha> {
     await this.bd.transaction(async (tx) => {
       const atual = await carregarDemandaAlcancavel(tx, ator, id, { paraAtualizar: true });
-      exigirPodeAlterar(ator, atual.responsavelId);
+      await exigirPodeAlterar(tx, ator, atual);
       this.exigirNaoCancelada(atual.canceladaEm);
       if (atual.etapaAtualId === etapaId) throw erros.conflito('A demanda já está nesta etapa.');
 
@@ -241,6 +305,19 @@ export class ServicoDeDemandas {
         autorId: ator.usuarioId,
         observacao: observacao ?? null,
       });
+      await criarAvisos(
+        tx,
+        ator.usuarioId,
+        await avisosDeMencao(tx, {
+          autorId: ator.usuarioId,
+          ids: mencoes,
+          texto: observacao,
+          area: 'AT',
+          registroTipo: 'demanda',
+          registroId: id,
+          geradoEm: this.o.agora(),
+        }),
+      );
       await registrarTrilha(tx, {
         origem: 'usuario',
         autorId: ator.usuarioId,
@@ -269,22 +346,19 @@ export class ServicoDeDemandas {
     return this.o.consultas.ficha(ator, id);
   }
 
-  async reatribuir(ator: Ator, id: number, responsavelId: number): Promise<DemandaFicha> {
-    await exigirResponsavelValido(this.bd, responsavelId);
+  /**
+   * Troca o responsável principal e/ou a lista dos demais responsáveis. Quem entra como responsável é
+   * avisado. Passar só o mesmo principal, sem mudar a lista, é conflito (nada mudou).
+   */
+  async reatribuir(
+    ator: Ator,
+    id: number,
+    corpo: { responsavelId?: number | undefined; corresponsaveis?: readonly number[] | undefined },
+  ): Promise<DemandaFicha> {
     await this.bd.transaction(async (tx) => {
       const atual = await carregarDemandaAlcancavel(tx, ator, id, { paraAtualizar: true });
       this.exigirNaoCancelada(atual.canceladaEm);
-      if (atual.responsavelId === responsavelId) throw erros.conflito('Este já é o responsável.');
-      await tx.update(demanda).set({ responsavelId }).where(eq(demanda.id, id));
-      await registrarTrilha(tx, {
-        origem: 'usuario',
-        autorId: ator.usuarioId,
-        operacao: 'demanda.reatribuir',
-        entidade: 'demanda',
-        registroId: id,
-        valorAnterior: { responsavelId: atual.responsavelId },
-        valorNovo: { responsavelId },
-      });
+      await reatribuirDemanda(tx, ator, atual, corpo, this.o.agora());
     });
     return this.o.consultas.ficha(ator, id);
   }

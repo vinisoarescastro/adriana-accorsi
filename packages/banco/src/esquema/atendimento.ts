@@ -1,4 +1,13 @@
-import { bigint, boolean, date, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import {
+  bigint,
+  boolean,
+  date,
+  index,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+} from 'drizzle-orm/pg-core';
 import { usuario } from './acesso.js';
 import { etapa, type TipoDeRegistro } from './fluxos.js';
 
@@ -123,3 +132,18 @@ export const documento = pgTable('documento', {
   removidoPor: bigint('removido_por', { mode: 'number' }).references(() => usuario.id),
   removidoEm: instante('removido_em'),
 });
+
+/** Os demais responsáveis de uma demanda (o principal fica em `demanda.responsavel_id`). */
+export const demandaResponsavel = pgTable(
+  'demanda_responsavel',
+  {
+    demandaId: bigint('demanda_id', { mode: 'number' })
+      .notNull()
+      .references(() => demanda.id),
+    usuarioId: bigint('usuario_id', { mode: 'number' })
+      .notNull()
+      .references(() => usuario.id),
+    adicionadoEm: instante('adicionado_em').notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.demandaId, t.usuarioId] })],
+);

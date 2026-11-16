@@ -86,4 +86,21 @@ describe('listar e quadro (critério 10: nada carrega o conjunto completo)', () 
     expect(quadro.colunas[0]).toMatchObject({ total: 1 });
     expect(quadro.limitePorColuna).toBe(30);
   });
+
+  it('o quadro respeita a busca e o filtro de atraso, e recusa filtro inválido', async () => {
+    const { cookie } = await preparar();
+    await registrar(cookie.interno);
+    const total = async (consulta: string) =>
+      (await a.chamar('GET', `/api/demandas/quadro${consulta}`, { cookie: cookie.interno }))
+        .json()
+        .colunas.reduce((soma: number, c: any) => soma + c.total, 0);
+
+    expect(await total('')).toBe(1);
+    expect(await total('?busca=nada-parecido-com-nenhuma-demanda')).toBe(0);
+    expect(await total('?atrasadas=true')).toBe(0);
+    expect(
+      (await a.chamar('GET', '/api/demandas/quadro?atrasadas=talvez', { cookie: cookie.interno }))
+        .statusCode,
+    ).toBe(400);
+  });
 });

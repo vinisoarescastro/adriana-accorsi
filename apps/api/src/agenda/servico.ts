@@ -19,6 +19,7 @@ import {
 } from '@gabinete/compartilhado';
 import { and, eq, inArray } from 'drizzle-orm';
 import type { Ator } from '../equipe/regras.js';
+import { avisosDeMencao } from '../mencoes.js';
 import { erros } from '../erros.js';
 import type { ConsultasDeAgenda } from './consultas.js';
 import { validarExternos, validarInternos } from './participantes.js';
@@ -46,6 +47,26 @@ export class ServicoDeAgenda {
   }
 
   /** O compromisso, se o ator o vê por inteiro; senão "não encontrado" (igual a um que não existe). */
+  /** Avisos das menções (@Nome) na descrição: só de quem passou a ser citado agora e tem Agenda. */
+  private avisosDeMencao(
+    tx: Transacao,
+    ator: Ator,
+    registroId: number,
+    dados: { descricao?: string | null | undefined; mencoes: readonly number[] },
+    anterior?: string | null,
+  ) {
+    return avisosDeMencao(tx, {
+      autorId: ator.usuarioId,
+      ids: dados.mencoes,
+      texto: dados.descricao,
+      anterior,
+      area: 'AG',
+      registroTipo: 'compromisso',
+      registroId,
+      geradoEm: this.o.agora(),
+    });
+  }
+
   private async carregar(tx: Transacao, ator: Ator, id: number) {
     const [linha] = await tx
       .select()
@@ -126,17 +147,16 @@ export class ServicoDeAgenda {
         },
       });
       // Só a indicação explícita avisa. A marca "envolve a Parlamentar" nunca gera aviso (RN-AGE-08).
-      await criarAvisos(
-        tx,
-        ator.usuarioId,
-        internos.map((destinatarioId) => ({
+      await criarAvisos(tx, ator.usuarioId, [
+        ...internos.map((destinatarioId) => ({
           destinatarioId,
           natureza: 'compromisso_indicacao' as const,
           registroTipo: 'compromisso' as const,
           registroId: novoId,
           geradoEm: this.o.agora(),
         })),
-      );
+        ...(await this.avisosDeMencao(tx, ator, novoId, dados)),
+      ]);
       return novoId;
     });
     return this.salvo(ator, id);
@@ -245,6 +265,7 @@ export class ServicoDeAgenda {
               geradoEm,
             }))
           : []),
+        ...(dados.descricao ? await this.avisosDeMencao(tx, ator, id, dados, atual.descricao) : []),
       ]);
       await registrarTrilha(tx, {
         origem: 'usuario',
@@ -351,9 +372,7 @@ export class ServicoDeAgenda {
     return this.salvo(ator, id);
   }
 
-  // -------------------------------------------------------------------------
   // Bloqueios de indisponibilidade: entram na agenda e no conflito, sem motivo (RN-AGE-06).
-  // -------------------------------------------------------------------------
 
   async criarBloqueio(
     ator: Ator,

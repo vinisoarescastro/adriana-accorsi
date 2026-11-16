@@ -21,6 +21,7 @@ import { hojeNoGabinete, padraoDeBusca, paginar } from '../atendimento/comum.js'
 import { movimentacoesDoRegistro } from '../atendimento/movimentacoes.js';
 import type { Ator } from '../equipe/regras.js';
 import { erros } from '../erros.js';
+import { comCorresponsaveis, corresponsaveisDe, tarefaDoUsuario } from '../responsaveis.js';
 
 const responsavel = alias(usuario, 'responsavel');
 const criador = alias(usuario, 'criador');
@@ -77,9 +78,7 @@ export class ConsultasDeTarefas {
 
   /** O ponto único de alcance. */
   static condicoesDeAlcance(ator: Ator): SQL[] {
-    return composicaoDeAlcance(ator.perfil) === 'proprio'
-      ? [eq(tarefa.responsavelId, ator.usuarioId)]
-      : [];
+    return composicaoDeAlcance(ator.perfil) === 'proprio' ? [tarefaDoUsuario(ator.usuarioId)] : [];
   }
 
   /** Tarefa em andamento: não cancelada e fora das etapas de conclusão e arquivamento. */
@@ -91,7 +90,7 @@ export class ConsultasDeTarefas {
     const c = ConsultasDeTarefas.condicoesDeAlcance(ator);
     const emAndamento = ConsultasDeTarefas.emAndamento();
 
-    if (filtro.minhas) c.push(eq(tarefa.responsavelId, ator.usuarioId));
+    if (filtro.minhas) c.push(tarefaDoUsuario(ator.usuarioId));
     if (filtro.etapaId !== undefined) c.push(eq(tarefa.etapaAtualId, filtro.etapaId));
     if (filtro.responsavelId !== undefined) c.push(eq(tarefa.responsavelId, filtro.responsavelId));
     if (filtro.prioridade) c.push(eq(tarefa.prioridade, filtro.prioridade));
@@ -133,6 +132,7 @@ export class ConsultasDeTarefas {
       atrasada:
         status === 'em_andamento' && l.prazo !== null && l.prazo < hojeNoGabinete(this.agora()),
       responsavel: { id: l.responsavelId, nome: l.responsavelNome },
+      corresponsaveis: [],
       criador: l.criadorNome,
       vinculo:
         l.vinculoTipo !== null && l.vinculoId !== null
@@ -158,7 +158,11 @@ export class ConsultasDeTarefas {
       .offset(deslocamento);
 
     return {
-      itens: linhas.map((l) => this.mapear(l)),
+      itens: await comCorresponsaveis(
+        this.bd,
+        'tarefa',
+        linhas.map((l) => this.mapear(l)),
+      ),
       total: total?.total ?? 0,
       pagina: filtro.pagina,
       porPagina: filtro.porPagina,
@@ -172,6 +176,7 @@ export class ConsultasDeTarefas {
     if (!linha) throw erros.naoEncontrado();
     return {
       ...this.mapear(linha),
+      corresponsaveis: (await corresponsaveisDe(this.bd, 'tarefa', [id])).get(id) ?? [],
       descricao: linha.descricao,
       canceladaEm: linha.canceladaEm?.toISOString() ?? null,
       justificativaCancelamento: linha.justificativa,

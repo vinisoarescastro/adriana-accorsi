@@ -1,0 +1,315 @@
+/** Textos fictícios para a demonstração. Nada aqui é dado pessoal real. */
+
+export const nomes = [
+  'Maria',
+  'José',
+  'Ana',
+  'João',
+  'Antônia',
+  'Francisco',
+  'Luciana',
+  'Carlos',
+  'Fernanda',
+  'Paulo',
+  'Adriana',
+  'Marcos',
+  'Patrícia',
+  'Roberto',
+  'Juliana',
+  'Sérgio',
+  'Cláudia',
+  'Rogério',
+  'Sandra',
+  'Edson',
+  'Vanessa',
+  'Gilberto',
+  'Teresa',
+  'Wagner',
+  'Elaine',
+  'Nelson',
+  'Márcia',
+  'Rodrigo',
+  'Cristina',
+  'Alexandre',
+  'Simone',
+  'Fábio',
+  'Débora',
+  'Leandro',
+  'Rita',
+  'Anderson',
+  'Silvia',
+  'Mauro',
+  'Regina',
+  'Ricardo',
+];
+
+export const sobrenomes = [
+  'Silva',
+  'Souza',
+  'Oliveira',
+  'Santos',
+  'Pereira',
+  'Lima',
+  'Ferreira',
+  'Costa',
+  'Rodrigues',
+  'Almeida',
+  'Nascimento',
+  'Carvalho',
+  'Araújo',
+  'Ribeiro',
+  'Gomes',
+  'Martins',
+  'Barbosa',
+  'Rocha',
+  'Dias',
+  'Moreira',
+  'Cardoso',
+  'Teixeira',
+  'Correia',
+  'Mendes',
+  'Freitas',
+  'Pinto',
+  'Cavalcante',
+  'Monteiro',
+  'Andrade',
+  'Campos',
+];
+
+export const ruas = [
+  'das Acácias',
+  'Bahia',
+  'Ceará',
+  'Dom Aquino',
+  'Marechal Rondon',
+  'Afonso Pena',
+  'Rui Barbosa',
+  'Pedro Celestino',
+  'das Flores',
+  'dos Ipês',
+  'Joaquim Murtinho',
+  'Fernando Corrêa',
+  'Antônio Maria Coelho',
+  'Goiás',
+  'Santa Fé',
+  'das Palmeiras',
+  'Tamandaré',
+  'José Antônio',
+  'Brilhante',
+  'Rio Grande do Sul',
+];
+
+export const bairros = [
+  'Centro',
+  'Jardim dos Estados',
+  'Vila Carvalho',
+  'Tiradentes',
+  'Coophavila II',
+  'Nova Lima',
+  'Santa Fé',
+  'Moreninhas',
+  'Jardim Noroeste',
+  'Vila Glória',
+  'Aero Rancho',
+  'Monte Castelo',
+  'Parque do Lago',
+  'Universitário',
+];
+
+/** Comentários internos: `{A}` e `{B}` viram menções (@Nome) a colegas. */
+export const comentarios = [
+  'Liguei para a Secretaria e disseram que a vistoria sai nesta semana. @{A} pode acompanhar?',
+  'Cidadã avisada por telefone sobre o andamento. Ela pediu que a gente retorne na sexta.',
+  '@{A} conseguiu o contato do responsável no órgão? Preciso dele para fechar essa.',
+  'Anexei o ofício que protocolamos. @{B} confere se o número está correto antes de enviar ao cidadão.',
+  'Retorno da prefeitura: pedem mais uma foto do local. Vou pedir à família.',
+  'Subindo a prioridade: o caso envolve risco à segurança. @{A} @{B} vamos tratar com urgência.',
+  'Falei com a assessoria do secretário. Prometeram resposta até quinta-feira.',
+  'O cidadão ligou de novo cobrando. Passei o andamento e ele ficou satisfeito.',
+  '@{A} pode revisar o texto da novidade antes de publicarmos para o cidadão?',
+  'Confirmado com a equipe de campo: o serviço foi executado. Falta só o registro fotográfico.',
+  'Cobrei novamente o retorno. @{A}, se não responderem até amanhã, escalamos para a chefia.',
+  'Lembrando que o prazo vence na próxima semana. @{B} consegue dar uma prioridade a essa?',
+  'Documentos conferidos e anexados. Pode seguir para a próxima etapa.',
+  'Conversei com o vereador da região, que se dispôs a ajudar. @{A} fica de acompanhar.',
+  'Sem solução por ora: o órgão alegou falta de orçamento. Vamos explicar ao cidadão com cuidado.',
+];
+
+export const observacoesDeMovimento = [
+  'Triagem feita: caso classificado e responsável definido.',
+  'Em contato com o órgão responsável.',
+  'Aguardando retorno da secretaria.',
+  'Documentação completa recebida.',
+  'Serviço executado e confirmado pelo cidadão.',
+  'Sem possibilidade de atendimento no momento; cidadão informado.',
+  'Encerrada após o prazo de acompanhamento.',
+];
+
+export const justificativasDeCancelamento = [
+  'Demanda registrada em duplicidade; o atendimento segue no outro protocolo.',
+  'O cidadão desistiu do pedido e informou por telefone.',
+  'Registro feito por engano: o assunto não é de competência do gabinete.',
+];
+
+export const titulosDeTarefaDeDemanda = [
+  'Ligar para o cidadão e confirmar o atendimento',
+  'Protocolar ofício na secretaria responsável',
+  'Fazer vistoria no local e registrar fotos',
+  'Cobrar retorno do órgão sobre o pedido',
+  'Reunir os documentos necessários com a família',
+  'Enviar o andamento atualizado ao cidadão',
+  'Agendar visita da equipe técnica',
+];
+
+export const titulosDeTarefaInterna = [
+  'Preparar o relatório mensal de atendimentos',
+  'Atualizar a planilha de acompanhamento das emendas',
+  'Organizar a pauta da reunião de equipe de segunda-feira',
+  'Revisar o discurso para a sessão de quarta-feira',
+  'Conferir a prestação de contas da cota parlamentar',
+  'Agendar visita ao {bairro} com lideranças comunitárias',
+  'Montar o clipping de notícias da semana',
+  'Atualizar o cadastro de lideranças e associações',
+  'Responder as mensagens pendentes do atendimento',
+  'Preparar material para a audiência pública',
+  'Revisar o texto do informativo para os moradores',
+  'Levantar dados de obras paradas na região',
+  'Organizar os convites para o evento de sábado',
+  'Checar pendências com o setor jurídico',
+];
+
+export const descricoesDeTarefa = [
+  'Conferir todos os dados antes de enviar. @{A} acompanha a parte de documentos.',
+  'Prazo apertado: priorizar esta semana. Combinar com @{A} o que for necessário.',
+  'Seguir o roteiro combinado na reunião. Qualquer dúvida, falar com @{A}.',
+  'Registrar tudo na ficha para não perdermos o histórico.',
+  'Demanda do gabinete da deputada. Manter a chefia informada sobre o resultado.',
+];
+
+export const compromissos = [
+  {
+    titulo: 'Reunião com a Secretaria de Saúde',
+    local: 'Secretaria Municipal de Saúde',
+    descricao:
+      'Tratar da fila de cirurgias eletivas e do abastecimento das UBS. Levar a lista de casos acompanhados.',
+  },
+  {
+    titulo: 'Audiência pública sobre saneamento',
+    local: 'Câmara Municipal',
+    descricao: 'Debate com a concessionária e moradores. @{A} organiza a lista de presença.',
+  },
+  {
+    titulo: 'Visita ao bairro {bairro}',
+    local: '{bairro}',
+    descricao: 'Encontro com lideranças comunitárias para ouvir as demandas do bairro.',
+  },
+  { titulo: 'Sessão plenária', local: 'Plenário', descricao: null },
+  {
+    titulo: 'Almoço com lideranças comunitárias',
+    local: 'Restaurante Pantanal',
+    descricao: 'Conversa sobre prioridades de investimento. @{A} confirma os convidados.',
+  },
+  {
+    titulo: 'Entrevista para rádio local',
+    local: 'Rádio Capital FM',
+    descricao: 'Pauta: balanço do mandato e emendas para a região.',
+  },
+  {
+    titulo: 'Reunião de equipe do gabinete',
+    local: 'Gabinete',
+    descricao:
+      'Pauta fixa: demandas em aberto, agenda da semana e pendências. @{A} traz o relatório de atendimentos.',
+  },
+  {
+    titulo: 'Reunião com a Agência de Habitação',
+    local: 'Agência de Habitação',
+    descricao: 'Acompanhar processos de regularização parados.',
+  },
+  {
+    titulo: 'Inauguração da quadra do {bairro}',
+    local: '{bairro}',
+    descricao: 'Cerimônia com a comunidade. Confirmar a presença da imprensa.',
+  },
+  {
+    titulo: 'Reunião com o prefeito',
+    local: 'Paço Municipal',
+    descricao: 'Pauta: obras de drenagem e recapeamento. Preparar dossiê com @{A}.',
+  },
+  {
+    titulo: 'Atendimento ao público',
+    local: 'Gabinete',
+    descricao: 'Dia de atendimento presencial aos cidadãos.',
+  },
+  {
+    titulo: 'Reunião com o comando da Guarda Municipal',
+    local: 'Comando da Guarda',
+    descricao: 'Reforço de patrulhamento em áreas críticas.',
+  },
+];
+
+export const eventos = [
+  { nome: 'Audiência pública: saneamento básico', local: 'Câmara Municipal' },
+  { nome: 'Mutirão de atendimento no {bairro}', local: 'Associação de Moradores do {bairro}' },
+  { nome: 'Feira de empregos e capacitação', local: 'Centro de Convenções' },
+  { nome: 'Palestra sobre direitos da pessoa idosa', local: 'Centro de Convivência' },
+  { nome: 'Encontro de lideranças comunitárias', local: 'Auditório do Gabinete' },
+  { nome: 'Campanha de vacinação e saúde da mulher', local: 'UBS {bairro}' },
+  { nome: 'Oficina de regularização fundiária', local: 'Agência de Habitação' },
+  { nome: 'Festival de cultura popular', local: 'Praça do {bairro}' },
+  { nome: 'Fórum de segurança pública', local: 'Auditório da Câmara' },
+  { nome: 'Dia de atendimento itinerante', local: 'Escola Municipal do {bairro}' },
+];
+
+export const arquivos = [
+  {
+    nome: 'oficio-protocolado.pdf',
+    natureza: 'oficio',
+    tipo: 'pdf',
+    titulo: 'Ofício ao órgão responsável',
+  },
+  {
+    nome: 'laudo-medico.pdf',
+    natureza: 'comprovante',
+    tipo: 'pdf',
+    titulo: 'Laudo médico (modelo fictício)',
+  },
+  {
+    nome: 'comprovante-de-residencia.pdf',
+    natureza: 'comprovante',
+    tipo: 'pdf',
+    titulo: 'Comprovante de residência',
+  },
+  {
+    nome: 'parecer-tecnico.pdf',
+    natureza: 'parecer',
+    tipo: 'pdf',
+    titulo: 'Parecer técnico da equipe',
+  },
+  {
+    nome: 'justificativa-do-pedido.pdf',
+    natureza: 'justificativa',
+    tipo: 'pdf',
+    titulo: 'Justificativa do pedido',
+  },
+  {
+    nome: 'plano-de-trabalho.pdf',
+    natureza: 'plano_de_trabalho',
+    tipo: 'pdf',
+    titulo: 'Plano de trabalho',
+  },
+  {
+    nome: 'minuta-de-resposta.pdf',
+    natureza: 'minuta',
+    tipo: 'pdf',
+    titulo: 'Minuta de resposta ao cidadão',
+  },
+  { nome: 'foto-do-local.png', natureza: 'foto', tipo: 'png', titulo: '' },
+  { nome: 'foto-antes-e-depois.png', natureza: 'foto', tipo: 'png', titulo: '' },
+  {
+    nome: 'abaixo-assinado.pdf',
+    natureza: 'lista_assinada',
+    tipo: 'pdf',
+    titulo: 'Abaixo-assinado dos moradores',
+  },
+  { nome: 'documentos-da-familia.zip', natureza: 'outro', tipo: 'zip', titulo: '' },
+] as const;

@@ -4,6 +4,7 @@ import { perfisComTodasAsHabilitacoes } from '@gabinete/compartilhado';
 import { and, eq } from 'drizzle-orm';
 import type { Ator } from '../equipe/regras.js';
 import { erros } from '../erros.js';
+import { respondePor } from '../responsaveis.js';
 
 export type { Leitor };
 
@@ -76,7 +77,10 @@ export async function carregarDemandaAlcancavel(
   const consulta = leitor.select().from(demanda).where(eq(demanda.id, id)).limit(1);
   const [linha] = await (opcoes.paraAtualizar ? consulta.for('update') : consulta);
   if (!linha) throw erros.naoEncontrado();
-  if (composicaoDeAlcance(ator.perfil) === 'proprio' && linha.responsavelId !== ator.usuarioId) {
+  if (
+    composicaoDeAlcance(ator.perfil) === 'proprio' &&
+    !(await respondePor(leitor, 'demanda', id, linha.responsavelId, ator.usuarioId))
+  ) {
     throw erros.naoEncontrado();
   }
   return linha;

@@ -137,10 +137,14 @@ export const esquemaNovaDemanda = z.object({
   ]),
   titulo: texto(200).min(1),
   descricao: texto(5000).optional(),
+  /** Colegas mencionados com @ na descrição (ids). */
+  mencoes: z.array(id).max(20).default([]),
   prioridade: z.enum(prioridades).default('media'),
   prazo: data.optional(),
   /** Se omitido, quem registra é o responsável. */
   responsavelId: id.optional(),
+  /** Outros responsáveis, além do principal. */
+  corresponsaveis: z.array(id).max(10).default([]),
 });
 export type CorpoNovaDemanda = z.infer<typeof esquemaNovaDemanda>;
 
@@ -148,18 +152,32 @@ export const esquemaAtualizarDemanda = z
   .object({
     titulo: texto(200).min(1).optional(),
     descricao: texto(5000).nullable().optional(),
+    mencoes: z.array(id).max(20).default([]),
     prioridade: z.enum(prioridades).optional(),
     prazo: data.nullable().optional(),
   })
-  .refine((v) => Object.values(v).some((x) => x !== undefined), 'Informe ao menos um campo.');
+  .refine(
+    (v) =>
+      Object.values(v)
+        .filter((x) => !Array.isArray(x))
+        .some((x) => x !== undefined),
+    'Informe ao menos um campo.',
+  );
 export type CorpoAtualizarDemanda = z.infer<typeof esquemaAtualizarDemanda>;
 
 export const esquemaMoverDemanda = z.object({
   etapaId: id,
   observacao: texto(1000).optional(),
+  mencoes: z.array(id).max(20).default([]),
 });
 
-export const esquemaReatribuirDemanda = z.object({ responsavelId: id });
+/** Troca o responsável principal e/ou a lista dos demais responsáveis (substitui a lista). */
+export const esquemaReatribuirDemanda = z
+  .object({ responsavelId: id.optional(), corresponsaveis: z.array(id).max(10).optional() })
+  .refine(
+    (v) => v.responsavelId !== undefined || v.corresponsaveis !== undefined,
+    'Informe quem passa a responder.',
+  );
 
 export const esquemaCancelarDemanda = z.object({
   justificativa: texto(1000).min(10, 'A justificativa deve ter ao menos 10 caracteres.'),
@@ -185,6 +203,8 @@ export interface DemandaResumo {
   readonly atrasada: boolean;
   readonly solicitante: { readonly id: number; readonly nome: string | null };
   readonly responsavel: { readonly id: number; readonly nome: string };
+  /** Os demais responsáveis (além do principal). */
+  readonly corresponsaveis: readonly { readonly id: number; readonly nome: string }[];
   readonly criadoEm: string;
 }
 

@@ -93,6 +93,25 @@ O worker gera os avisos de prazo na subida e depois de hora em hora (um por praz
 
 Variáveis do app público: `DATABASE_URL_PUBLICO`, `HOST_PUBLICO`, `PORTA_PUBLICO`. Do worker: `DATABASE_URL_WORKER`, `SESSAO_SEGREDO`, `EMAIL_PROVEDOR` (`smtp` em desenvolvimento, `resend` em produção), `EMAIL_API_KEY`, `EMAIL_REMETENTE`, `SMTP_HOST`, `SMTP_PORTA`, `LIMITE_EMAILS_POR_HORA`, `INTERVALO_DO_WORKER_SEGUNDOS`.
 
+## Dados de demonstração
+
+Para avaliar a aplicação com volume e variedade (usuários, cidadãos, demandas com histórico, tarefas,
+comentários com menções, agenda, eventos, e-mails, documentos, avisos e auditoria):
+
+```
+npm run demonstracao -w @gabinete/api
+```
+
+O comando **apaga os dados de uso** do banco local (demandas, tarefas, pessoas, comentários, agenda, eventos,
+documentos, e-mails, avisos e a trilha desses registros) e cria uma base fictícia nova. Ficam intactos os usuários
+e contas que já existiam, as sessões, a identidade do gabinete, os parâmetros, os fluxos (tipos e etapas), a
+política de publicação e as migrações. Só roda em banco local (recusa qualquer outro host) e usa uma semente fixa,
+então o resultado é sempre o mesmo. As contas novas usam a senha `Gabinete2026Demo` (só vale no banco local).
+**Faça um backup antes** (`pg_dump`), porque a limpeza não tem volta.
+
+Para só acrescentar corresponsáveis (vários responsáveis por demanda e por tarefa) a uma demonstração já criada, sem apagar
+nada: `npm run demonstracao:corresponsaveis -w @gabinete/api`.
+
 ## Testes
 
 `npm test` roda tudo: unidade, interface (jsdom) e integração (Postgres e S3 reais em contêiner; exige Docker). Para só uma camada: `npm run test:unidade`, `npx vitest run --project web`, `npm run test:integracao`.

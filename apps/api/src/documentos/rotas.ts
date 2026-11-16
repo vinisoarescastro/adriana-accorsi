@@ -12,6 +12,13 @@ const esquemaEnvio = z.object({
   natureza: z.enum(naturezasDeDocumento).default('outro'),
 });
 
+const esquemaEdicao = z
+  .object({
+    nome: z.string().trim().min(1).max(260).optional(),
+    natureza: z.enum(naturezasDeDocumento).optional(),
+  })
+  .refine((v) => v.nome !== undefined || v.natureza !== undefined, 'Informe o que mudar.');
+
 /** Nome com acentos vai como parâmetro de endereço ou no cabeçalho, nos formatos RFC 5987. */
 const contentDisposition = (nome: string) =>
   `attachment; filename="${nome.replace(/[^\x20-\x7e]|["\\]/g, '_')}"; filename*=UTF-8''${encodeURIComponent(nome)}`;
@@ -57,6 +64,15 @@ export function registrarRotasDeDocumentos(
         .header('Content-Security-Policy', "default-src 'none'; sandbox")
         .send(arquivo.bytes);
     },
+  );
+
+  // Corrige o nome e/ou a natureza; o arquivo não muda (e a correção fica na trilha).
+  app.patch('/api/documentos/:id', { config: { operacao: 'documentos.anexar' } }, (request) =>
+    servico.editar(
+      atorDaSessao(request.sessao),
+      lerCorpo(esquemaId, request.params).id,
+      lerCorpo(esquemaEdicao, request.body),
+    ),
   );
 
   app.delete('/api/documentos/:id', { config: { operacao: 'documentos.remover' } }, (request) =>

@@ -45,6 +45,7 @@ import { hojeNoGabinete, padraoDeBusca, paginar } from '../atendimento/comum.js'
 import { movimentacoesDoRegistro } from '../atendimento/movimentacoes.js';
 import type { Ator } from '../equipe/regras.js';
 import { erros } from '../erros.js';
+import { comCorresponsaveis, corresponsaveisDe, demandaDoUsuario } from '../responsaveis.js';
 
 const responsavel = alias(usuario, 'responsavel');
 const autor = alias(usuario, 'autor');
@@ -102,9 +103,7 @@ export class ConsultasDeDemandas {
 
   /** O ponto único de alcance (RN-DEM-07). */
   static condicoesDeAlcance(ator: Ator): SQL[] {
-    return composicaoDeAlcance(ator.perfil) === 'proprio'
-      ? [eq(demanda.responsavelId, ator.usuarioId)]
-      : [];
+    return composicaoDeAlcance(ator.perfil) === 'proprio' ? [demandaDoUsuario(ator.usuarioId)] : [];
   }
 
   private condicoes(ator: Ator, filtro: FiltroDeDemandas): SQL[] {
@@ -169,6 +168,7 @@ export class ConsultasDeDemandas {
         status === 'em_andamento' && l.prazo !== null && l.prazo < hojeNoGabinete(this.agora()),
       solicitante: { id: l.solicitanteId, nome: l.solicitanteNome },
       responsavel: { id: l.responsavelId, nome: l.responsavelNome },
+      corresponsaveis: [],
       criadoEm: l.criadoEm.toISOString(),
     };
   }
@@ -190,15 +190,27 @@ export class ConsultasDeDemandas {
       .offset(deslocamento);
 
     return {
-      itens: linhas.map((l) => this.mapear(l)),
+      itens: await comCorresponsaveis(
+        this.bd,
+        'demanda',
+        linhas.map((l) => this.mapear(l)),
+      ),
       total: total?.total ?? 0,
       pagina: filtro.pagina,
       porPagina: filtro.porPagina,
     };
   }
 
-  /** Quadro por etapa: as demandas em andamento (e as concluídas e arquivadas) de cada etapa ativa. */
-  async quadro(ator: Ator, limitePorColuna = 30): Promise<QuadroDeDemandas> {
+  /**
+   * Quadro por etapa: as demandas em andamento (e as concluídas e arquivadas) de cada etapa ativa.
+   * Aceita os mesmos filtros da lista (busca, atrasadas, solicitante, responsável, prioridade);
+   * a situação não se aplica, pois cada coluna já é uma etapa.
+   */
+  async quadro(
+    ator: Ator,
+    filtro: Omit<FiltroDeDemandas, 'pagina' | 'porPagina' | 'status' | 'etapaId'> = {},
+    limitePorColuna = 30,
+  ): Promise<QuadroDeDemandas> {
     const etapas = await this.bd
       .select({ id: etapa.id, nome: etapa.nomeInterno, papel: etapa.papel, ordem: etapa.ordem })
       .from(etapa)
@@ -209,11 +221,16 @@ export class ConsultasDeDemandas {
     const colunas: ColunaDoQuadro[] = [];
     for (const e of etapas) {
       const onde = and(
-        ...ConsultasDeDemandas.condicoesDeAlcance(ator),
+        ...this.condicoes(ator, { ...filtro, pagina: 1, porPagina: limitePorColuna }),
         eq(demanda.etapaAtualId, e.id),
         isNull(demanda.canceladaEm),
       );
-      const [total] = await this.bd.select({ total: count() }).from(demanda).where(onde);
+      const [total] = await this.bd
+        .select({ total: count() })
+        .from(demanda)
+        .innerJoin(etapa, eq(etapa.id, demanda.etapaAtualId))
+        .innerJoin(pessoa, eq(pessoa.id, demanda.solicitanteId))
+        .where(onde);
       const linhas = await this.selecao()
         .where(onde)
         .orderBy(desc(demanda.criadoEm), desc(demanda.id))
@@ -221,7 +238,11 @@ export class ConsultasDeDemandas {
       colunas.push({
         etapa: e,
         total: total?.total ?? 0,
-        itens: linhas.map((l) => this.mapear(l)),
+        itens: await comCorresponsaveis(
+          this.bd,
+          'demanda',
+          linhas.map((l) => this.mapear(l)),
+        ),
       });
     }
     return { colunas, limitePorColuna };
@@ -243,6 +264,7 @@ export class ConsultasDeDemandas {
     });
     const base = {
       ...this.mapear(linha),
+      corresponsaveis: (await corresponsaveisDe(this.bd, 'demanda', [id])).get(id) ?? [],
       descricao: linha.descricao,
       autor: linha.autorNome,
       solicitanteTelefone: linha.solicitanteTelefone

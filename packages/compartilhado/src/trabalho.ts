@@ -24,13 +24,19 @@ export type TipoDeVinculoDeTarefaDto = (typeof tiposDeVinculoDeTarefa)[number];
 export const statusDeTarefa = ['em_andamento', 'concluido', 'arquivado', 'cancelada'] as const;
 export type StatusDeTarefa = (typeof statusDeTarefa)[number];
 
+/** Colegas mencionados com @ (ids). A API conserva só os que aparecem no texto e podem ser avisados. */
+const mencoes = z.array(id).max(20).default([]);
+
 export const esquemaNovaTarefa = z.object({
   titulo: texto(200).min(1),
   descricao: texto(5000).optional(),
+  mencoes,
   prioridade: z.enum(prioridades).default('media'),
   prazo: data.optional(),
   /** Se omitido, quem cria é o responsável. O Assessor Externo só cria para si. */
   responsavelId: id.optional(),
+  /** Outros responsáveis, além do principal. */
+  corresponsaveis: z.array(id).max(10).default([]),
   vinculo: z.object({ tipo: z.enum(tiposDeVinculoDeTarefa), id }).optional(),
 });
 export type CorpoNovaTarefa = z.infer<typeof esquemaNovaTarefa>;
@@ -39,14 +45,31 @@ export const esquemaAtualizarTarefa = z
   .object({
     titulo: texto(200).min(1).optional(),
     descricao: texto(5000).nullable().optional(),
+    mencoes,
     prioridade: z.enum(prioridades).optional(),
     prazo: data.nullable().optional(),
   })
-  .refine((v) => Object.values(v).some((x) => x !== undefined), 'Informe ao menos um campo.');
+  .refine(
+    (v) =>
+      Object.values(v)
+        .filter((x) => !Array.isArray(x))
+        .some((x) => x !== undefined),
+    'Informe ao menos um campo.',
+  );
 export type CorpoAtualizarTarefa = z.infer<typeof esquemaAtualizarTarefa>;
 
-export const esquemaMoverTarefa = z.object({ etapaId: id, observacao: texto(1000).optional() });
-export const esquemaReatribuirTarefa = z.object({ responsavelId: id });
+export const esquemaMoverTarefa = z.object({
+  etapaId: id,
+  observacao: texto(1000).optional(),
+  mencoes,
+});
+/** Troca o responsável principal e/ou a lista dos demais responsáveis (substitui a lista). */
+export const esquemaReatribuirTarefa = z
+  .object({ responsavelId: id.optional(), corresponsaveis: z.array(id).max(10).optional() })
+  .refine(
+    (v) => v.responsavelId !== undefined || v.corresponsaveis !== undefined,
+    'Informe quem passa a responder.',
+  );
 export const esquemaCancelarTarefa = z.object({
   justificativa: texto(1000).min(10, 'A justificativa deve ter ao menos 10 caracteres.'),
 });
@@ -62,6 +85,8 @@ export interface TarefaResumo {
   /** Derivado na leitura: prazo vencido e ainda em andamento. */
   readonly atrasada: boolean;
   readonly responsavel: { readonly id: number; readonly nome: string };
+  /** Os demais responsáveis (além do principal). */
+  readonly corresponsaveis: readonly { readonly id: number; readonly nome: string }[];
   readonly criador: string;
   readonly vinculo: { readonly tipo: TipoDeVinculoDeTarefaDto; readonly id: number } | null;
   readonly criadoEm: string;
@@ -103,6 +128,7 @@ export const naturezasDeAviso = [
   'despesa_aguardando_analise',
   'saldo_abaixo_limite',
   'mencao',
+  'demanda_designada',
 ] as const;
 export type NaturezaDeAvisoDto = (typeof naturezasDeAviso)[number];
 
@@ -117,7 +143,8 @@ export const frasesDeAviso: Readonly<Record<NaturezaDeAvisoDto, string>> = {
   prazo_vencido: 'Um prazo venceu',
   despesa_aguardando_analise: 'Uma despesa aguarda a sua análise',
   saldo_abaixo_limite: 'Um saldo ficou abaixo do limite',
-  mencao: 'Você foi mencionado em um comentário',
+  mencao: 'Você foi mencionado',
+  demanda_designada: 'Você foi incluído como responsável por uma demanda',
 };
 
 export interface AvisoDto {
@@ -130,6 +157,8 @@ export interface AvisoDto {
     /** Lido na hora, do registro que o destinatário alcança. `null` se não houver título a mostrar. */
     readonly titulo: string | null;
   };
+  /** Quem gerou o aviso (por exemplo, quem mencionou); `null` nos automáticos (prazos). */
+  readonly de: string | null;
   readonly geradoEm: string;
   readonly lido: boolean;
 }
@@ -175,6 +204,7 @@ export const esquemaNovoCompromisso = z
   .object({
     titulo: texto(200).min(1),
     descricao: texto(2000).optional(),
+    mencoes,
     local: texto(300).optional(),
     inicio: instante,
     fim: instante,
@@ -195,6 +225,7 @@ export const esquemaAtualizarCompromisso = z
   .object({
     titulo: texto(200).min(1).optional(),
     descricao: texto(2000).nullable().optional(),
+    mencoes,
     local: texto(300).nullable().optional(),
     inicio: instante.optional(),
     fim: instante.optional(),
@@ -205,7 +236,10 @@ export const esquemaAtualizarCompromisso = z
     participantesInternos: z.array(id).max(50).optional(),
     participantesExternos: z.array(id).max(50).optional(),
   })
-  .refine((v) => Object.values(v).some((x) => x !== undefined), 'Informe ao menos um campo.');
+  .refine(
+    (v) => Object.entries(v).some(([chave, x]) => chave !== 'mencoes' && x !== undefined),
+    'Informe ao menos um campo.',
+  );
 export type CorpoAtualizarCompromisso = z.infer<typeof esquemaAtualizarCompromisso>;
 
 export const esquemaResponderCompromisso = z.object({ resposta: z.enum(respostasDeParticipante) });

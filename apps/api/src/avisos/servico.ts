@@ -4,6 +4,7 @@ import {
   compromisso,
   demanda,
   expiracaoDepoisDeLer,
+  usuario,
   participanteInterno,
   parametro,
   registrarTrilha,
@@ -21,6 +22,7 @@ import {
 import { and, desc, eq, gt, inArray, isNull, sql } from 'drizzle-orm';
 import { nivelDeVisao } from '../agenda/visibilidade.js';
 import type { Ator } from '../equipe/regras.js';
+import { corresponsaveisDe } from '../responsaveis.js';
 
 /** A caixa mostra os avisos mais recentes; o expurgo mantém o resto pequeno. */
 const limiteDaCaixa = 200;
@@ -49,13 +51,18 @@ export class ServicoDeAvisos {
     ];
 
     const tarefas = idsDe('tarefa');
+    const coTarefas = await corresponsaveisDe(this.bd, 'tarefa', tarefas);
     if (tarefas.length > 0) {
       const linhas = await this.bd
         .select({ id: tarefa.id, titulo: tarefa.titulo, responsavelId: tarefa.responsavelId })
         .from(tarefa)
         .where(inArray(tarefa.id, tarefas));
       for (const t of linhas) {
-        if (composicaoDeAlcance(ator.perfil) === 'proprio' && t.responsavelId !== ator.usuarioId) {
+        if (
+          composicaoDeAlcance(ator.perfil) === 'proprio' &&
+          t.responsavelId !== ator.usuarioId &&
+          !(coTarefas.get(t.id) ?? []).some((c) => c.id === ator.usuarioId)
+        ) {
           continue;
         }
         alcancados.set(`tarefa:${t.id}`, t.titulo);
@@ -63,13 +70,18 @@ export class ServicoDeAvisos {
     }
 
     const demandas = idsDe('demanda');
+    const coDemandas = await corresponsaveisDe(this.bd, 'demanda', demandas);
     if (demandas.length > 0 && pode('demandas.consultar', autoridade)) {
       const linhas = await this.bd
         .select({ id: demanda.id, titulo: demanda.titulo, responsavelId: demanda.responsavelId })
         .from(demanda)
         .where(inArray(demanda.id, demandas));
       for (const d of linhas) {
-        if (composicaoDeAlcance(ator.perfil) === 'proprio' && d.responsavelId !== ator.usuarioId) {
+        if (
+          composicaoDeAlcance(ator.perfil) === 'proprio' &&
+          d.responsavelId !== ator.usuarioId &&
+          !(coDemandas.get(d.id) ?? []).some((c) => c.id === ator.usuarioId)
+        ) {
           continue;
         }
         alcancados.set(`demanda:${d.id}`, d.titulo);
@@ -113,6 +125,19 @@ export class ServicoDeAvisos {
       .limit(limiteDaCaixa);
 
     const titulos = await this.registrosAlcancaveis(ator, linhas);
+    const origens = [
+      ...new Set(linhas.map((l) => l.origemId).filter((o): o is number => o !== null)),
+    ];
+    const nomes = new Map(
+      origens.length === 0
+        ? []
+        : (
+            await this.bd
+              .select({ id: usuario.id, nome: usuario.nome })
+              .from(usuario)
+              .where(inArray(usuario.id, origens))
+          ).map((u) => [u.id, u.nome]),
+    );
     const itens: AvisoDto[] = [];
     for (const l of linhas) {
       const titulo = titulos.get(`${l.registroTipo}:${l.registroId}`);
@@ -122,6 +147,7 @@ export class ServicoDeAvisos {
         natureza: l.natureza,
         frase: frasesDeAviso[l.natureza],
         registro: { tipo: l.registroTipo, id: l.registroId, titulo },
+        de: l.origemId === null ? null : (nomes.get(l.origemId) ?? null),
         geradoEm: l.geradoEm.toISOString(),
         lido: l.lidoEm !== null,
       });

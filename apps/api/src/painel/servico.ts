@@ -10,6 +10,7 @@ import type { PainelDeAtendimento, PainelDeTarefas } from '@gabinete/compartilha
 import { and, asc, count, eq, gte, inArray, isNull, lt, sql, type SQL } from 'drizzle-orm';
 import { hojeNoGabinete, inicioDoMesNoGabinete } from '../atendimento/comum.js';
 import { ConsultasDeDemandas } from '../demandas/consultas.js';
+import { demandaDoUsuario, tarefaDoUsuario } from '../responsaveis.js';
 import type { Ator } from '../equipe/regras.js';
 import { ConsultasDeTarefas } from '../tarefas/consultas.js';
 
@@ -78,7 +79,7 @@ export class ServicoDoPainel {
           eq(etapa.papel, 'conclusao'),
           desde(inicioDoMesNoGabinete(agora)),
         ),
-        contar(emAndamento, eq(demanda.responsavelId, ator.usuarioId)),
+        contar(emAndamento, demandaDoUsuario(ator.usuarioId)),
       ]);
 
     const etapas = await this.bd
@@ -121,7 +122,7 @@ export class ServicoDoPainel {
         .where(and(...alcance, emAndamento, ...extra));
       return linha?.total ?? 0;
     };
-    const minha = eq(tarefa.responsavelId, ator.usuarioId);
+    const minha = tarefaDoUsuario(ator.usuarioId);
     const vencida = lt(tarefa.prazo, hoje);
     const [abertas, atrasadas, minhasAbertas, minhasAtrasadas] = await Promise.all([
       contar(),

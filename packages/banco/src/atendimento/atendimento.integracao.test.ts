@@ -231,11 +231,12 @@ describe('documento', () => {
     await expect(anexar(demandaId, { tamanho: 26214400 })).resolves.toBeDefined();
   });
 
-  it('é imutável, exceto marcar como removido (e o removido não volta)', async () => {
+  it('o arquivo é imutável (só o nome e a natureza se corrigem), e o removido não volta', async () => {
     const [d] = await anexar(await novaDemanda());
-    await expect(api`UPDATE documento SET nome = 'outro.pdf' WHERE id = ${d!.id}`).rejects.toThrow(
-      /não se altera/,
-    );
+    await api`UPDATE documento SET nome = 'outro.pdf', natureza = 'oficio' WHERE id = ${d!.id}`;
+    await expect(
+      api`UPDATE documento SET hash_sha256 = ${'b'.repeat(64)} WHERE id = ${d!.id}`,
+    ).rejects.toThrow(/não se altera/);
     await expect(
       api`UPDATE documento SET chave_armazenamento = 'x' WHERE id = ${d!.id}`,
     ).rejects.toThrow(/não se altera/);

@@ -39,6 +39,7 @@ export async function criarAvisos(
       natureza: n.natureza,
       registroTipo: n.registroTipo,
       registroId: n.registroId,
+      origemId: autorId,
       geradoEm: n.geradoEm,
       expiraEm: expiracaoSemLer(n.geradoEm),
     })),

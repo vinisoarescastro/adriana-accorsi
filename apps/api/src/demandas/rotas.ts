@@ -45,7 +45,19 @@ export function registrarRotasDeDemandas(
 
   // Registrada antes de /:id para que "quadro" não seja lido como um id.
   app.get('/api/demandas/quadro', { config: { operacao: 'demandas.consultar' } }, (request) =>
-    consultas.quadro(atorDaSessao(request.sessao)),
+    consultas.quadro(
+      atorDaSessao(request.sessao),
+      lerCorpo(
+        esquemaFiltro.pick({
+          busca: true,
+          solicitanteId: true,
+          responsavelId: true,
+          prioridade: true,
+          atrasadas: true,
+        }),
+        request.query,
+      ),
+    ),
   );
 
   app.get('/api/demandas/:id', { config: { operacao: 'demandas.consultar' } }, (request) =>
@@ -79,6 +91,7 @@ export function registrarRotasDeDemandas(
       id(request.params),
       corpo.etapaId,
       corpo.observacao,
+      corpo.mencoes,
     );
   });
 
@@ -89,7 +102,7 @@ export function registrarRotasDeDemandas(
       servico.reatribuir(
         atorDaSessao(request.sessao),
         id(request.params),
-        lerCorpo(esquemaReatribuirDemanda, request.body).responsavelId,
+        lerCorpo(esquemaReatribuirDemanda, request.body),
       ),
   );
 

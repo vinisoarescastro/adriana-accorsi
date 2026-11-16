@@ -148,6 +148,33 @@ export class ServicoDeDocumentos {
     return this.consultas.documentos(doc.registroId);
   }
 
+  /** Corrige o nome e/ou a natureza. O arquivo, o hash e o tamanho não mudam. */
+  async editar(
+    ator: Ator,
+    documentoId: number,
+    dados: { nome?: string | undefined; natureza?: NaturezaDeDocumento | undefined },
+  ): Promise<DocumentoDto[]> {
+    const doc = await this.carregar(documentoId);
+    exigirDemandaAberta(await carregarDemandaAlcancavel(this.bd, ator, doc.registroId));
+    if (doc.situacao === 'removido') throw erros.conflito('O documento removido não se altera.');
+
+    const nome = dados.nome === undefined ? doc.nome : limparNomeDoArquivo(dados.nome);
+    const natureza = dados.natureza ?? doc.natureza;
+    await this.bd.transaction(async (tx) => {
+      await tx.update(documento).set({ nome, natureza }).where(eq(documento.id, documentoId));
+      await registrarTrilha(tx, {
+        origem: 'usuario',
+        autorId: ator.usuarioId,
+        operacao: 'demanda.editar_documento',
+        entidade: 'demanda',
+        registroId: doc.registroId,
+        valorAnterior: { documentoId, nome: doc.nome, natureza: doc.natureza },
+        valorNovo: { documentoId, nome, natureza },
+      });
+    });
+    return this.consultas.documentos(doc.registroId);
+  }
+
   private async carregar(id: number) {
     const [doc] = await this.bd.select().from(documento).where(eq(documento.id, id)).limit(1);
     if (!doc || doc.registroTipo !== 'demanda') throw erros.naoEncontrado();

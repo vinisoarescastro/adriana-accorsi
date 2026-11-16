@@ -79,6 +79,7 @@ export function registrarRotasDeTarefas(
       id(request.params),
       corpo.etapaId,
       corpo.observacao,
+      corpo.mencoes,
     );
   });
 
@@ -89,7 +90,7 @@ export function registrarRotasDeTarefas(
       servico.reatribuir(
         atorDaSessao(request.sessao),
         id(request.params),
-        lerCorpo(esquemaReatribuirTarefa, request.body).responsavelId,
+        lerCorpo(esquemaReatribuirTarefa, request.body),
       ),
   );
 

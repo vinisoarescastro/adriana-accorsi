@@ -68,6 +68,7 @@ export const naturezasDeAviso = [
   'despesa_aguardando_analise',
   'saldo_abaixo_limite',
   'mencao',
+  'demanda_designada',
 ] as const;
 export type NaturezaDeAviso = (typeof naturezasDeAviso)[number];
 
@@ -90,6 +91,8 @@ export const aviso = pgTable(
     natureza: text('natureza').$type<NaturezaDeAviso>().notNull(),
     registroTipo: text('registro_tipo').$type<TipoDeRegistroDeAviso>().notNull(),
     registroId: bigint('registro_id', { mode: 'number' }).notNull(),
+    /** Quem gerou o aviso (por exemplo, quem mencionou). Nunca o texto. */
+    origemId: bigint('origem_id', { mode: 'number' }).references(() => usuario.id),
     geradoEm: instante('gerado_em').notNull().defaultNow(),
     lidoEm: instante('lido_em'),
     expiraEm: instante('expira_em').notNull(),
@@ -129,6 +132,21 @@ export const compromisso = pgTable('compromisso', {
   criadoEm: instante('criado_em').notNull().defaultNow(),
   atualizadoEm: instante('atualizado_em').notNull().defaultNow(),
 });
+
+/** Os demais responsáveis de uma tarefa (o principal fica em `tarefa.responsavel_id`). */
+export const tarefaResponsavel = pgTable(
+  'tarefa_responsavel',
+  {
+    tarefaId: bigint('tarefa_id', { mode: 'number' })
+      .notNull()
+      .references(() => tarefa.id),
+    usuarioId: bigint('usuario_id', { mode: 'number' })
+      .notNull()
+      .references(() => usuario.id),
+    adicionadoEm: instante('adicionado_em').notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.tarefaId, t.usuarioId] })],
+);
 
 export const participanteInterno = pgTable(
   'participante_interno',
