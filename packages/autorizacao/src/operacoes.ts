@@ -122,6 +122,79 @@ export const operacoes = {
     habilitacao: ['AT'],
   },
 
+  // Trabalho da equipe (fase 4). Tarefas e avisos não têm habilitação: herdam o alcance do registro
+  // a que se ligam ou exigem só o nível. Agenda é AG; eventos e presença são AT.
+  'painel.tarefas': { descricao: 'Ver o bloco de tarefas do painel', nivelMinimo: 1 },
+  'tarefas.consultar': {
+    descricao: 'Listar e consultar tarefas (o Assessor Externo vê só as suas)',
+    nivelMinimo: 1,
+  },
+  'tarefas.criar': {
+    descricao: 'Criar tarefa (o Assessor Externo só para si: regra do serviço)',
+    nivelMinimo: 1,
+  },
+  'tarefas.alterar': {
+    descricao:
+      'Editar, mover e cancelar tarefa (Supervisor ou superior, ou o responsável; reabrir só Supervisor: regra do serviço)',
+    nivelMinimo: 1,
+  },
+  'tarefas.reatribuir': {
+    descricao: 'Designar ou reatribuir a tarefa a outra pessoa',
+    nivelMinimo: 2,
+  },
+  'avisos.consultar': { descricao: 'Ver os próprios avisos (o sino)', nivelMinimo: 1 },
+  'avisos.marcar_lido': { descricao: 'Marcar os próprios avisos como lidos', nivelMinimo: 1 },
+  'avisos.configurar': {
+    descricao: 'Configurar a antecedência do aviso de prazo',
+    nivelMinimo: 4,
+  },
+  'agenda.consultar': {
+    descricao: 'Consultar a agenda por período (o conteúdo depende da visibilidade)',
+    nivelMinimo: 1,
+    habilitacao: ['AG'],
+  },
+  'agenda.responder': {
+    descricao: 'Responder a indicação como participante interno (a resposta é só informativa)',
+    nivelMinimo: 1,
+    habilitacao: ['AG'],
+  },
+  'agenda.marcar': {
+    descricao: 'Marcar, remarcar e cancelar compromisso; criar e cancelar bloqueio',
+    nivelMinimo: 2,
+    habilitacao: ['AG'],
+  },
+  'agenda.criar_restrito': {
+    descricao: 'Criar ou tornar Restrito um compromisso',
+    nivelMinimo: 3,
+    habilitacao: ['AG'],
+  },
+  'eventos.consultar': {
+    descricao: 'Acompanhar eventos e a contagem de presença',
+    nivelMinimo: 1,
+    habilitacao: ['AT'],
+  },
+  'presenca.registrar': {
+    descricao: 'Registrar presença (e corrigir a própria em até 30 minutos)',
+    nivelMinimo: 1,
+    habilitacao: ['AT'],
+  },
+  'eventos.organizar': {
+    descricao: 'Cadastrar e alterar eventos; corrigir presença depois dos 30 minutos',
+    nivelMinimo: 2,
+    habilitacao: ['AT'],
+  },
+  'eventos.lista_nominal': {
+    descricao: 'Ver a lista nominal de presença',
+    nivelMinimo: 2,
+    habilitacao: ['AT'],
+  },
+  'eventos.encerrar': { descricao: 'Encerrar evento', nivelMinimo: 3, habilitacao: ['AT'] },
+  'presenca.remover': {
+    descricao: 'Remover presença, com justificativa',
+    nivelMinimo: 3,
+    habilitacao: ['AT'],
+  },
+
   // Equipe
   'equipe.ver': { descricao: 'Ver a equipe', nivelMinimo: 1 },
   'equipe.administrar': {

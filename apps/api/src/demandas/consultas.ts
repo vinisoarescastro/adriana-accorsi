@@ -6,7 +6,6 @@ import {
   documento,
   etapa,
   formatarProtocolo,
-  movimentacao,
   normalizarProtocolo,
   pessoa,
   statusPeloPapel,
@@ -43,6 +42,7 @@ import {
 } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { hojeNoGabinete, padraoDeBusca, paginar } from '../atendimento/comum.js';
+import { movimentacoesDoRegistro } from '../atendimento/movimentacoes.js';
 import type { Ator } from '../equipe/regras.js';
 import { erros } from '../erros.js';
 
@@ -334,32 +334,7 @@ export class ConsultasDeDemandas {
     }));
   }
 
-  async movimentacoes(demandaId: number): Promise<MovimentacaoDto[]> {
-    const origem = alias(etapa, 'origem');
-    const linhas = await this.bd
-      .select({
-        id: movimentacao.id,
-        de: origem.nomeInterno,
-        para: etapa.nomeInterno,
-        papel: etapa.papel,
-        autor: usuario.nome,
-        observacao: movimentacao.observacao,
-        criadaEm: movimentacao.criadaEm,
-      })
-      .from(movimentacao)
-      .innerJoin(etapa, eq(etapa.id, movimentacao.etapaDestinoId))
-      .leftJoin(origem, eq(origem.id, movimentacao.etapaOrigemId))
-      .innerJoin(usuario, eq(usuario.id, movimentacao.autorId))
-      .where(and(eq(movimentacao.registroTipo, 'demanda'), eq(movimentacao.registroId, demandaId)))
-      .orderBy(asc(movimentacao.id));
-    return linhas.map((l) => ({
-      id: l.id,
-      de: l.de,
-      para: l.para,
-      papelDoDestino: l.papel,
-      autor: l.autor,
-      observacao: l.observacao,
-      criadaEm: l.criadaEm.toISOString(),
-    }));
+  movimentacoes(demandaId: number): Promise<MovimentacaoDto[]> {
+    return movimentacoesDoRegistro(this.bd, 'demanda', demandaId);
   }
 }

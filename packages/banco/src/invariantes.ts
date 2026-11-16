@@ -16,7 +16,7 @@ export interface ResultadoDeInvariante {
 
 /** Tabelas em que cada papel pode escrever. Cresce fase a fase, de forma declarada. */
 export const escritaPermitida = {
-  worker: ['envio_notificacao'] as readonly string[],
+  worker: ['envio_notificacao', 'aviso'] as readonly string[],
   publico: [] as readonly string[],
 };
 

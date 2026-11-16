@@ -66,6 +66,30 @@ const esperado: Record<NomeDeOperacao, readonly Perfil[]> = {
     'assessor_interno',
   ],
   'notificacoes.consultar_fila': ['parlamentar', 'administrador', 'chefe', 'supervisor'],
+  'painel.tarefas': perfis,
+  'tarefas.consultar': perfis,
+  'tarefas.criar': perfis,
+  'tarefas.alterar': perfis,
+  'tarefas.reatribuir': ['parlamentar', 'administrador', 'chefe', 'supervisor', 'assessor_interno'],
+  'avisos.consultar': perfis,
+  'avisos.marcar_lido': perfis,
+  'avisos.configurar': ['administrador', 'chefe'],
+  'agenda.consultar': perfis,
+  'agenda.responder': perfis,
+  'agenda.marcar': ['parlamentar', 'administrador', 'chefe', 'supervisor', 'assessor_interno'],
+  'agenda.criar_restrito': ['parlamentar', 'administrador', 'chefe', 'supervisor'],
+  'eventos.consultar': perfis,
+  'presenca.registrar': perfis,
+  'eventos.organizar': ['parlamentar', 'administrador', 'chefe', 'supervisor', 'assessor_interno'],
+  'eventos.lista_nominal': [
+    'parlamentar',
+    'administrador',
+    'chefe',
+    'supervisor',
+    'assessor_interno',
+  ],
+  'eventos.encerrar': ['parlamentar', 'administrador', 'chefe', 'supervisor'],
+  'presenca.remover': ['parlamentar', 'administrador', 'chefe', 'supervisor'],
   'equipe.ver': perfis,
   'equipe.administrar': ['administrador', 'chefe'],
   'equipe.historico': ['parlamentar', 'administrador', 'chefe'],
@@ -139,6 +163,9 @@ describe('páginas alcançáveis', () => {
     const semAtendimento = paginasAlcancaveis({ perfil: 'supervisor', habilitacoes: ['AG'] });
     expect(semAtendimento).not.toContain('demandas');
     expect(semAtendimento).not.toContain('pessoas');
+    expect(semAtendimento).not.toContain('eventos');
+    expect(semAtendimento).toContain('agenda');
+    expect(semAtendimento).toContain('tarefas');
     expect(semAtendimento).toContain('painel');
   });
 
@@ -147,6 +174,9 @@ describe('páginas alcançáveis', () => {
     expect(para('assessor_externo')).toEqual([
       'painel',
       'demandas',
+      'tarefas',
+      'agenda',
+      'eventos',
       'pessoas',
       'equipe',
       'fluxos',
@@ -155,6 +185,9 @@ describe('páginas alcançáveis', () => {
     expect(para('supervisor')).toEqual([
       'painel',
       'demandas',
+      'tarefas',
+      'agenda',
+      'eventos',
       'pessoas',
       'emails',
       'equipe',
@@ -164,6 +197,9 @@ describe('páginas alcançáveis', () => {
     expect(para('chefe')).toEqual([
       'painel',
       'demandas',
+      'tarefas',
+      'agenda',
+      'eventos',
       'pessoas',
       'emails',
       'equipe',
@@ -174,6 +210,9 @@ describe('páginas alcançáveis', () => {
     expect(para('parlamentar')).toEqual([
       'painel',
       'demandas',
+      'tarefas',
+      'agenda',
+      'eventos',
       'pessoas',
       'emails',
       'equipe',

@@ -27,6 +27,9 @@ import { registrarRotasDeAuditoria } from './auditoria/rotas.js';
 import { ServicoDeAuditoria } from './auditoria/servico.js';
 import { registrarRotasDeFluxos } from './fluxos/rotas.js';
 import { ServicoDeFluxos } from './fluxos/servico.js';
+import { ConsultasDeTarefas } from './tarefas/consultas.js';
+import { registrarRotasDeTarefas } from './tarefas/rotas.js';
+import { ServicoDeTarefas } from './tarefas/servico.js';
 import { registrarRotasDeEquipe } from './equipe/rotas.js';
 import { ServicoDeEquipe } from './equipe/servico.js';
 import { ErroDeNegocio, erros } from './erros.js';
@@ -176,6 +179,12 @@ export async function construirServidor(dep: DependenciasDoServidor): Promise<Fa
     }),
   );
   registrarRotasDeNotificacoes(app, new ServicoDeNotificacoes(bd, agora));
+  const consultasDeTarefas = new ConsultasDeTarefas(bd, agora);
+  registrarRotasDeTarefas(
+    app,
+    consultasDeTarefas,
+    new ServicoDeTarefas({ bd, consultas: consultasDeTarefas, agora }),
+  );
 
   await dep.registrarRotas?.(app);
   return app;

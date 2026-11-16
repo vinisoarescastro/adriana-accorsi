@@ -6,3 +6,4 @@ export * from './equipe.js';
 export * from './fluxos.js';
 export * from './perfis.js';
 export * from './protocolo.js';
+export * from './trabalho.js';

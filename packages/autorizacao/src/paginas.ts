@@ -8,6 +8,9 @@ import type { NomeDeOperacao } from './operacoes.js';
 export const paginas = {
   painel: { caminho: '/g/painel', titulo: 'Painel', operacao: 'painel.abrir' },
   demandas: { caminho: '/g/demandas', titulo: 'Demandas', operacao: 'demandas.consultar' },
+  tarefas: { caminho: '/g/tarefas', titulo: 'Tarefas', operacao: 'tarefas.consultar' },
+  agenda: { caminho: '/g/agenda', titulo: 'Agenda', operacao: 'agenda.consultar' },
+  eventos: { caminho: '/g/eventos', titulo: 'Eventos', operacao: 'eventos.consultar' },
   pessoas: { caminho: '/g/pessoas', titulo: 'Pessoas', operacao: 'pessoas.consultar' },
   emails: {
     caminho: '/g/emails',

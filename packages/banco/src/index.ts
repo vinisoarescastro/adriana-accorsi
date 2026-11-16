@@ -9,6 +9,7 @@ export * from './invariantes.js';
 export * from './migrar.js';
 export * from './papeis.js';
 export * from './senha.js';
+export * from './trabalho/avisos.js';
 export * from './trilha.js';
 export * from './provisionamento/semear.js';
 export * from './provisionamento/usuarios.js';
