@@ -9,6 +9,9 @@ import { ConsultasDeAgenda } from './agenda/consultas.js';
 import { registrarRotasDeAgenda } from './agenda/rotas.js';
 import { ServicoDeAgenda } from './agenda/servico.js';
 import { registrarRotasDeAvisos } from './avisos/rotas.js';
+import { ConsultasDeEventos } from './eventos/consultas.js';
+import { registrarRotasDeEventos } from './eventos/rotas.js';
+import { ServicoDeEventos } from './eventos/servico.js';
 import { ServicoDeAvisos } from './avisos/servico.js';
 import type { Armazenamento } from './armazenamento/armazenamento.js';
 import { registrarRotasDeComentarios } from './comentarios/rotas.js';
@@ -185,6 +188,12 @@ export async function construirServidor(dep: DependenciasDoServidor): Promise<Fa
   );
   registrarRotasDeNotificacoes(app, new ServicoDeNotificacoes(bd, agora));
   registrarRotasDeAvisos(app, new ServicoDeAvisos(bd, agora));
+  const consultasDeEventos = new ConsultasDeEventos(bd, agora);
+  registrarRotasDeEventos(
+    app,
+    consultasDeEventos,
+    new ServicoDeEventos({ bd, consultas: consultasDeEventos, agora }),
+  );
   const consultasDeAgenda = new ConsultasDeAgenda(bd, agora);
   registrarRotasDeAgenda(
     app,
