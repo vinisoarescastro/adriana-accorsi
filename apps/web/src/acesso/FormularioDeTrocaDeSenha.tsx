@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Check, Circle, Eye, EyeOff } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { chamar } from '../api/cliente';
 import { chaves } from '../api/consultas';
-import { Aviso, AvisoDeErro, Botao, Campo } from '../componentes/ui';
+import { useToast } from '../componentes/toast';
+import { AvisoDeErro, Botao, Campo } from '../componentes/ui';
 
 /**
  * Troca da própria senha. Usada no primeiro acesso (obrigatória) e no perfil.
@@ -10,9 +12,12 @@ import { Aviso, AvisoDeErro, Botao, Campo } from '../componentes/ui';
  */
 export function FormularioDeTrocaDeSenha({ aoConcluir }: { aoConcluir?: () => void }) {
   const cliente = useQueryClient();
+  const avisar = useToast();
   const [atual, setAtual] = useState('');
   const [nova, setNova] = useState('');
   const [confirmacao, setConfirmacao] = useState('');
+  const [visivel, setVisivel] = useState(false);
+  const tipo = visivel ? 'text' : 'password';
 
   const trocar = useMutation({
     mutationFn: () =>
@@ -24,6 +29,11 @@ export function FormularioDeTrocaDeSenha({ aoConcluir }: { aoConcluir?: () => vo
       setNova('');
       setConfirmacao('');
       await cliente.invalidateQueries({ queryKey: chaves.sessao });
+      avisar({
+        tom: 'sucesso',
+        titulo: 'Senha trocada',
+        texto: 'As suas outras sessões foram encerradas.',
+      });
       aoConcluir?.();
     },
   });
@@ -38,12 +48,11 @@ export function FormularioDeTrocaDeSenha({ aoConcluir }: { aoConcluir?: () => vo
   return (
     <form onSubmit={enviar} noValidate>
       <AvisoDeErro erro={trocar.error} />
-      {trocar.isSuccess ? <Aviso tipo="sucesso" titulo="Senha trocada." /> : null}
       <Campo rotulo="Senha atual">
         {(p) => (
           <input
             {...p}
-            type="password"
+            type={tipo}
             autoComplete="current-password"
             value={atual}
             onChange={(e) => setAtual(e.target.value)}
@@ -58,7 +67,7 @@ export function FormularioDeTrocaDeSenha({ aoConcluir }: { aoConcluir?: () => vo
         {(p) => (
           <input
             {...p}
-            type="password"
+            type={tipo}
             autoComplete="new-password"
             value={nova}
             onChange={(e) => setNova(e.target.value)}
@@ -73,7 +82,7 @@ export function FormularioDeTrocaDeSenha({ aoConcluir }: { aoConcluir?: () => vo
         {(p) => (
           <input
             {...p}
-            type="password"
+            type={tipo}
             autoComplete="new-password"
             value={confirmacao}
             onChange={(e) => setConfirmacao(e.target.value)}
@@ -81,14 +90,45 @@ export function FormularioDeTrocaDeSenha({ aoConcluir }: { aoConcluir?: () => vo
           />
         )}
       </Campo>
-      <Botao
-        type="submit"
-        disabled={
-          trocar.isPending || !atual || nova.length === 0 || divergente || confirmacao.length === 0
-        }
-      >
-        {trocar.isPending ? 'Trocando…' : 'Trocar senha'}
-      </Botao>
+      <ul className="requisitos" aria-label="Requisitos da nova senha">
+        <Requisito atendido={nova.length >= 10}>Ao menos 10 caracteres</Requisito>
+        <Requisito atendido={confirmacao.length > 0 && !divergente}>
+          As duas senhas são iguais
+        </Requisito>
+      </ul>
+      <div className="acoes acoes--entre">
+        <Botao
+          variante="fantasma"
+          pequeno
+          aria-pressed={visivel}
+          onClick={() => setVisivel((v) => !v)}
+        >
+          {visivel ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
+          {visivel ? 'Ocultar senhas' : 'Mostrar senhas'}
+        </Botao>
+        <Botao
+          type="submit"
+          disabled={
+            trocar.isPending ||
+            !atual ||
+            nova.length === 0 ||
+            divergente ||
+            confirmacao.length === 0
+          }
+        >
+          {trocar.isPending ? 'Trocando…' : 'Trocar senha'}
+        </Botao>
+      </div>
     </form>
+  );
+}
+
+function Requisito({ atendido, children }: { atendido: boolean; children: string }) {
+  return (
+    <li className={atendido ? 'requisito requisito--ok' : 'requisito'}>
+      {atendido ? <Check size={14} aria-hidden="true" /> : <Circle size={14} aria-hidden="true" />}
+      <span>{children}</span>
+      <span className="somente-leitor">{atendido ? ' (atendido)' : ' (pendente)'}</span>
+    </li>
   );
 }

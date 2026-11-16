@@ -4,7 +4,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
 import { chamar } from '../api/cliente';
 import { chaves, useFluxos } from '../api/consultas';
-import { AvisoDeErro, Botao, Campo, Carregando, Selo } from '../componentes/ui';
+import { CabecalhoDaPagina } from '../componentes/cabecalho';
+import { EsqueletoDeTabela } from '../componentes/tabela';
+import { AvisoDeErro, Botao, Campo, Selo } from '../componentes/ui';
 import { rotuloDoFluxo, rotuloDoPapel } from '../rotulos';
 
 function LinhaDaEtapa({
@@ -69,7 +71,7 @@ function LinhaDaEtapa({
         ) : null}
         <td>{etapa.prazoPadraoDias ? `${etapa.prazoPadraoDias} dias` : '-'}</td>
         <td>
-          <Selo tipo={etapa.situacao === 'ativa' ? 'ativo' : 'inativo'}>
+          <Selo tom={etapa.situacao === 'ativa' ? 'sucesso' : 'neutro'} ponto>
             {etapa.situacao === 'ativa' ? 'Ativa' : 'Inativa'}
           </Selo>
         </td>
@@ -221,46 +223,51 @@ export function PaginaFluxos({ sessao }: { sessao: RespostaDaSessao }) {
 
   return (
     <section>
-      <h1>Fluxos de trabalho</h1>
-      <p>
-        Todo status é derivado do papel da etapa. Etapas de Entrada e de Arquivamento são únicas e
-        não se desativam; etapa já usada em registros também não.
-      </p>
+      <CabecalhoDaPagina
+        titulo="Fluxos de trabalho"
+        descricao="Todo status é derivado do papel da etapa. Etapas de Entrada e de Arquivamento são únicas e não se desativam; etapa já usada em registros também não."
+      />
       <AvisoDeErro erro={error} />
-      {isLoading ? <Carregando /> : null}
+      {isLoading ? <EsqueletoDeTabela colunas={6} /> : null}
       {fluxos?.map((fluxo) => (
-        <div key={fluxo.tipo} className="cartao tabela-rolavel">
-          <table className="tabela">
-            <caption>{rotuloDoFluxo[fluxo.tipo]}</caption>
-            <thead>
-              <tr>
-                <th scope="col">Ordem</th>
-                <th scope="col">Etapa</th>
-                <th scope="col">Papel</th>
-                {fluxo.tipo === 'demanda' ? (
-                  <>
-                    <th scope="col">Rótulo ao cidadão</th>
-                    <th scope="col">Visível</th>
-                  </>
-                ) : null}
-                <th scope="col">Prazo padrão</th>
-                <th scope="col">Situação</th>
-                {ajusta || estrutura ? <th scope="col">Ações</th> : null}
-              </tr>
-            </thead>
-            <tbody>
-              {fluxo.etapas.map((etapa) => (
-                <LinhaDaEtapa
-                  key={etapa.id}
-                  etapa={etapa}
-                  fluxo={fluxo}
-                  ajusta={ajusta}
-                  estrutura={estrutura}
-                />
-              ))}
-            </tbody>
-          </table>
-          {estrutura ? <NovaEtapa fluxo={fluxo} /> : null}
+        <div key={fluxo.tipo} className="cartao cartao--tabela">
+          <div className="tabela-rolavel">
+            <table className="tabela">
+              <caption>{rotuloDoFluxo[fluxo.tipo]}</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Ordem</th>
+                  <th scope="col">Etapa</th>
+                  <th scope="col">Papel</th>
+                  {fluxo.tipo === 'demanda' ? (
+                    <>
+                      <th scope="col">Rótulo ao cidadão</th>
+                      <th scope="col">Visível</th>
+                    </>
+                  ) : null}
+                  <th scope="col">Prazo padrão</th>
+                  <th scope="col">Situação</th>
+                  {ajusta || estrutura ? <th scope="col">Ações</th> : null}
+                </tr>
+              </thead>
+              <tbody>
+                {fluxo.etapas.map((etapa) => (
+                  <LinhaDaEtapa
+                    key={etapa.id}
+                    etapa={etapa}
+                    fluxo={fluxo}
+                    ajusta={ajusta}
+                    estrutura={estrutura}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {estrutura ? (
+            <div className="cartao__corpo">
+              <NovaEtapa fluxo={fluxo} />
+            </div>
+          ) : null}
         </div>
       ))}
     </section>

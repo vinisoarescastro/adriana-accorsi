@@ -6,24 +6,29 @@ import {
   type TarefaFicha,
 } from '@gabinete/compartilhado';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { chamar } from '../api/cliente';
 import { useEquipe } from '../api/consultas';
 import { chavesDoTrabalho, useEtapasDeTarefa, useTarefa } from '../api/trabalho';
+import { Modal } from '../componentes/modal';
+import { useToast } from '../componentes/toast';
+import { SeloDeAtraso, SeloDeStatus } from '../componentes/situacao';
 import { Aviso, AvisoDeErro, Botao, Campo, Carregando, Selo } from '../componentes/ui';
 import { formatarDataHora } from '../formatos';
-import { rotuloDaPrioridade, rotuloDoStatus } from '../rotulos';
+import { rotuloDaPrioridade } from '../rotulos';
 
 /** Executa uma ação sobre a tarefa, atualiza a ficha na hora e invalida lista e painel. */
-function useAcao(id: number, caminho: string, metodo = 'POST') {
+function useAcao(id: number, caminho: string, mensagem: string, metodo = 'POST') {
   const cliente = useQueryClient();
+  const avisar = useToast();
   return useMutation({
     mutationFn: (corpo: unknown) =>
       chamar<TarefaFicha>(metodo, `/api/tarefas/${id}${caminho}`, { corpo }),
     onSuccess: async (ficha) => {
       cliente.setQueryData(chavesDoTrabalho.tarefa(id), ficha);
       await cliente.invalidateQueries({ queryKey: chavesDoTrabalho.tudo });
+      avisar({ tom: 'sucesso', titulo: mensagem });
     },
   });
 }
@@ -46,10 +51,10 @@ function AcoesDaTarefa({ ficha, sessao }: { ficha: TarefaFicha; sessao: Resposta
   const [novoResponsavel, setNovoResponsavel] = useState('');
   const [justificativa, setJustificativa] = useState('');
 
-  const mover = useAcao(ficha.id, '/mover');
-  const editar = useAcao(ficha.id, '', 'PATCH');
-  const reatribuir = useAcao(ficha.id, '/reatribuir');
-  const cancelar = useAcao(ficha.id, '/cancelar');
+  const mover = useAcao(ficha.id, '/mover', 'Tarefa movida');
+  const editar = useAcao(ficha.id, '', 'Alterações salvas', 'PATCH');
+  const reatribuir = useAcao(ficha.id, '/reatribuir', 'Tarefa passada adiante');
+  const cancelar = useAcao(ficha.id, '/cancelar', 'Tarefa cancelada');
   const erro = mover.error ?? editar.error ?? reatribuir.error ?? cancelar.error;
 
   if (ficha.status === 'cancelada') return null;
@@ -231,36 +236,20 @@ export function FichaDaTarefa({
   aoFechar: () => void;
 }) {
   const { data: ficha, isLoading, error } = useTarefa(id);
-  const titulo = useRef<HTMLHeadingElement>(null);
-
-  useEffect(() => {
-    titulo.current?.focus();
-    const aoTeclar = (e: KeyboardEvent) => e.key === 'Escape' && aoFechar();
-    window.addEventListener('keydown', aoTeclar);
-    return () => window.removeEventListener('keydown', aoTeclar);
-  }, [aoFechar]);
 
   return (
-    <aside className="gaveta" role="dialog" aria-modal="false" aria-labelledby="titulo-da-tarefa">
-      <div className="gaveta__topo">
-        <h2 id="titulo-da-tarefa" ref={titulo} tabIndex={-1}>
-          {ficha ? ficha.titulo : 'Tarefa'}
-        </h2>
-        <Botao variante="secundario" onClick={aoFechar} aria-label="Fechar a ficha">
-          Fechar
-        </Botao>
-      </div>
-
+    <Modal titulo={ficha ? ficha.titulo : 'Tarefa'} tamanho="lg" aoFechar={aoFechar}>
       {isLoading ? <Carregando /> : null}
       <AvisoDeErro erro={error} />
 
       {ficha ? (
         <>
           <p>
-            <Selo tipo={ficha.status === 'em_andamento' ? 'ativo' : 'inativo'}>
-              {rotuloDoStatus[ficha.status]}
-            </Selo>{' '}
-            {ficha.atrasada ? <Selo>Atrasada</Selo> : null} <Selo>Etapa: {ficha.etapa.nome}</Selo>
+            <span className="acoes">
+              <SeloDeStatus status={ficha.status} />
+              {ficha.atrasada ? <SeloDeAtraso /> : null}
+              <Selo>Etapa: {ficha.etapa.nome}</Selo>
+            </span>
           </p>
           {ficha.status === 'cancelada' ? (
             <Aviso tipo="atencao" titulo="Tarefa cancelada. Ela não se altera mais.">
@@ -313,6 +302,6 @@ export function FichaDaTarefa({
           </div>
         </>
       ) : null}
-    </aside>
+    </Modal>
   );
 }

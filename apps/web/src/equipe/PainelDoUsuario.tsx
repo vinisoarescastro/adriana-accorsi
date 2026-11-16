@@ -13,6 +13,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { chamar } from '../api/cliente';
 import { chaves } from '../api/consultas';
+import { useConfirmacao } from '../componentes/modal';
 import { AvisoDeErro, Botao, Campo, Carregando, SenhaInicial } from '../componentes/ui';
 import { formatarDataHora } from '../formatos';
 import { rotuloDaArea, rotuloDoPerfil } from '../rotulos';
@@ -34,6 +35,7 @@ export function PainelDoUsuario({
   usuario: UsuarioDaEquipe;
   sessao: RespostaDaSessao;
 }) {
+  const { pedir, elemento: confirmacao } = useConfirmacao();
   const cliente = useQueryClient();
   const autoridade = { perfil: sessao.usuario.perfil, habilitacoes: sessao.usuario.habilitacoes };
   const fixas = perfisComTodasAsHabilitacoes.includes(usuario.perfil);
@@ -97,6 +99,7 @@ export function PainelDoUsuario({
 
   return (
     <div className="painel-do-usuario">
+      {confirmacao}
       <AvisoDeErro erro={erro} />
       {novaSenha ? (
         <SenhaInicial
@@ -185,12 +188,12 @@ export function PainelDoUsuario({
           pequeno
           variante="secundario"
           onClick={() => {
-            if (
-              window.confirm(
-                'Gerar uma nova senha inicial? As sessões deste usuário serão encerradas.',
-              )
-            )
-              redefinir.mutate();
+            pedir({
+              titulo: 'Gerar uma nova senha inicial?',
+              mensagem: 'As sessões deste usuário serão encerradas.',
+              rotuloDeConfirmar: 'Redefinir senha',
+              aoConfirmar: () => redefinir.mutate(),
+            });
           }}
           disabled={redefinir.isPending}
         >

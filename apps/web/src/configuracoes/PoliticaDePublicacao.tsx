@@ -12,6 +12,8 @@ import { useState, type FormEvent } from 'react';
 import { chavesDoAtendimento } from '../api/atendimento';
 import { usePolitica } from '../api/cidadao';
 import { chamar } from '../api/cliente';
+import { Cartao } from '../componentes/cartao';
+import { useToast } from '../componentes/toast';
 import { AvisoDeErro, Botao, Campo, Carregando } from '../componentes/ui';
 import { formatarDataHora } from '../formatos';
 import { rotuloDaExibicaoDeNome, rotuloDaExibicaoDeTelefone } from '../rotulos';
@@ -32,12 +34,16 @@ function Formulario({ vigente }: { vigente: PoliticaDePublicacaoDto }) {
     diasNumero >= limitesDeExpiracaoEmDias.minimo &&
     diasNumero <= limitesDeExpiracaoEmDias.maximo;
 
+  const avisar = useToast();
   const salvar = useMutation({
     mutationFn: () =>
       chamar<PoliticaEHistorico>('PUT', '/api/publicacao/politica', {
         corpo: { exibirTitulo, exibicaoNome, exibicaoTelefone, expiracaoDias: diasNumero },
       }),
-    onSuccess: () => cliente.invalidateQueries({ queryKey: chavesDoAtendimento.tudo }),
+    onSuccess: async () => {
+      await cliente.invalidateQueries({ queryKey: chavesDoAtendimento.tudo });
+      avisar({ tom: 'sucesso', titulo: 'Nova versão da política salva' });
+    },
   });
   const enviar = (e: FormEvent) => {
     e.preventDefault();
@@ -104,11 +110,11 @@ function Formulario({ vigente }: { vigente: PoliticaDePublicacaoDto }) {
         />
         Mostrar o título da demanda ao cidadão (por padrão, não)
       </label>
-      <p>
-        <Botao type="submit" disabled={!diasValidos || salvar.isPending}>
+      <div className="acoes">
+        <Botao type="submit" disabled={!diasValidos} carregando={salvar.isPending}>
           Salvar nova versão da política
         </Botao>
-      </p>
+      </div>
     </form>
   );
 }
@@ -124,13 +130,11 @@ export function PoliticaDePublicacao({ sessao }: { sessao: RespostaDaSessao }) {
   if (!pode_ver) return null;
 
   return (
-    <div className="cartao" aria-labelledby="titulo-politica">
-      <h2 id="titulo-politica">Política de publicação</h2>
-      <p>
-        O que o cidadão vê na página de acompanhamento. Nada é público por padrão: o andamento é
-        sempre um texto escrito para ele, e comentários internos, documentos, prioridade e
-        responsável nunca aparecem.
-      </p>
+    <Cartao
+      rotulo="Política de publicação"
+      titulo="Política de publicação"
+      descricao="O que o cidadão vê na página de acompanhamento. Nada é público por padrão: o andamento é sempre um texto escrito para ele, e comentários internos, documentos, prioridade e responsável nunca aparecem."
+    >
       <AvisoDeErro erro={error} />
       {isLoading ? <Carregando /> : null}
       {data ? (
@@ -160,6 +164,6 @@ export function PoliticaDePublicacao({ sessao }: { sessao: RespostaDaSessao }) {
           ) : null}
         </>
       ) : null}
-    </div>
+    </Cartao>
   );
 }

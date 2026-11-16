@@ -3,7 +3,9 @@ import type { RespostaDaSessao } from '@gabinete/compartilhado';
 import { Link } from 'react-router';
 import { usePainelDeAtendimento } from '../api/atendimento';
 import { usePainelDeTarefas } from '../api/trabalho';
-import { AvisoDeErro, Aviso, Carregando } from '../componentes/ui';
+import { CabecalhoDaPagina } from '../componentes/cabecalho';
+import { EsqueletoDeCartoes } from '../componentes/tabela';
+import { Aviso, AvisoDeErro } from '../componentes/ui';
 import { rotuloDoPerfil } from '../rotulos';
 
 /**
@@ -20,17 +22,16 @@ export function PaginaPainel({ sessao }: { sessao: RespostaDaSessao }) {
 
   return (
     <section>
-      <h1>Painel</h1>
-      <p>
-        Olá, {sessao.usuario.nome}. Seu perfil:{' '}
-        <strong>{rotuloDoPerfil[sessao.usuario.perfil]}</strong>.
-      </p>
+      <CabecalhoDaPagina
+        titulo="Painel"
+        descricao={`Olá, ${sessao.usuario.nome}. Seu perfil: ${rotuloDoPerfil[sessao.usuario.perfil]}.`}
+      />
 
       {veTarefas ? (
         <>
           <h2>Tarefas</h2>
           <AvisoDeErro erro={tarefas.error} />
-          {tarefas.isLoading ? <Carregando /> : null}
+          {tarefas.isLoading ? <EsqueletoDeCartoes quantidade={4} /> : null}
           {tarefas.data ? (
             <div className="cartoes-do-painel">
               <Link className="cartao-numero" to="/g/tarefas?status=em_andamento">
@@ -58,7 +59,7 @@ export function PaginaPainel({ sessao }: { sessao: RespostaDaSessao }) {
         <>
           <h2>Atendimento</h2>
           <AvisoDeErro erro={error} />
-          {isLoading ? <Carregando /> : null}
+          {isLoading ? <EsqueletoDeCartoes quantidade={6} /> : null}
           {data ? (
             <>
               <div className="cartoes-do-painel">
@@ -88,24 +89,28 @@ export function PaginaPainel({ sessao }: { sessao: RespostaDaSessao }) {
                 </div>
               </div>
 
-              <div className="cartao tabela-rolavel">
-                <table className="tabela">
-                  <caption>Demandas por etapa</caption>
-                  <thead>
-                    <tr>
-                      <th scope="col">Etapa</th>
-                      <th scope="col">Demandas</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.porEtapa.map((e) => (
-                      <tr key={e.id}>
-                        <td>{e.nome}</td>
-                        <td>{e.total}</td>
+              <div className="cartao cartao--tabela">
+                <div className="tabela-rolavel">
+                  <table className="tabela">
+                    <caption>Demandas por etapa</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Etapa</th>
+                        <th scope="col" className="e-numero">
+                          Demandas
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {data.porEtapa.map((e) => (
+                        <tr key={e.id}>
+                          <td>{e.nome}</td>
+                          <td className="e-numero">{e.total}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </>
           ) : null}

@@ -1,6 +1,7 @@
 import type { RespostaDaSessao } from '@gabinete/compartilhado';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
+import { Landmark } from 'lucide-react';
 import { Navigate, useNavigate } from 'react-router';
 import { chamar } from '../api/cliente';
 import { chaves, useSessao } from '../api/consultas';
@@ -35,38 +36,51 @@ export function PaginaEntrar() {
 
   return (
     <main className="pagina-centralizada">
-      <form className="cartao" onSubmit={enviar} noValidate>
-        <h1>Entrar</h1>
-        <p>Use o e-mail e a senha cadastrados pelo gabinete.</p>
-        <AvisoDeErro erro={entrar.error} />
-        <Campo rotulo="E-mail">
-          {(p) => (
-            <input
-              {...p}
-              type="email"
-              autoComplete="username"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          )}
-        </Campo>
-        <Campo rotulo="Senha">
-          {(p) => (
-            <input
-              {...p}
-              type="password"
-              autoComplete="current-password"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              required
-            />
-          )}
-        </Campo>
-        <Botao type="submit" disabled={entrar.isPending || !email || !senha}>
-          {entrar.isPending ? 'Entrando…' : 'Entrar'}
-        </Botao>
-      </form>
+      <div className="entrada">
+        <div className="entrada__marca" aria-hidden="true">
+          <span className="entrada__logo">
+            <Landmark size={22} />
+          </span>
+          <span>Gabinete parlamentar</span>
+        </div>
+        <form className="cartao" onSubmit={enviar} noValidate>
+          <h1>Entrar</h1>
+          <p>Use o e-mail e a senha cadastrados pelo gabinete.</p>
+          <AvisoDeErro erro={entrar.error} />
+          <Campo rotulo="E-mail">
+            {(p) => (
+              <input
+                {...p}
+                type="email"
+                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            )}
+          </Campo>
+          <Campo rotulo="Senha">
+            {(p) => (
+              <input
+                {...p}
+                type="password"
+                autoComplete="current-password"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                required
+              />
+            )}
+          </Campo>
+          <Botao
+            type="submit"
+            className="botao--largo"
+            carregando={entrar.isPending}
+            disabled={!email || !senha}
+          >
+            {entrar.isPending ? 'Entrando…' : 'Entrar'}
+          </Botao>
+        </form>
+      </div>
     </main>
   );
 }

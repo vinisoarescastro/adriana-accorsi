@@ -6,9 +6,10 @@ import type {
   RespostaDaSessao,
 } from '@gabinete/compartilhado';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { chamar, ErroDaApi } from '../api/cliente';
 import { chavesDoTrabalho, useEvento } from '../api/trabalho';
+import { Modal } from '../componentes/modal';
 import { Aviso, AvisoDeErro, Botao, Campo, Carregando, Selo } from '../componentes/ui';
 import { formatarDataHora } from '../formatos';
 
@@ -232,15 +233,7 @@ export function FichaDoEvento({
 }) {
   const cliente = useQueryClient();
   const { data: evento, isLoading, error } = useEvento(id);
-  const titulo = useRef<HTMLHeadingElement>(null);
   const autoridade = { perfil: sessao.usuario.perfil, habilitacoes: sessao.usuario.habilitacoes };
-
-  useEffect(() => {
-    titulo.current?.focus();
-    const aoTeclar = (e: KeyboardEvent) => e.key === 'Escape' && aoFechar();
-    window.addEventListener('keydown', aoTeclar);
-    return () => window.removeEventListener('keydown', aoTeclar);
-  }, [aoFechar]);
 
   const encerrar = useMutation({
     mutationFn: () => chamar<EventoFicha>('POST', `/api/eventos/${id}/encerrar`),
@@ -251,23 +244,14 @@ export function FichaDoEvento({
   });
 
   return (
-    <aside className="gaveta" role="dialog" aria-modal="false" aria-labelledby="titulo-do-evento">
-      <div className="gaveta__topo">
-        <h2 id="titulo-do-evento" ref={titulo} tabIndex={-1}>
-          {evento ? evento.nome : 'Evento'}
-        </h2>
-        <Botao variante="secundario" onClick={aoFechar} aria-label="Fechar o evento">
-          Fechar
-        </Botao>
-      </div>
-
+    <Modal titulo={evento ? evento.nome : 'Evento'} tamanho="lg" aoFechar={aoFechar}>
       {isLoading ? <Carregando /> : null}
       <AvisoDeErro erro={error ?? encerrar.error} />
 
       {evento ? (
         <>
           <p>
-            <Selo tipo={evento.situacao === 'aberto' ? 'ativo' : 'inativo'}>
+            <Selo tom={evento.situacao === 'aberto' ? 'sucesso' : 'neutro'} ponto>
               {evento.situacao === 'aberto' ? 'Aberto' : 'Encerrado'}
             </Selo>{' '}
             <Selo>{evento.presentes} presente(s)</Selo>
@@ -321,6 +305,6 @@ export function FichaDoEvento({
           ) : null}
         </>
       ) : null}
-    </aside>
+    </Modal>
   );
 }

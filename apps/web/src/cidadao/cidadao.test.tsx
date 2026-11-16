@@ -80,11 +80,16 @@ describe('acompanhamento do cidadão na ficha', () => {
       expect(chamadas.some((c) => c.caminho === '/api/demandas/7/link/suspender')).toBe(true),
     );
 
-    window.confirm = () => false;
     await usuario.click(within(gaveta).getByRole('button', { name: 'Revogar link' }));
+    const confirmacao = await screen.findByRole('dialog', { name: 'Revogar o link?' });
+    await usuario.click(within(confirmacao).getByRole('button', { name: 'Cancelar' }));
     expect(chamadas.some((c) => c.caminho === '/api/demandas/7/link/revogar')).toBe(false);
-    window.confirm = () => true;
     await usuario.click(within(gaveta).getByRole('button', { name: 'Revogar link' }));
+    await usuario.click(
+      within(await screen.findByRole('dialog', { name: 'Revogar o link?' })).getByRole('button', {
+        name: 'Revogar link',
+      }),
+    );
     await waitFor(() =>
       expect(chamadas.some((c) => c.caminho === '/api/demandas/7/link/revogar')).toBe(true),
     );

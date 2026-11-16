@@ -6,12 +6,17 @@ import {
   type RespostaDeParticipanteDto,
 } from '@gabinete/compartilhado';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { chamar } from '../api/cliente';
+import { useEquipe } from '../api/consultas';
 import { chavesDoTrabalho, useCompromisso } from '../api/trabalho';
+import { Avatar } from '../componentes/avatar';
+import { Modal } from '../componentes/modal';
+import { useToast } from '../componentes/toast';
 import { Aviso, AvisoDeErro, Botao, Carregando, Selo } from '../componentes/ui';
-import { formatarDataHora } from '../formatos';
-import { rotuloDaResposta, rotuloDaVisibilidade } from '../rotulos';
+import { CalendarDays, Eye, Lock, MapPin, Pencil } from 'lucide-react';
+import { formatarDataExtensa, formatarDataHora, formatarHora, iniciais } from '../formatos';
+import { rotuloCurtoDaVisibilidade, rotuloDaResposta } from '../rotulos';
 import { FormularioDeCompromisso } from './FormularioDeCompromisso';
 
 /**
@@ -29,76 +34,142 @@ export function CompromissoAberto({
 }) {
   const cliente = useQueryClient();
   const { data: c, isLoading, error } = useCompromisso(id);
-  const titulo = useRef<HTMLHeadingElement>(null);
+  const { data: equipe } = useEquipe();
+  const fotoDe = new Map((equipe ?? []).map((u) => [u.id, u.temFoto]));
   const [alterando, setAlterando] = useState(false);
   const [conflitos, setConflitos] = useState<CompromissoSalvo['conflitos']>([]);
   const autoridade = { perfil: sessao.usuario.perfil, habilitacoes: sessao.usuario.habilitacoes };
   const podeMarcar = pode('agenda.marcar', autoridade);
-
-  useEffect(() => {
-    titulo.current?.focus();
-    const aoTeclar = (e: KeyboardEvent) => e.key === 'Escape' && aoFechar();
-    window.addEventListener('keydown', aoTeclar);
-    return () => window.removeEventListener('keydown', aoTeclar);
-  }, [aoFechar]);
 
   const atualizar = async (salvo: CompromissoSalvo) => {
     cliente.setQueryData(chavesDoTrabalho.compromisso(id), salvo.compromisso);
     setConflitos(salvo.conflitos);
     await cliente.invalidateQueries({ queryKey: chavesDoTrabalho.tudo });
   };
+  const avisar = useToast();
   const responder = useMutation({
     mutationFn: (resposta: RespostaDeParticipanteDto) =>
       chamar<CompromissoSalvo>('POST', `/api/agenda/compromissos/${id}/resposta`, {
         corpo: { resposta },
       }),
-    onSuccess: atualizar,
+    onSuccess: async (salvo) => {
+      await atualizar(salvo);
+      avisar({ tom: 'sucesso', titulo: 'Resposta registrada' });
+    },
   });
   const cancelar = useMutation({
     mutationFn: () => chamar<CompromissoSalvo>('POST', `/api/agenda/compromissos/${id}/cancelar`),
-    onSuccess: atualizar,
+    onSuccess: async (salvo) => {
+      await atualizar(salvo);
+      avisar({ tom: 'sucesso', titulo: 'Compromisso cancelado' });
+    },
   });
 
-  return (
-    <aside
-      className="gaveta"
-      role="dialog"
-      aria-modal="false"
-      aria-labelledby="titulo-do-compromisso"
-    >
-      <div className="gaveta__topo">
-        <h2 id="titulo-do-compromisso" ref={titulo} tabIndex={-1}>
-          {c ? c.titulo : 'Compromisso'}
-        </h2>
-        <Botao variante="secundario" onClick={aoFechar} aria-label="Fechar o compromisso">
-          Fechar
-        </Botao>
-      </div>
+  const sigiloso = c ? c.visibilidade !== 'aberto' : false;
+  const mesmoDia = c ? formatarDataExtensa(c.inicio) === formatarDataExtensa(c.fim) : true;
+  const podeAlterar = podeMarcar && c && !c.cancelado;
 
+  return (
+    <Modal
+      titulo={c ? c.titulo : 'Compromisso'}
+      tamanho="md"
+      aoFechar={aoFechar}
+      rodape={
+        podeAlterar && !alterando ? (
+          <>
+            <Botao
+              variante="perigo"
+              className="rodape-esquerda"
+              disabled={cancelar.isPending}
+              onClick={() => cancelar.mutate()}
+            >
+              Cancelar compromisso
+            </Botao>
+            <Botao
+              variante="secundario"
+              icone={<Pencil size={16} aria-hidden="true" />}
+              onClick={() => setAlterando(true)}
+            >
+              Remarcar ou alterar
+            </Botao>
+          </>
+        ) : null
+      }
+    >
       {isLoading ? <Carregando /> : null}
       <AvisoDeErro erro={error ?? responder.error ?? cancelar.error} />
 
-      {c ? (
-        <>
+      {c && alterando ? (
+        <FormularioDeCompromisso
+          incorporado
+          sessao={sessao}
+          compromisso={c}
+          aoSalvar={(salvo) => {
+            void atualizar(salvo);
+            setAlterando(false);
+          }}
+          aoFechar={() => setAlterando(false)}
+        />
+      ) : null}
+
+      {c && !alterando ? (
+        <div className="compromisso">
+          <div className="acoes">
+            {c.cancelado ? <Selo tom="perigo">Cancelado</Selo> : null}
+            <Selo tom={sigiloso ? 'atencao' : 'neutro'}>
+              {sigiloso ? 'Sigiloso' : 'Não sigiloso'}
+            </Selo>
+            {c.envolveParlamentar ? <Selo tom="primario">Envolve a Parlamentar</Selo> : null}
+          </div>
+
+          <ul className="compromisso__dados">
+            <li>
+              <CalendarDays size={18} aria-hidden="true" />
+              <div>
+                <strong className="compromisso__data">
+                  {formatarDataExtensa(c.inicio)}
+                  {mesmoDia ? '' : ` até ${formatarDataExtensa(c.fim)}`}
+                </strong>
+                <span>
+                  {c.diaInteiro
+                    ? 'Dia inteiro'
+                    : mesmoDia
+                      ? `${formatarHora(c.inicio)} às ${formatarHora(c.fim)}`
+                      : `${formatarDataHora(c.inicio)} a ${formatarDataHora(c.fim)}`}
+                </span>
+              </div>
+            </li>
+            <li>
+              <MapPin size={18} aria-hidden="true" />
+              <div>
+                <strong>{c.local ?? 'Local não informado'}</strong>
+              </div>
+            </li>
+            <li>
+              {sigiloso ? (
+                <Lock size={18} aria-hidden="true" />
+              ) : (
+                <Eye size={18} aria-hidden="true" />
+              )}
+              <div>
+                <strong>{rotuloCurtoDaVisibilidade[c.visibilidade]}</strong>
+                <span>Marcado por {c.criador}</span>
+              </div>
+            </li>
+          </ul>
+
+          {c.descricao ? (
+            <section aria-labelledby="titulo-descricao">
+              <h3 id="titulo-descricao" className="compromisso__secao">
+                Descrição
+              </h3>
+              <p className="compromisso__descricao">{c.descricao}</p>
+            </section>
+          ) : null}
+
           {c.cancelado ? (
             <Aviso tipo="atencao" titulo="Compromisso cancelado. Ele não se altera mais." />
           ) : null}
-          <p>
-            <Selo>{rotuloDaVisibilidade[c.visibilidade]}</Selo>{' '}
-            {c.envolveParlamentar ? <Selo>Envolve a Parlamentar</Selo> : null}
-          </p>
-          <dl className="ficha">
-            <dt>Quando</dt>
-            <dd>
-              {formatarDataHora(c.inicio)} até {formatarDataHora(c.fim)}
-              {c.diaInteiro ? ' (dia inteiro)' : ''}
-            </dd>
-            <dt>Local</dt>
-            <dd>{c.local ?? 'Não informado'}</dd>
-            <dt>Marcado por</dt>
-            <dd>{c.criador}</dd>
-          </dl>
-
           {conflitos.length > 0 ? (
             <Aviso tipo="atencao" titulo="Há conflito de horário (é só um aviso).">
               <ul>
@@ -112,35 +183,55 @@ export function CompromissoAberto({
             </Aviso>
           ) : null}
 
-          <h3>Participantes da equipe</h3>
-          {c.participantesInternos.length === 0 ? (
-            <p>Ninguém foi indicado.</p>
-          ) : (
-            <ul className="lista-simples">
-              {c.participantesInternos.map((p) => (
-                <li key={p.id}>
-                  {p.nome}: <strong>{rotuloDaResposta[p.resposta]}</strong>
-                </li>
-              ))}
-            </ul>
-          )}
-          {c.participantesExternos.length > 0 ? (
-            <>
-              <h3>Participantes de fora</h3>
-              <ul className="lista-simples">
+          <section aria-labelledby="titulo-participantes">
+            <h3 id="titulo-participantes" className="compromisso__secao">
+              Quem está marcado
+            </h3>
+            {c.participantesInternos.length === 0 && c.participantesExternos.length === 0 ? (
+              <p className="campo__ajuda">Ninguém foi indicado.</p>
+            ) : (
+              <ul className="participantes">
+                {c.participantesInternos.map((p) => (
+                  <li key={`i-${p.id}`}>
+                    <Avatar nome={p.nome} id={p.id} temFoto={fotoDe.get(p.id)} pequeno />
+                    <span className="participantes__nome">{p.nome}</span>
+                    <Selo
+                      tom={
+                        p.resposta === 'confirmado'
+                          ? 'sucesso'
+                          : p.resposta === 'recusado'
+                            ? 'perigo'
+                            : 'neutro'
+                      }
+                    >
+                      {rotuloDaResposta[p.resposta]}
+                    </Selo>
+                  </li>
+                ))}
                 {c.participantesExternos.map((p) => (
-                  <li key={p.id}>{p.nome ?? 'Dados eliminados'}</li>
+                  <li key={`e-${p.id}`}>
+                    <span className="foto foto--pequena" aria-hidden="true">
+                      {p.nome ? iniciais(p.nome) : '–'}
+                    </span>
+                    <span className="participantes__nome">{p.nome ?? 'Dados eliminados'}</span>
+                    <Selo>De fora</Selo>
+                  </li>
                 ))}
               </ul>
-            </>
-          ) : null}
+            )}
+          </section>
 
           {c.minhaResposta !== null && !c.cancelado ? (
-            <div className="painel-do-usuario">
-              <h3>Sua resposta</h3>
-              <p className="campo__ajuda">
-                A resposta é só informativa: não cancela o compromisso nem tira você da lista.
-              </p>
+            <section className="compromisso__resposta" aria-labelledby="titulo-resposta">
+              <div>
+                <h3 id="titulo-resposta" className="compromisso__secao">
+                  Sua resposta
+                </h3>
+                <p className="campo__ajuda">
+                  A resposta é só informativa: não cancela o compromisso nem tira você da lista.
+                </p>
+                <p className="campo__ajuda">Resposta atual: {rotuloDaResposta[c.minhaResposta]}.</p>
+              </div>
               <div className="acoes">
                 {respostasDeParticipante
                   .filter((r) => r !== 'sem_resposta')
@@ -148,7 +239,7 @@ export function CompromissoAberto({
                     <Botao
                       key={r}
                       pequeno
-                      variante="secundario"
+                      variante={c.minhaResposta === r ? 'primario' : 'secundario'}
                       aria-pressed={c.minhaResposta === r}
                       disabled={responder.isPending}
                       onClick={() => responder.mutate(r)}
@@ -157,39 +248,10 @@ export function CompromissoAberto({
                     </Botao>
                   ))}
               </div>
-              <p>Resposta atual: {rotuloDaResposta[c.minhaResposta]}.</p>
-            </div>
+            </section>
           ) : null}
-
-          {podeMarcar && !c.cancelado ? (
-            <div className="acoes" style={{ marginTop: 'var(--espaco-4)' }}>
-              <Botao pequeno variante="secundario" onClick={() => setAlterando((v) => !v)}>
-                {alterando ? 'Fechar a alteração' : 'Remarcar ou alterar'}
-              </Botao>
-              <Botao
-                pequeno
-                variante="perigo"
-                disabled={cancelar.isPending}
-                onClick={() => cancelar.mutate()}
-              >
-                Cancelar compromisso
-              </Botao>
-            </div>
-          ) : null}
-
-          {alterando ? (
-            <FormularioDeCompromisso
-              sessao={sessao}
-              compromisso={c}
-              aoSalvar={(salvo) => {
-                void atualizar(salvo);
-                setAlterando(false);
-              }}
-              aoFechar={() => setAlterando(false)}
-            />
-          ) : null}
-        </>
+        </div>
       ) : null}
-    </aside>
+    </Modal>
   );
 }

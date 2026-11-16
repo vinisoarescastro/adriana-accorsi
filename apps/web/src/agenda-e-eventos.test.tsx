@@ -1,78 +1,25 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
-import { renderizar, sessaoDe, simularApi } from './teste/auxiliares';
-
-const naoEncontrado = {
-  status: 404,
-  corpo: { codigo: 'nao_encontrado', mensagem: 'Não encontrado.' },
-};
-
-type Perfil = 'supervisor' | 'assessor_externo' | 'assessor_interno';
-
-const base = (perfil: Perfil = 'assessor_interno') => ({
-  'GET /api/acesso/sessao': { corpo: sessaoDe(perfil) },
-  'GET /api/gabinete': naoEncontrado,
-  'GET /api/avisos': { corpo: { itens: [], naoLidos: 0 } },
-  'GET /api/equipe': {
-    corpo: [
-      { id: 1, nome: 'Fulano de Tal', perfil, situacao: 'ativo', habilitacoes: ['AT', 'AG'] },
-      {
-        id: 2,
-        nome: 'Beltrana',
-        perfil: 'assessor_interno',
-        situacao: 'ativo',
-        habilitacoes: ['AG'],
-      },
-    ],
-  },
-});
-
-const compromisso = (id: number, extra: object = {}) => ({
-  tipo: 'compromisso',
-  id,
-  titulo: `Reunião ${id}`,
-  local: 'Câmara',
-  inicio: '2026-11-12T13:00:00.000Z',
-  fim: '2026-11-12T14:00:00.000Z',
-  diaInteiro: false,
-  visibilidade: 'participantes',
-  envolveParlamentar: true,
-  criador: 'Fulano de Tal',
-  cancelado: false,
-  participantesInternos: [{ id: 1, nome: 'Fulano de Tal', resposta: 'sem_resposta' }],
-  participantesExternos: [],
-  minhaResposta: 'sem_resposta',
-  ...extra,
-});
-
-const urlDaAgenda = (hoje: string, minha = false) => {
-  const fim = new Date(`${hoje}T12:00:00Z`);
-  fim.setUTCDate(fim.getUTCDate() + 6);
-  const q = new URLSearchParams({
-    de: `${hoje}T00:00:00-03:00`,
-    ate: `${fim.toISOString().slice(0, 10)}T23:59:59-03:00`,
-  });
-  if (minha) q.set('minha', 'true');
-  return `/api/agenda?${q.toString()}`;
-};
+import { hojeNoGabinete } from './formatos';
+import { renderizar, simularApi } from './teste/auxiliares';
+import { base, compromisso, urlDaAgenda } from './teste/dados-da-agenda';
 
 describe('agenda', () => {
   it('mostra o compromisso inteiro, o horário ocupado e o bloqueio, cada um em texto', async () => {
-    const { hojeNoGabinete } = await import('./formatos');
     const itens = [
       compromisso(1),
       {
         tipo: 'ocupado',
-        inicio: '2026-11-12T15:00:00.000Z',
-        fim: '2026-11-12T16:00:00.000Z',
+        inicio: `${hojeNoGabinete()}T15:00:00.000Z`,
+        fim: `${hojeNoGabinete()}T16:00:00.000Z`,
         diaInteiro: false,
       },
       {
         tipo: 'bloqueio',
         id: 4,
-        inicio: '2026-11-12T17:00:00.000Z',
-        fim: '2026-11-12T18:00:00.000Z',
+        inicio: `${hojeNoGabinete()}T17:00:00.000Z`,
+        fim: `${hojeNoGabinete()}T18:00:00.000Z`,
       },
     ];
     simularApi({
@@ -85,11 +32,11 @@ describe('agenda', () => {
     expect(screen.getByText('Horário ocupado')).toBeInTheDocument();
     expect(screen.getByText('Indisponível')).toBeInTheDocument();
     // O horário ocupado não revela título nem local.
-    expect(screen.getAllByText(/Câmara|Reunião/)).toHaveLength(1);
+    expect(screen.getAllByText(/Reunião/)).toHaveLength(1);
+    expect(screen.getAllByText('Câmara')).toHaveLength(1);
   });
 
   it('o Assessor Externo consulta, mas não vê como marcar nem bloquear', async () => {
-    const { hojeNoGabinete } = await import('./formatos');
     simularApi({
       ...base('assessor_externo'),
       [`GET ${urlDaAgenda(hojeNoGabinete())}`]: { corpo: { itens: [] } },
@@ -102,7 +49,6 @@ describe('agenda', () => {
   });
 
   it('"Minha agenda" pede ao servidor a visão pessoal', async () => {
-    const { hojeNoGabinete } = await import('./formatos');
     const chamadas = simularApi({
       ...base(),
       [`GET ${urlDaAgenda(hojeNoGabinete())}`]: { corpo: { itens: [] } },
@@ -117,7 +63,6 @@ describe('agenda', () => {
   });
 
   it('novo compromisso: nasce envolvendo a Parlamentar, e o Interno não vê a opção Restrito', async () => {
-    const { hojeNoGabinete } = await import('./formatos');
     const chamadas = simularApi({
       ...base(),
       [`GET ${urlDaAgenda(hojeNoGabinete())}`]: { corpo: { itens: [] } },
@@ -137,13 +82,23 @@ describe('agenda', () => {
     expect(within(form).queryByRole('option', { name: /Restrito/ })).not.toBeInTheDocument();
 
     await usuario.type(within(form).getByLabelText('Título'), 'Reunião com o prefeito');
-    await usuario.click(within(form).getByLabelText('Beltrana'));
+    await usuario.type(
+      within(form).getByLabelText('Descrição (opcional)'),
+      'Pauta: orçamento da saúde.',
+    );
+    await usuario.click(within(form).getByRole('button', { name: /Participantes da equipe/ }));
+    // O menu abre fora do formulário (portal) e a busca filtra pelo nome.
+    await usuario.type(screen.getByRole('searchbox'), 'belt');
+    expect(screen.queryByRole('checkbox', { name: /Fulano/ })).not.toBeInTheDocument();
+    await usuario.click(screen.getByRole('checkbox', { name: /Beltrana/ }));
+    expect(within(form).getByRole('button', { name: 'Retirar Beltrana' })).toBeInTheDocument();
     await usuario.click(within(form).getByRole('button', { name: 'Marcar compromisso' }));
 
     await waitFor(() => expect(chamadas.some((c) => c.metodo === 'POST')).toBe(true));
     const corpo = chamadas.find((c) => c.metodo === 'POST')?.corpo as Record<string, unknown>;
     expect(corpo).toMatchObject({
       titulo: 'Reunião com o prefeito',
+      descricao: 'Pauta: orçamento da saúde.',
       visibilidade: 'participantes',
       envolveParlamentar: true,
       participantesInternos: [2],
@@ -152,7 +107,6 @@ describe('agenda', () => {
   });
 
   it('o Supervisor pode escolher Restrito', async () => {
-    const { hojeNoGabinete } = await import('./formatos');
     simularApi({
       ...base('supervisor'),
       [`GET ${urlDaAgenda(hojeNoGabinete())}`]: { corpo: { itens: [] } },
@@ -165,7 +119,6 @@ describe('agenda', () => {
   });
 
   it('o participante responde, e a tela explica que a resposta é só informativa', async () => {
-    const { hojeNoGabinete } = await import('./formatos');
     let resposta = 'sem_resposta';
     const chamadas = simularApi({
       ...base(),

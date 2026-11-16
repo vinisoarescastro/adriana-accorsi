@@ -25,7 +25,7 @@ describe('navegação', () => {
     const links = within(menu)
       .getAllByRole('link')
       .map((l) => l.textContent);
-    expect(links).toEqual(['Painel', 'Equipe', 'Fluxos', 'Configurações', 'Meu perfil']);
+    expect(links).toEqual(['Painel', 'Equipe', 'Fluxos', 'Configurações']);
     expect(within(menu).queryByText('Auditoria')).not.toBeInTheDocument();
   });
 
@@ -57,7 +57,8 @@ describe('navegação', () => {
     const usuario = userEvent.setup();
     renderizar('/g/painel');
 
-    await usuario.click(await screen.findByRole('button', { name: 'Sair' }));
+    await usuario.click(await screen.findByRole('button', { name: 'Menu da conta' }));
+    await usuario.click(await screen.findByRole('menuitem', { name: 'Sair' }));
     expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeInTheDocument();
     expect(chamadas.some((c) => c.metodo === 'POST' && c.caminho === '/api/acesso/sair')).toBe(
       true,

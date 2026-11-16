@@ -1,9 +1,10 @@
 import type { RespostaDaSessao } from '@gabinete/compartilhado';
-import { useEffect, useRef } from 'react';
 import { useFicha } from '../api/atendimento';
-import { Aviso, AvisoDeErro, Botao, Carregando, Selo } from '../componentes/ui';
+import { Modal } from '../componentes/modal';
+import { SeloDeAtraso, SeloDeStatus } from '../componentes/situacao';
+import { Aviso, AvisoDeErro, Carregando, Selo } from '../componentes/ui';
 import { formatarDataHora } from '../formatos';
-import { rotuloDaPrioridade, rotuloDoStatus } from '../rotulos';
+import { rotuloDaPrioridade } from '../rotulos';
 import { AcoesDaDemanda } from './AcoesDaDemanda';
 import { AcompanhamentoDoCidadao } from './AcompanhamentoDoCidadao';
 import { ComentariosDaDemanda, DocumentosDaDemanda } from './ComentariosEDocumentos';
@@ -22,36 +23,24 @@ export function FichaDaDemanda({
   aoFechar: () => void;
 }) {
   const { data: ficha, isLoading, error } = useFicha(id);
-  const titulo = useRef<HTMLHeadingElement>(null);
-
-  useEffect(() => {
-    titulo.current?.focus();
-    const aoTeclar = (e: KeyboardEvent) => e.key === 'Escape' && aoFechar();
-    window.addEventListener('keydown', aoTeclar);
-    return () => window.removeEventListener('keydown', aoTeclar);
-  }, [aoFechar]);
 
   return (
-    <aside className="gaveta" role="dialog" aria-modal="false" aria-labelledby="titulo-da-ficha">
-      <div className="gaveta__topo">
-        <h2 id="titulo-da-ficha" ref={titulo} tabIndex={-1}>
-          {ficha ? `${ficha.protocolo}: ${ficha.titulo}` : 'Demanda'}
-        </h2>
-        <Botao variante="secundario" onClick={aoFechar} aria-label="Fechar a ficha">
-          Fechar
-        </Botao>
-      </div>
-
+    <Modal
+      titulo={ficha ? `${ficha.protocolo}: ${ficha.titulo}` : 'Demanda'}
+      tamanho="xl"
+      aoFechar={aoFechar}
+    >
       {isLoading ? <Carregando /> : null}
       <AvisoDeErro erro={error} />
 
       {ficha ? (
         <>
           <p>
-            <Selo tipo={ficha.status === 'em_andamento' ? 'ativo' : 'inativo'}>
-              {rotuloDoStatus[ficha.status]}
-            </Selo>{' '}
-            {ficha.atrasada ? <Selo>Atrasada</Selo> : null} <Selo>Etapa: {ficha.etapa.nome}</Selo>
+            <span className="acoes">
+              <SeloDeStatus status={ficha.status} />
+              {ficha.atrasada ? <SeloDeAtraso /> : null}
+              <Selo>Etapa: {ficha.etapa.nome}</Selo>
+            </span>
           </p>
           {ficha.status === 'cancelada' ? (
             <Aviso tipo="atencao" titulo="Demanda cancelada. Ela não se altera mais.">
@@ -125,6 +114,6 @@ export function FichaDaDemanda({
           )}
         </>
       ) : null}
-    </aside>
+    </Modal>
   );
 }

@@ -14,6 +14,8 @@ import { chamar } from '../api/cliente';
 import { buscarPessoaPorTelefone, chavesDoAtendimento } from '../api/atendimento';
 import { useEquipe } from '../api/consultas';
 import { Aviso, AvisoDeErro, Botao, Campo } from '../componentes/ui';
+import { Modal } from '../componentes/modal';
+import { useToast } from '../componentes/toast';
 import { rotuloDaOrigemDoConsentimento, rotuloDaPrioridade } from '../rotulos';
 
 /**
@@ -30,6 +32,7 @@ export function NovaDemanda({
   aoAbrir: (id: number) => void;
 }) {
   const cliente = useQueryClient();
+  const avisar = useToast();
   const { data: equipe } = useEquipe();
   const [telefone, setTelefone] = useState('');
   const [existente, setExistente] = useState<PessoaDto | null>(null);
@@ -98,7 +101,7 @@ export function NovaDemanda({
   if (registrada) {
     const { demanda, linkDeAcompanhamento } = registrada;
     return (
-      <div className="cartao">
+      <Modal titulo="Protocolo gerado" tamanho="md" aoFechar={aoFechar}>
         <Aviso tipo="sucesso" titulo="Demanda registrada.">
           Informe este protocolo ao cidadão:
         </Aviso>
@@ -113,7 +116,10 @@ export function NovaDemanda({
           <Botao onClick={() => aoAbrir(demanda.id)}>Abrir a demanda</Botao>
           <Botao
             variante="secundario"
-            onClick={() => void navigator.clipboard?.writeText(demanda.protocolo)}
+            onClick={() => {
+              void navigator.clipboard?.writeText(demanda.protocolo);
+              avisar({ tom: 'sucesso', titulo: 'Protocolo copiado' });
+            }}
           >
             Copiar protocolo
           </Botao>
@@ -121,7 +127,7 @@ export function NovaDemanda({
             Fechar
           </Botao>
         </div>
-      </div>
+      </Modal>
     );
   }
 
@@ -132,180 +138,180 @@ export function NovaDemanda({
   const precisaDeNome = verificado && !existente;
 
   return (
-    <form className="cartao" onSubmit={enviar} noValidate>
-      <h2>Nova demanda</h2>
-      <AvisoDeErro erro={registrar.error ?? verificar.error} />
+    <Modal titulo="Nova demanda" tamanho="lg" aoFechar={aoFechar}>
+      <form className="formulario-do-modal" onSubmit={enviar} noValidate>
+        <AvisoDeErro erro={registrar.error ?? verificar.error} />
 
-      <Campo
-        rotulo="Telefone do solicitante"
-        ajuda="Com DDD. Buscamos o cadastro antes de pedir os dados."
-      >
-        {(p) => (
-          <input
-            {...p}
-            type="tel"
-            inputMode="tel"
-            value={telefone}
-            onChange={(e) => {
-              setTelefone(e.target.value);
-              setVerificado(false);
-              setExistente(null);
-            }}
-            onBlur={() =>
-              telefone.replace(/\D/g, '').length >= 10 && !verificado && verificar.mutate()
-            }
-            required
-          />
-        )}
-      </Campo>
-      {existente ? (
-        <Aviso tipo="sucesso" titulo={`Pessoa já cadastrada: ${existente.nomeCompleto ?? ''}.`} />
-      ) : null}
-      {precisaDeNome ? (
-        <Campo rotulo="Nome completo" ajuda="Pessoa nova: será cadastrada junto com a demanda.">
+        <Campo
+          rotulo="Telefone do solicitante"
+          ajuda="Com DDD. Buscamos o cadastro antes de pedir os dados."
+        >
           {(p) => (
             <input
               {...p}
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
+              type="tel"
+              inputMode="tel"
+              value={telefone}
+              onChange={(e) => {
+                setTelefone(e.target.value);
+                setVerificado(false);
+                setExistente(null);
+              }}
+              onBlur={() =>
+                telefone.replace(/\D/g, '').length >= 10 && !verificado && verificar.mutate()
+              }
               required
-              maxLength={160}
             />
           )}
         </Campo>
-      ) : null}
-
-      {precisaDeNome ? (
-        <fieldset className="grupo-de-opcoes">
-          <legend>Avisos por e-mail (opcional)</legend>
-          <Campo rotulo="E-mail" ajuda="Só é usado para avisar o andamento desta solicitação.">
+        {existente ? (
+          <Aviso tipo="sucesso" titulo={`Pessoa já cadastrada: ${existente.nomeCompleto ?? ''}.`} />
+        ) : null}
+        {precisaDeNome ? (
+          <Campo rotulo="Nome completo" ajuda="Pessoa nova: será cadastrada junto com a demanda.">
             {(p) => (
               <input
                 {...p}
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (!e.target.value.trim()) setConsentiu(false);
-                }}
-                maxLength={254}
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                required
+                maxLength={160}
               />
             )}
           </Campo>
-          {email.trim() ? (
-            <>
-              <p className="campo__ajuda">Leia ao cidadão e só marque se ele disser sim:</p>
-              <blockquote className="texto-de-consentimento">
-                {textoDeConsentimento.texto}
-              </blockquote>
-              <label className="opcao">
+        ) : null}
+
+        {precisaDeNome ? (
+          <fieldset className="grupo-de-opcoes">
+            <legend>Avisos por e-mail (opcional)</legend>
+            <Campo rotulo="E-mail" ajuda="Só é usado para avisar o andamento desta solicitação.">
+              {(p) => (
                 <input
-                  type="checkbox"
-                  checked={consentiu}
-                  onChange={(e) => setConsentiu(e.target.checked)}
+                  {...p}
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (!e.target.value.trim()) setConsentiu(false);
+                  }}
+                  maxLength={254}
                 />
-                Li o texto ao cidadão e ele concordou em receber avisos por e-mail
-              </label>
-              {consentiu ? (
-                <Campo rotulo="Como o cidadão autorizou">
-                  {(p) => (
-                    <select
-                      {...p}
-                      value={origem}
-                      onChange={(e) => setOrigem(e.target.value as typeof origem)}
-                    >
-                      {origensDeConsentimentoRegistravel.map((o) => (
-                        <option key={o} value={o}>
-                          {rotuloDaOrigemDoConsentimento[o]}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                </Campo>
-              ) : null}
-            </>
-          ) : null}
-        </fieldset>
-      ) : null}
+              )}
+            </Campo>
+            {email.trim() ? (
+              <>
+                <p className="campo__ajuda">Leia ao cidadão e só marque se ele disser sim:</p>
+                <blockquote className="texto-de-consentimento">
+                  {textoDeConsentimento.texto}
+                </blockquote>
+                <label className="opcao">
+                  <input
+                    type="checkbox"
+                    checked={consentiu}
+                    onChange={(e) => setConsentiu(e.target.checked)}
+                  />
+                  Li o texto ao cidadão e ele concordou em receber avisos por e-mail
+                </label>
+                {consentiu ? (
+                  <Campo rotulo="Como o cidadão autorizou">
+                    {(p) => (
+                      <select
+                        {...p}
+                        value={origem}
+                        onChange={(e) => setOrigem(e.target.value as typeof origem)}
+                      >
+                        {origensDeConsentimentoRegistravel.map((o) => (
+                          <option key={o} value={o}>
+                            {rotuloDaOrigemDoConsentimento[o]}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </Campo>
+                ) : null}
+              </>
+            ) : null}
+          </fieldset>
+        ) : null}
 
-      <Campo rotulo="Título">
-        {(p) => (
-          <input
-            {...p}
-            value={titulo}
-            onChange={(e) => setTitulo(e.target.value)}
-            required
-            maxLength={200}
-            placeholder="Ex.: Poda de árvore na Rua das Flores"
-          />
-        )}
-      </Campo>
-      <Campo rotulo="Descrição (opcional)" ajuda="Uso interno: nunca aparece para o cidadão.">
-        {(p) => (
-          <textarea
-            {...p}
-            rows={3}
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
-            maxLength={5000}
-          />
-        )}
-      </Campo>
-
-      <div className="grade-formulario">
-        <Campo rotulo="Prioridade">
+        <Campo rotulo="Título">
           {(p) => (
-            <select
+            <input
               {...p}
-              value={prioridade}
-              onChange={(e) => setPrioridade(e.target.value as Prioridade)}
-            >
-              {prioridades.map((valor) => (
-                <option key={valor} value={valor}>
-                  {rotuloDaPrioridade[valor]}
-                </option>
-              ))}
-            </select>
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+              required
+              maxLength={200}
+              placeholder="Ex.: Poda de árvore na Rua das Flores"
+            />
           )}
         </Campo>
-        <Campo rotulo="Prazo (opcional)">
+        <Campo rotulo="Descrição (opcional)" ajuda="Uso interno: nunca aparece para o cidadão.">
           {(p) => (
-            <input {...p} type="date" value={prazo} onChange={(e) => setPrazo(e.target.value)} />
+            <textarea
+              {...p}
+              rows={3}
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              maxLength={5000}
+            />
           )}
         </Campo>
-        {podeEscolherResponsavel ? (
-          <Campo rotulo="Responsável" ajuda="Se não escolher, é você.">
+
+        <div className="grade-formulario">
+          <Campo rotulo="Prioridade">
             {(p) => (
               <select
                 {...p}
-                value={responsavelId}
-                onChange={(e) => setResponsavelId(e.target.value)}
+                value={prioridade}
+                onChange={(e) => setPrioridade(e.target.value as Prioridade)}
               >
-                <option value="">Eu mesmo</option>
-                {responsaveis.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.nome}
+                {prioridades.map((valor) => (
+                  <option key={valor} value={valor}>
+                    {rotuloDaPrioridade[valor]}
                   </option>
                 ))}
               </select>
             )}
           </Campo>
-        ) : null}
-      </div>
+          <Campo rotulo="Prazo (opcional)">
+            {(p) => (
+              <input {...p} type="date" value={prazo} onChange={(e) => setPrazo(e.target.value)} />
+            )}
+          </Campo>
+          {podeEscolherResponsavel ? (
+            <Campo rotulo="Responsável" ajuda="Se não escolher, é você.">
+              {(p) => (
+                <select
+                  {...p}
+                  value={responsavelId}
+                  onChange={(e) => setResponsavelId(e.target.value)}
+                >
+                  <option value="">Eu mesmo</option>
+                  {responsaveis.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.nome}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </Campo>
+          ) : null}
+        </div>
 
-      <div className="acoes">
-        <Botao
-          type="submit"
-          disabled={
-            registrar.isPending || !titulo.trim() || !telefone || (!existente && !nome.trim())
-          }
-        >
-          {registrar.isPending ? 'Registrando…' : 'Registrar demanda'}
-        </Botao>
-        <Botao variante="secundario" onClick={aoFechar}>
-          Cancelar
-        </Botao>
-      </div>
-    </form>
+        <div className="acoes">
+          <Botao
+            type="submit"
+            carregando={registrar.isPending}
+            disabled={!titulo.trim() || !telefone || (!existente && !nome.trim())}
+          >
+            Registrar demanda
+          </Botao>
+          <Botao variante="secundario" onClick={aoFechar}>
+            Cancelar
+          </Botao>
+        </div>
+      </form>
+    </Modal>
   );
 }

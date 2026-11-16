@@ -1,37 +1,64 @@
-import { AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Info, XCircle } from 'lucide-react';
 import { useId, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { ErroDaApi } from '../api/cliente';
+import { useToast } from './toast';
 
-type Variante = 'primario' | 'secundario' | 'perigo';
+type Variante = 'primario' | 'secundario' | 'perigo' | 'fantasma';
 
 interface PropsDoBotao extends ButtonHTMLAttributes<HTMLButtonElement> {
   readonly variante?: Variante;
   readonly pequeno?: boolean;
+  /** Ícone à esquerda do texto. */
+  readonly icone?: ReactNode;
+  /** Mostra o indicador de carregamento e desabilita o botão. */
+  readonly carregando?: boolean;
 }
 
+/**
+ * Botão. Hierarquia: UM primário por área (a ação principal), secundário para as demais, fantasma
+ * para ações discretas e perigo só para o que destrói ou cancela.
+ */
 export function Botao({
   variante = 'primario',
   pequeno,
+  icone,
+  carregando,
   className,
   type = 'button',
+  disabled,
+  children,
   ...resto
 }: PropsDoBotao) {
   const classes = [
     'botao',
     variante === 'secundario' && 'botao--secundario',
     variante === 'perigo' && 'botao--perigo',
+    variante === 'fantasma' && 'botao--fantasma',
     pequeno && 'botao--pequeno',
     className,
   ]
     .filter(Boolean)
     .join(' ');
-  return <button type={type} className={classes} {...resto} />;
+  return (
+    <button
+      type={type}
+      className={classes}
+      disabled={disabled || carregando}
+      aria-busy={carregando || undefined}
+      {...resto}
+    >
+      {carregando ? <span className="botao__giro" aria-hidden="true" /> : (icone ?? null)}
+      {children}
+    </button>
+  );
 }
 
 interface PropsDoCampo {
   readonly rotulo: string;
   readonly ajuda?: string;
   readonly erro?: string;
+  /** Marca o campo como obrigatório (o asterisco é só visual; o campo leva `required`). */
+  readonly obrigatorio?: boolean;
   readonly children: (props: {
     id: string;
     'aria-describedby'?: string;
@@ -40,14 +67,17 @@ interface PropsDoCampo {
 }
 
 /** Rótulo, ajuda e erro ligados ao controle por ids (leitores de tela leem tudo junto). */
-export function Campo({ rotulo, ajuda, erro, children }: PropsDoCampo) {
+export function Campo({ rotulo, ajuda, erro, obrigatorio, children }: PropsDoCampo) {
   const id = useId();
   const idDaAjuda = `${id}-ajuda`;
   const idDoErro = `${id}-erro`;
   const descricao = [ajuda ? idDaAjuda : '', erro ? idDoErro : ''].filter(Boolean).join(' ');
   return (
     <div className="campo">
-      <label className="campo__rotulo" htmlFor={id}>
+      <label
+        className={`campo__rotulo${obrigatorio ? ' campo__rotulo--obrigatorio' : ''}`}
+        htmlFor={id}
+      >
         {rotulo}
       </label>
       {children({
@@ -69,21 +99,23 @@ export function Campo({ rotulo, ajuda, erro, children }: PropsDoCampo) {
   );
 }
 
-type TipoDeAviso = 'erro' | 'sucesso' | 'atencao';
+type TipoDeAviso = 'erro' | 'sucesso' | 'atencao' | 'info';
 
 const prefixoDoAviso: Record<TipoDeAviso, string> = {
   erro: 'Erro:',
   sucesso: 'Pronto:',
   atencao: 'Atenção:',
+  info: 'Informação:',
 };
 
 const iconeDoAviso: Record<TipoDeAviso, ReactNode> = {
   erro: <XCircle size={18} />,
   sucesso: <CheckCircle2 size={18} />,
   atencao: <AlertTriangle size={18} />,
+  info: <Info size={18} />,
 };
 
-/** O aviso nunca depende só de cor: sempre começa com uma palavra que diz o que é. */
+/** O aviso nunca depende só de cor: sempre começa com uma palavra que diz o que é, e tem ícone. */
 export function Aviso({
   tipo,
   titulo,
@@ -98,11 +130,11 @@ export function Aviso({
       <span className="aviso__icone" aria-hidden="true">
         {iconeDoAviso[tipo]}
       </span>
-      <div>
+      <div className="aviso__corpo">
         <span className="aviso__titulo">
           {prefixoDoAviso[tipo]} {titulo}
         </span>
-        {children ? <div>{children}</div> : null}
+        {children ? <div className="aviso__texto">{children}</div> : null}
       </div>
     </div>
   );
@@ -127,8 +159,30 @@ export function AvisoDeErro({ erro }: { erro: unknown }) {
   );
 }
 
-export function Selo({ tipo, children }: { tipo?: 'ativo' | 'inativo'; children: ReactNode }) {
-  return <span className={`selo${tipo ? ` selo--${tipo}` : ''}`}>{children}</span>;
+export type TomDoSelo = 'neutro' | 'sucesso' | 'atencao' | 'perigo' | 'info' | 'primario';
+
+/**
+ * Selo de situação. O texto diz a situação; o tom e o ponto só reforçam (nunca dependem só de cor).
+ * `tipo` é o jeito antigo: 'ativo' vale 'sucesso' e 'inativo' vale 'neutro'.
+ */
+export function Selo({
+  tom,
+  tipo,
+  ponto,
+  children,
+}: {
+  tom?: TomDoSelo;
+  tipo?: 'ativo' | 'inativo';
+  ponto?: boolean;
+  children: ReactNode;
+}) {
+  const efetivo: TomDoSelo = tom ?? (tipo === 'ativo' ? 'sucesso' : 'neutro');
+  return (
+    <span className={`selo selo--${efetivo}`}>
+      {ponto ? <span className="selo__ponto" aria-hidden="true" /> : null}
+      {children}
+    </span>
+  );
 }
 
 export function Carregando({ texto = 'Carregando…' }: { texto?: string }) {
@@ -149,6 +203,7 @@ export function SenhaInicial({
   validaAte: string;
   onFechar: () => void;
 }) {
+  const avisar = useToast();
   return (
     <Aviso tipo="atencao" titulo="Anote a senha inicial agora">
       <p>
@@ -161,7 +216,10 @@ export function SenhaInicial({
         <Botao
           pequeno
           variante="secundario"
-          onClick={() => void navigator.clipboard?.writeText(senha)}
+          onClick={() => {
+            void navigator.clipboard?.writeText(senha);
+            avisar({ tom: 'sucesso', titulo: 'Senha copiada' });
+          }}
         >
           Copiar senha
         </Botao>

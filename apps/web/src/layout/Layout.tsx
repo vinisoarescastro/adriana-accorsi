@@ -15,7 +15,6 @@ import {
   Moon,
   Settings,
   Sun,
-  UserCircle,
   Users,
   UsersRound,
   type LucideIcon,
@@ -25,6 +24,8 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { chamar } from '../api/cliente';
 import { useGabinete } from '../api/consultas';
 import { SinoDeAvisos } from '../avisos/SinoDeAvisos';
+import { BotaoDeIcone } from '../componentes/dicas';
+import { MenuSuspenso } from '../componentes/menu';
 import { Botao } from '../componentes/ui';
 import { iniciais } from '../formatos';
 import { rotuloDoPerfil } from '../rotulos';
@@ -116,25 +117,7 @@ export function Layout({ sessao }: { sessao: RespostaDaSessao }) {
               })}
             </div>
           ))}
-          <div className="lateral__secao">
-            <span className="lateral__grupo">Conta</span>
-            <NavLink to="/g/perfil" className="lateral__link" onClick={() => setAberta(false)}>
-              <UserCircle size={18} aria-hidden="true" />
-              Meu perfil
-            </NavLink>
-          </div>
         </nav>
-        <div className="lateral__rodape">
-          <button
-            type="button"
-            className="lateral__sair"
-            onClick={() => sair.mutate()}
-            disabled={sair.isPending}
-          >
-            <LogOut size={18} aria-hidden="true" />
-            Sair
-          </button>
-        </div>
       </aside>
       {aberta ? (
         <button
@@ -149,7 +132,7 @@ export function Layout({ sessao }: { sessao: RespostaDaSessao }) {
         <header className="cabecalho">
           <Botao
             className="botao-menu botao--icone"
-            variante="secundario"
+            variante="fantasma"
             aria-expanded={aberta}
             aria-label={aberta ? 'Fechar o menu' : 'Abrir o menu'}
             onClick={() => setAberta((v) => !v)}
@@ -162,29 +145,53 @@ export function Layout({ sessao }: { sessao: RespostaDaSessao }) {
             </div>
             {gabinete ? <div className="cabecalho__subtitulo">{gabinete.cargo}</div> : null}
           </div>
-          <Botao
-            variante="secundario"
-            className="botao--icone"
-            aria-label={tema === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'}
+          <BotaoDeIcone
+            rotulo={tema === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'}
+            variante="fantasma"
+            icone={
+              tema === 'dark' ? (
+                <Sun size={18} aria-hidden="true" />
+              ) : (
+                <Moon size={18} aria-hidden="true" />
+              )
+            }
             onClick={() => setTema(tema === 'dark' ? 'light' : 'dark')}
-          >
-            {tema === 'dark' ? (
-              <Sun size={18} aria-hidden="true" />
-            ) : (
-              <Moon size={18} aria-hidden="true" />
-            )}
-          </Botao>
+          />
           <SinoDeAvisos />
           <span className="cabecalho__divisor" aria-hidden="true" />
           <div className="cabecalho__usuario">
-            {usuario.perfil ? (
-              <span>
-                {usuario.nome} ({rotuloDoPerfil[usuario.perfil]})
-              </span>
-            ) : null}
-            <span className="foto" role="img" aria-label={`Iniciais de ${usuario.nome}`}>
-              {iniciais(usuario.nome)}
-            </span>
+            <MenuSuspenso
+              rotulo="Menu da conta"
+              gatilho={
+                <>
+                  <span className="foto" role="img" aria-label={`Iniciais de ${usuario.nome}`}>
+                    {iniciais(usuario.nome)}
+                  </span>
+                  {usuario.perfil ? (
+                    <span>
+                      {usuario.nome} ({rotuloDoPerfil[usuario.perfil]})
+                    </span>
+                  ) : (
+                    <span>{usuario.nome}</span>
+                  )}
+                </>
+              }
+              itens={[
+                {
+                  rotulo: 'Configurações de perfil',
+                  icone: <Settings size={16} aria-hidden="true" />,
+                  aoEscolher: () => void navegar('/g/perfil'),
+                },
+                {
+                  rotulo: 'Sair',
+                  icone: <LogOut size={16} aria-hidden="true" />,
+                  perigo: true,
+                  separadorAntes: true,
+                  desabilitado: sair.isPending,
+                  aoEscolher: () => sair.mutate(),
+                },
+              ]}
+            />
           </div>
         </header>
         <main id="conteudo" className="conteudo" tabIndex={-1}>

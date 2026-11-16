@@ -227,7 +227,7 @@ describe('o sino de avisos', () => {
     expect(within(caixa).getByText(/Novo:/)).toBeInTheDocument();
     expect(within(caixa).getAllByText(/Uma tarefa foi designada a você/)).toHaveLength(2);
     expect(within(caixa).getAllByText(/Ligar para a prefeitura/).length).toBeGreaterThan(0);
-    expect(within(caixa).getAllByRole('link', { name: 'Abrir' })[0]).toHaveAttribute(
+    expect(within(caixa).getAllByRole('link', { name: /Abrir/ })[0]).toHaveAttribute(
       'href',
       '/g/tarefas?tarefa=9',
     );

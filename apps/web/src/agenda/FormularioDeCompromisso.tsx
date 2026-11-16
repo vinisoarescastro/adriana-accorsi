@@ -11,9 +11,11 @@ import { useState } from 'react';
 import { chamar } from '../api/cliente';
 import { useEquipe } from '../api/consultas';
 import { chavesDoTrabalho } from '../api/trabalho';
+import { Modal } from '../componentes/modal';
+import { SeletorDePessoas } from '../componentes/seletor-de-pessoas';
 import { AvisoDeErro, Botao, Campo } from '../componentes/ui';
 import { deCampoDeDataHora, hojeNoGabinete, paraCampoDeDataHora } from '../formatos';
-import { rotuloDaVisibilidade } from '../rotulos';
+import { rotuloDaVisibilidade, rotuloDoPerfil } from '../rotulos';
 
 /**
  * Marcar ou remarcar um compromisso. A marca "envolve a Parlamentar" vem ligada (a agenda do gabinete
@@ -25,9 +27,12 @@ export function FormularioDeCompromisso({
   diaInicial,
   aoSalvar,
   aoFechar,
+  incorporado,
 }: {
   sessao: RespostaDaSessao;
   compromisso?: CompromissoDto;
+  /** Dentro de outro modal (a ficha), o formulário não abre o seu. */
+  incorporado?: boolean;
   diaInicial?: string;
   aoSalvar: (salvo: CompromissoSalvo) => void;
   aoFechar: () => void;
@@ -39,6 +44,7 @@ export function FormularioDeCompromisso({
   const dia = diaInicial ?? hojeNoGabinete();
 
   const [titulo, setTitulo] = useState(compromisso?.titulo ?? '');
+  const [descricao, setDescricao] = useState(compromisso?.descricao ?? '');
   const [local, setLocal] = useState(compromisso?.local ?? '');
   const [inicio, setInicio] = useState(
     compromisso ? paraCampoDeDataHora(compromisso.inicio) : `${dia}T09:00`,
@@ -65,6 +71,7 @@ export function FormularioDeCompromisso({
     mutationFn: () => {
       const corpo = {
         titulo: titulo.trim(),
+        descricao: descricao.trim() || (compromisso ? null : undefined),
         local: local.trim() || (compromisso ? null : undefined),
         inicio: deCampoDeDataHora(inicio),
         fim: deCampoDeDataHora(fim),
@@ -83,16 +90,15 @@ export function FormularioDeCompromisso({
     },
   });
 
-  return (
+  const formulario = (
     <form
-      className="cartao"
+      className="formulario-do-modal"
       aria-label={compromisso ? 'Remarcar compromisso' : 'Novo compromisso'}
       onSubmit={(e) => {
         e.preventDefault();
         salvar.mutate();
       }}
     >
-      <h2>{compromisso ? 'Alterar compromisso' : 'Novo compromisso'}</h2>
       <AvisoDeErro erro={salvar.error} />
       <Campo rotulo="Título">
         {(p) => (
@@ -102,6 +108,20 @@ export function FormularioDeCompromisso({
             maxLength={200}
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
+          />
+        )}
+      </Campo>
+      <Campo
+        rotulo="Descrição (opcional)"
+        ajuda="O que será tratado: pauta, objetivo, o que levar."
+      >
+        {(p) => (
+          <textarea
+            {...p}
+            rows={3}
+            maxLength={2000}
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
           />
         )}
       </Campo>
@@ -169,23 +189,18 @@ export function FormularioDeCompromisso({
         Envolve a Parlamentar (aparece na agenda dela, sem gerar aviso)
       </label>
 
-      <fieldset>
-        <legend>Participantes da equipe (cada indicado é avisado)</legend>
-        {candidatos.map((u) => (
-          <label key={u.id} className="opcao">
-            <input
-              type="checkbox"
-              checked={indicados.includes(u.id)}
-              onChange={(e) =>
-                setIndicados((atuais) =>
-                  e.target.checked ? [...atuais, u.id] : atuais.filter((id) => id !== u.id),
-                )
-              }
-            />
-            {u.nome}
-          </label>
-        ))}
-      </fieldset>
+      <SeletorDePessoas
+        rotulo="Participantes da equipe (cada indicado é avisado)"
+        opcoes={candidatos.map((u) => ({
+          id: u.id,
+          nome: u.nome,
+          apoio: rotuloDoPerfil[u.perfil],
+          temFoto: u.temFoto,
+        }))}
+        valor={indicados}
+        aoMudar={setIndicados}
+        vazio="Ninguém da equipe tem acesso à agenda."
+      />
 
       <div className="acoes">
         <Botao type="submit" disabled={!titulo.trim() || salvar.isPending}>
@@ -196,5 +211,15 @@ export function FormularioDeCompromisso({
         </Botao>
       </div>
     </form>
+  );
+  if (incorporado) return formulario;
+  return (
+    <Modal
+      titulo={compromisso ? 'Alterar compromisso' : 'Novo compromisso'}
+      tamanho="lg"
+      aoFechar={aoFechar}
+    >
+      {formulario}
+    </Modal>
   );
 }

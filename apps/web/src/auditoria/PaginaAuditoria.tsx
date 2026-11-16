@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useAuditoria } from '../api/consultas';
-import { AvisoDeErro, Botao, Campo, Carregando } from '../componentes/ui';
+import { CabecalhoDaPagina } from '../componentes/cabecalho';
+import { BarraDeFerramentas, EsqueletoDeTabela, Paginacao } from '../componentes/tabela';
+import { AvisoDeErro, Campo } from '../componentes/ui';
 import { formatarDataHora } from '../formatos';
 
 export function PaginaAuditoria() {
@@ -13,109 +15,91 @@ export function PaginaAuditoria() {
 
   return (
     <section>
-      <h1>Auditoria</h1>
-      <p>Trilha imutável: ninguém altera nem apaga estes registros.</p>
+      <CabecalhoDaPagina
+        titulo="Auditoria"
+        descricao="Trilha imutável: ninguém altera nem apaga estes registros."
+      />
 
-      <form
-        className="cartao"
-        onSubmit={(e) => {
-          e.preventDefault();
-          setPagina(1);
-        }}
-      >
-        <div className="grade-formulario">
-          <Campo rotulo="Operação" ajuda="Por exemplo: equipe.criar">
-            {(p) => (
-              <input
-                {...p}
-                value={operacao}
-                onChange={(e) => {
-                  setOperacao(e.target.value);
-                  setPagina(1);
-                }}
-              />
-            )}
-          </Campo>
-          <Campo rotulo="Entidade" ajuda="Por exemplo: usuario">
-            {(p) => (
-              <input
-                {...p}
-                value={entidade}
-                onChange={(e) => {
-                  setEntidade(e.target.value);
-                  setPagina(1);
-                }}
-              />
-            )}
-          </Campo>
-        </div>
-      </form>
+      <BarraDeFerramentas rotulo="Filtros da auditoria" aoBuscar={() => setPagina(1)}>
+        <Campo rotulo="Operação" ajuda="Por exemplo: equipe.criar">
+          {(p) => (
+            <input
+              {...p}
+              value={operacao}
+              onChange={(e) => {
+                setOperacao(e.target.value);
+                setPagina(1);
+              }}
+            />
+          )}
+        </Campo>
+        <Campo rotulo="Entidade" ajuda="Por exemplo: usuario">
+          {(p) => (
+            <input
+              {...p}
+              value={entidade}
+              onChange={(e) => {
+                setEntidade(e.target.value);
+                setPagina(1);
+              }}
+            />
+          )}
+        </Campo>
+      </BarraDeFerramentas>
 
       <AvisoDeErro erro={error} />
-      {isLoading ? <Carregando /> : null}
+      {isLoading ? <EsqueletoDeTabela colunas={5} /> : null}
 
       {data ? (
-        <div className="cartao tabela-rolavel">
-          <table className="tabela">
-            <caption>
-              {data.total} registro(s), página {data.pagina} de {totalDePaginas}
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Quando</th>
-                <th scope="col">Quem</th>
-                <th scope="col">Operação</th>
-                <th scope="col">Registro</th>
-                <th scope="col">Detalhes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.itens.map((item) => (
-                <tr key={item.id}>
-                  <td>{formatarDataHora(item.ocorridaEm)}</td>
-                  <td>
-                    {item.autorNome ?? (item.origem === 'comando' ? 'Comando de linha' : 'Sistema')}
-                  </td>
-                  <td>{item.operacao}</td>
-                  <td>
-                    {item.entidade}
-                    {item.registroId ? ` #${item.registroId}` : ''}
-                  </td>
-                  <td>
-                    {item.valorNovo || item.valorAnterior ? (
-                      <details>
-                        <summary>Ver</summary>
-                        {item.valorAnterior ? (
-                          <pre>Antes: {JSON.stringify(item.valorAnterior, null, 2)}</pre>
-                        ) : null}
-                        {item.valorNovo ? (
-                          <pre>Depois: {JSON.stringify(item.valorNovo, null, 2)}</pre>
-                        ) : null}
-                      </details>
-                    ) : (
-                      '-'
-                    )}
-                  </td>
+        <div className="cartao cartao--tabela">
+          <div className="tabela-rolavel">
+            <table className="tabela">
+              <caption>
+                {data.total} registro(s), página {data.pagina} de {totalDePaginas}
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Quando</th>
+                  <th scope="col">Quem</th>
+                  <th scope="col">Operação</th>
+                  <th scope="col">Registro</th>
+                  <th scope="col">Detalhes</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="acoes" style={{ marginTop: 'var(--espaco-4)' }}>
-            <Botao
-              variante="secundario"
-              onClick={() => setPagina((p) => Math.max(1, p - 1))}
-              disabled={pagina <= 1}
-            >
-              Anterior
-            </Botao>
-            <Botao
-              variante="secundario"
-              onClick={() => setPagina((p) => p + 1)}
-              disabled={pagina >= totalDePaginas}
-            >
-              Próxima
-            </Botao>
+              </thead>
+              <tbody>
+                {data.itens.map((item) => (
+                  <tr key={item.id}>
+                    <td>{formatarDataHora(item.ocorridaEm)}</td>
+                    <td>
+                      {item.autorNome ??
+                        (item.origem === 'comando' ? 'Comando de linha' : 'Sistema')}
+                    </td>
+                    <td>{item.operacao}</td>
+                    <td>
+                      {item.entidade}
+                      {item.registroId ? ` #${item.registroId}` : ''}
+                    </td>
+                    <td>
+                      {item.valorNovo || item.valorAnterior ? (
+                        <details>
+                          <summary>Ver</summary>
+                          {item.valorAnterior ? (
+                            <pre>Antes: {JSON.stringify(item.valorAnterior, null, 2)}</pre>
+                          ) : null}
+                          {item.valorNovo ? (
+                            <pre>Depois: {JSON.stringify(item.valorNovo, null, 2)}</pre>
+                          ) : null}
+                        </details>
+                      ) : (
+                        '-'
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+          <Paginacao pagina={pagina} totalDePaginas={totalDePaginas} aoMudar={setPagina} />
         </div>
       ) : null}
     </section>

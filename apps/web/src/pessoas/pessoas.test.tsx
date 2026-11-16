@@ -1,4 +1,5 @@
 import { screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { renderizar, sessaoDe, simularApi } from '../teste/auxiliares';
 
@@ -45,19 +46,27 @@ describe('pessoas', () => {
     expect(within(tabela).getByText('Inativa')).toBeInTheDocument();
   });
 
-  it('só o Administrador vê "Eliminar dados"; o Supervisor inativa; o Assessor Interno só altera', async () => {
+  const abrirMenu = async (nome: string) => {
+    const usuario = userEvent.setup();
+    await usuario.click(await screen.findByRole('button', { name: `Mais ações de ${nome}` }));
+    return within(await screen.findByRole('menu'));
+  };
+
+  it('só o Administrador vê "Eliminar dados"', async () => {
     simularApi(base('administrador'));
     renderizar('/g/pessoas');
     await screen.findByRole('table');
-    expect(screen.getAllByRole('button', { name: 'Eliminar dados' }).length).toBe(2);
+    const menu = await abrirMenu('Pessoa 1');
+    expect(menu.getByRole('menuitem', { name: 'Eliminar dados' })).toBeInTheDocument();
   });
 
   it('o Supervisor não vê eliminar, mas vê inativar', async () => {
     simularApi(base('supervisor'));
     renderizar('/g/pessoas');
     await screen.findByRole('table');
-    expect(screen.queryByRole('button', { name: 'Eliminar dados' })).not.toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: /Inativar|Reativar/ }).length).toBeGreaterThan(0);
+    const menu = await abrirMenu('Pessoa 1');
+    expect(menu.queryByRole('menuitem', { name: 'Eliminar dados' })).not.toBeInTheDocument();
+    expect(menu.getByRole('menuitem', { name: 'Inativar' })).toBeInTheDocument();
   });
 
   it('o Assessor Interno cadastra e altera, mas não inativa', async () => {
@@ -65,8 +74,9 @@ describe('pessoas', () => {
     renderizar('/g/pessoas');
     await screen.findByRole('table');
     expect(screen.getByRole('button', { name: 'Nova pessoa' })).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'Alterar' }).length).toBeGreaterThan(0);
-    expect(screen.queryByRole('button', { name: /Inativar|Reativar/ })).not.toBeInTheDocument();
+    const menu = await abrirMenu('Pessoa 1');
+    expect(menu.getByRole('menuitem', { name: 'Alterar' })).toBeInTheDocument();
+    expect(menu.queryByRole('menuitem', { name: /Inativar|Reativar/ })).not.toBeInTheDocument();
   });
 });
 

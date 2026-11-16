@@ -118,8 +118,10 @@ describe('política de publicação (Configurações)', () => {
       rotas('administrador', { 'PUT /api/publicacao/politica': { corpo: politica() } }),
     );
     const usuario = userEvent.setup();
-    renderizar('/g/configuracoes');
-    const secao = (await screen.findByText('Política de publicação')).closest('div') as HTMLElement;
+    renderizar('/g/configuracoes?secao=politica');
+    const secao = (await screen.findByRole('heading', { name: 'Política de publicação' })).closest(
+      'section',
+    ) as HTMLElement;
     expect(await within(secao).findByText(/título oculto/)).toBeInTheDocument();
 
     const dias = within(secao).getByLabelText(/Dias de validade/);
@@ -150,8 +152,10 @@ describe('política de publicação (Configurações)', () => {
 
   it('o Assessor Interno só consulta, com o histórico de versões', async () => {
     simularApi(rotas('assessor_interno'));
-    renderizar('/g/configuracoes');
-    const secao = (await screen.findByText('Política de publicação')).closest('div') as HTMLElement;
+    renderizar('/g/configuracoes?secao=politica');
+    const secao = (await screen.findByRole('heading', { name: 'Política de publicação' })).closest(
+      'section',
+    ) as HTMLElement;
     expect(
       await within(secao).findByText('Só o Administrador altera a política.'),
     ).toBeInTheDocument();

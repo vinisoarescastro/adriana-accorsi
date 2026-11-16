@@ -76,17 +76,57 @@
   font-size: var(--text-sm);
 }
 
-.botao--icone {
-  width: var(--control-touch);
-  padding: 0;
+.botao--fantasma {
   background: transparent;
   color: var(--text-muted);
+}
+
+.botao--fantasma:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.botao--fantasma:active:not(:disabled) {
+  background: var(--secondary-hover);
+}
+
+.botao--fantasma:disabled {
+  background: transparent;
   border-color: transparent;
 }
 
-.botao--icone:hover:not(:disabled) {
+.botao--icone {
+  width: var(--control-touch);
+  min-width: 0;
+  padding: 0;
+}
+
+.botao--icone.botao--pequeno {
+  width: var(--control-md);
+}
+
+.botao--icone:not(.botao--fantasma):not(.botao--perigo) {
+  background: var(--surface);
+  color: var(--text-muted);
+  border-color: var(--border-strong);
+}
+
+.botao--icone:not(.botao--fantasma):not(.botao--perigo):hover:not(:disabled) {
   background: var(--surface-hover);
   color: var(--text);
+}
+
+.botao[aria-busy='true'] {
+  cursor: progress;
+}
+
+.botao__giro {
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentcolor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: girar 0.7s linear infinite;
 }
 
 /* ===== Campos de formulário ===== */
@@ -102,6 +142,11 @@
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   color: var(--text);
+}
+
+.campo__rotulo--obrigatorio::after {
+  content: ' *';
+  color: var(--danger-text);
 }
 
 .campo__ajuda {
@@ -128,6 +173,14 @@
   transition:
     border-color var(--duration-fast) var(--ease),
     box-shadow var(--duration-fast) var(--ease);
+}
+
+.campo select {
+  appearance: none;
+  padding-right: var(--space-8);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-3) center;
 }
 
 .campo textarea {
@@ -256,6 +309,22 @@ fieldset legend {
   --tom-borda: var(--warning-border);
 }
 
+.aviso__corpo {
+  flex: 1;
+  min-width: 0;
+}
+
+.aviso__texto {
+  margin-top: 0.125rem;
+  line-height: var(--leading-normal);
+}
+
+.aviso--info {
+  --tom: var(--info);
+  --tom-fundo: var(--info-soft);
+  --tom-borda: var(--info-border);
+}
+
 .aviso__titulo {
   font-size: var(--text-base);
   font-weight: var(--weight-semibold);
@@ -267,7 +336,59 @@ fieldset legend {
   padding-left: var(--space-5);
 }
 
-/* ===== Cartão ===== */
+/* ===== Cartão: cabeçalho, corpo e rodapé ===== */
+.cartao__cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.cartao__cabecalho > div:first-child {
+  min-width: 0;
+}
+
+.cartao__titulo {
+  margin: 0;
+  font-size: var(--text-md);
+  letter-spacing: -0.01em;
+}
+
+.cartao__descricao {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.cartao__rodape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin: var(--space-5) calc(var(--space-6) * -1) calc(var(--space-5) * -1);
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--border);
+  background: var(--surface-muted);
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+}
+
+.cartao.cartao--suave {
+  background: var(--gradient-soft);
+  border-color: color-mix(in srgb, var(--primary) 18%, var(--border));
+}
+
+.cartao.cartao--muted {
+  background: var(--surface-muted);
+  box-shadow: none;
+}
+
+.cartao.cartao--tabela {
+  padding: 0;
+  overflow: hidden;
+}
+
 .cartao {
   padding: var(--space-5) var(--space-6);
   margin-bottom: var(--space-5);
@@ -286,30 +407,60 @@ fieldset legend {
   letter-spacing: -0.01em;
 }
 
-/* ===== Selos ===== */
+/* ===== Selos e status: o texto diz a situação; cor e ponto só reforçam ===== */
 .selo {
+  --fg: var(--text-muted);
+  --bg: var(--surface-muted);
+  --bd: var(--border);
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
   height: 1.5rem;
   padding: 0 var(--space-2);
-  border: 1px solid var(--border);
+  border: 1px solid var(--bd);
   border-radius: var(--radius-full);
-  background: var(--surface-muted);
-  color: var(--text-muted);
+  background: var(--bg);
+  color: var(--fg);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
   white-space: nowrap;
 }
 
-.selo--ativo {
-  color: var(--success);
-  border-color: var(--success-border);
-  background: var(--success-soft);
+.selo__ponto {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background: currentcolor;
 }
 
-.selo--inativo {
-  color: var(--text-muted);
+.selo--sucesso {
+  --fg: var(--success);
+  --bg: var(--success-soft);
+  --bd: var(--success-border);
+}
+
+.selo--atencao {
+  --fg: var(--warning);
+  --bg: var(--warning-soft);
+  --bd: var(--warning-border);
+}
+
+.selo--perigo {
+  --fg: var(--danger-text);
+  --bg: var(--danger-soft);
+  --bd: var(--danger-border);
+}
+
+.selo--info {
+  --fg: var(--info);
+  --bg: var(--info-soft);
+  --bd: var(--info-border);
+}
+
+.selo--primario {
+  --fg: var(--primary-soft-text);
+  --bg: var(--primary-soft);
+  --bd: transparent;
 }
 
 /* ===== Tabela: no celular rola na horizontal dentro do próprio contêiner ===== */
@@ -330,7 +481,9 @@ fieldset legend {
 
 .tabela caption {
   text-align: left;
-  font-weight: var(--weight-semibold);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
   padding: 0 var(--space-5) var(--space-3);
 }
 

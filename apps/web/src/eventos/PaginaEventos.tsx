@@ -5,7 +5,12 @@ import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { chamar } from '../api/cliente';
 import { chavesDoTrabalho, useEventos } from '../api/trabalho';
-import { AvisoDeErro, Botao, Campo, Carregando, Selo } from '../componentes/ui';
+import { ClipboardCheck, Plus } from 'lucide-react';
+import { CabecalhoDaPagina } from '../componentes/cabecalho';
+import { EstadoVazio } from '../componentes/dicas';
+import { EsqueletoDeTabela, BarraDeFerramentas, Paginacao } from '../componentes/tabela';
+import { AvisoDeErro, Botao, Campo, Selo } from '../componentes/ui';
+import { Modal } from '../componentes/modal';
 import { deCampoDeDataHora, formatarDataHora, hojeNoGabinete } from '../formatos';
 import { FichaDoEvento } from './FichaDoEvento';
 
@@ -35,59 +40,60 @@ function NovoEvento({
     },
   });
   return (
-    <form
-      className="cartao"
-      aria-label="Novo evento"
-      onSubmit={(e) => {
-        e.preventDefault();
-        criar.mutate();
-      }}
-    >
-      <h2>Novo evento</h2>
-      <AvisoDeErro erro={criar.error} />
-      <div className="grade-formulario">
-        <Campo rotulo="Nome">
-          {(p) => (
-            <input
-              {...p}
-              required
-              maxLength={200}
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-            />
-          )}
-        </Campo>
-        <Campo rotulo="Início">
-          {(p) => (
-            <input
-              {...p}
-              type="datetime-local"
-              required
-              value={inicio}
-              onChange={(e) => setInicio(e.target.value)}
-            />
-          )}
-        </Campo>
-        <Campo rotulo="Local (opcional)">
-          {(p) => (
-            <input
-              {...p}
-              maxLength={300}
-              value={local}
-              onChange={(e) => setLocal(e.target.value)}
-            />
-          )}
-        </Campo>
-      </div>
-      <div className="acoes">
-        <Botao type="submit" disabled={!nome.trim() || criar.isPending}>
-          Cadastrar evento
-        </Botao>
-        <Botao variante="secundario" onClick={aoFechar}>
-          Cancelar
-        </Botao>
-      </div>
-    </form>
+    <Modal titulo="Novo evento" tamanho="md" aoFechar={aoFechar}>
+      <form
+        className="formulario-do-modal"
+        aria-label="Novo evento"
+        onSubmit={(e) => {
+          e.preventDefault();
+          criar.mutate();
+        }}
+      >
+        <AvisoDeErro erro={criar.error} />
+        <div className="grade-formulario">
+          <Campo rotulo="Nome">
+            {(p) => (
+              <input
+                {...p}
+                required
+                maxLength={200}
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+              />
+            )}
+          </Campo>
+          <Campo rotulo="Início">
+            {(p) => (
+              <input
+                {...p}
+                type="datetime-local"
+                required
+                value={inicio}
+                onChange={(e) => setInicio(e.target.value)}
+              />
+            )}
+          </Campo>
+          <Campo rotulo="Local (opcional)">
+            {(p) => (
+              <input
+                {...p}
+                maxLength={300}
+                value={local}
+                onChange={(e) => setLocal(e.target.value)}
+              />
+            )}
+          </Campo>
+        </div>
+        <div className="acoes">
+          <Botao type="submit" disabled={!nome.trim() || criar.isPending}>
+            Cadastrar evento
+          </Botao>
+          <Botao variante="secundario" onClick={aoFechar}>
+            Cancelar
+          </Botao>
+        </div>
+      </form>
+    </Modal>
   );
 }
 
@@ -113,12 +119,17 @@ export function PaginaEventos({ sessao }: { sessao: RespostaDaSessao }) {
 
   return (
     <section>
-      <h1>Eventos</h1>
-      <div className="acoes" style={{ marginBottom: 'var(--espaco-4)' }}>
-        {pode('eventos.organizar', autoridade) && !criando ? (
-          <Botao onClick={() => setCriando(true)}>Novo evento</Botao>
-        ) : null}
-      </div>
+      <CabecalhoDaPagina
+        titulo="Eventos"
+        descricao="Cadastre eventos e registre a presença de quem participa."
+        acoes={
+          pode('eventos.organizar', autoridade) ? (
+            <Botao icone={<Plus size={16} aria-hidden="true" />} onClick={() => setCriando(true)}>
+              Novo evento
+            </Botao>
+          ) : null
+        }
+      />
       {criando ? (
         <NovoEvento
           aoFechar={() => setCriando(false)}
@@ -129,7 +140,7 @@ export function PaginaEventos({ sessao }: { sessao: RespostaDaSessao }) {
         />
       ) : null}
 
-      <div className="cartao">
+      <BarraDeFerramentas rotulo="Filtro dos eventos">
         <Campo rotulo="Situação">
           {(p) => (
             <select
@@ -146,62 +157,57 @@ export function PaginaEventos({ sessao }: { sessao: RespostaDaSessao }) {
             </select>
           )}
         </Campo>
-      </div>
+      </BarraDeFerramentas>
 
       <AvisoDeErro erro={lista.error} />
-      {lista.isLoading ? <Carregando /> : null}
+      {lista.isLoading ? <EsqueletoDeTabela colunas={5} /> : null}
       {lista.data ? (
-        <div className="cartao tabela-rolavel">
-          <table className="tabela">
-            <caption>
-              {lista.data.total} evento(s), página {lista.data.pagina} de {totalDePaginas}
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Evento</th>
-                <th scope="col">Quando</th>
-                <th scope="col">Local</th>
-                <th scope="col">Situação</th>
-                <th scope="col">Presentes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lista.data.itens.map((e) => (
-                <tr key={e.id}>
-                  <td>
-                    <button type="button" className="link-botao" onClick={() => abrir(e.id)}>
-                      {e.nome}
-                    </button>
-                  </td>
-                  <td>{formatarDataHora(e.inicio)}</td>
-                  <td>{e.local ?? '-'}</td>
-                  <td>
-                    <Selo tipo={e.situacao === 'aberto' ? 'ativo' : 'inativo'}>
-                      {e.situacao === 'aberto' ? 'Aberto' : 'Encerrado'}
-                    </Selo>
-                  </td>
-                  <td>{e.presentes}</td>
+        <div className="cartao cartao--tabela">
+          <div className="tabela-rolavel">
+            <table className="tabela">
+              <caption>
+                {lista.data.total} evento(s), página {lista.data.pagina} de {totalDePaginas}
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Evento</th>
+                  <th scope="col">Quando</th>
+                  <th scope="col">Local</th>
+                  <th scope="col">Situação</th>
+                  <th scope="col" className="e-numero">
+                    Presentes
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          {lista.data.itens.length === 0 ? <p>Nenhum evento encontrado.</p> : null}
-          <div className="acoes" style={{ marginTop: 'var(--espaco-4)' }}>
-            <Botao
-              variante="secundario"
-              onClick={() => setPagina(pagina - 1)}
-              disabled={pagina <= 1}
-            >
-              Anterior
-            </Botao>
-            <Botao
-              variante="secundario"
-              onClick={() => setPagina(pagina + 1)}
-              disabled={pagina >= totalDePaginas}
-            >
-              Próxima
-            </Botao>
+              </thead>
+              <tbody>
+                {lista.data.itens.map((e) => (
+                  <tr key={e.id}>
+                    <td>
+                      <button type="button" className="link-botao" onClick={() => abrir(e.id)}>
+                        {e.nome}
+                      </button>
+                    </td>
+                    <td>{formatarDataHora(e.inicio)}</td>
+                    <td>{e.local ?? '-'}</td>
+                    <td>
+                      <Selo tom={e.situacao === 'aberto' ? 'sucesso' : 'neutro'} ponto>
+                        {e.situacao === 'aberto' ? 'Aberto' : 'Encerrado'}
+                      </Selo>
+                    </td>
+                    <td className="e-numero">{e.presentes}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+          {lista.data.itens.length === 0 ? (
+            <EstadoVazio
+              icone={<ClipboardCheck size={24} />}
+              titulo="Nenhum evento encontrado."
+              texto="Cadastre um evento para registrar a presença."
+            />
+          ) : null}
+          <Paginacao pagina={pagina} totalDePaginas={totalDePaginas} aoMudar={setPagina} />
         </div>
       ) : null}
 

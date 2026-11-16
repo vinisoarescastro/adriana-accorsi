@@ -7,6 +7,11 @@ import {
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useDemandas, useQuadro } from '../api/atendimento';
+import { Kanban, List, Plus, Search } from 'lucide-react';
+import { Abas } from '../componentes/abas';
+import { CabecalhoDaPagina } from '../componentes/cabecalho';
+import { DicaDeUso } from '../componentes/dicas';
+import { BarraDeFerramentas, EsqueletoDeTabela } from '../componentes/tabela';
 import { AvisoDeErro, Botao, Campo, Carregando } from '../componentes/ui';
 import { rotuloDoStatus } from '../rotulos';
 import { FichaDaDemanda } from './FichaDaDemanda';
@@ -50,26 +55,17 @@ export function PaginaDemandas({ sessao }: { sessao: RespostaDaSessao }) {
 
   return (
     <section>
-      <h1>Demandas</h1>
-      <div className="acoes" style={{ marginBottom: 'var(--espaco-4)' }}>
-        {pode('demandas.registrar', autoridade) && !criando ? (
-          <Botao onClick={() => setCriando(true)}>Nova demanda</Botao>
-        ) : null}
-        <Botao
-          variante="secundario"
-          aria-pressed={visao === 'lista'}
-          onClick={() => setVisao('lista')}
-        >
-          Lista
-        </Botao>
-        <Botao
-          variante="secundario"
-          aria-pressed={visao === 'quadro'}
-          onClick={() => setVisao('quadro')}
-        >
-          Quadro
-        </Botao>
-      </div>
+      <CabecalhoDaPagina
+        titulo="Demandas"
+        descricao="Registre, acompanhe e conclua os pedidos dos cidadãos."
+        acoes={
+          pode('demandas.registrar', autoridade) ? (
+            <Botao icone={<Plus size={16} aria-hidden="true" />} onClick={() => setCriando(true)}>
+              Nova demanda
+            </Botao>
+          ) : null
+        }
+      />
 
       {criando ? (
         <NovaDemanda
@@ -82,17 +78,42 @@ export function PaginaDemandas({ sessao }: { sessao: RespostaDaSessao }) {
         />
       ) : null}
 
-      {visao === 'lista' ? (
-        <form
-          className="cartao"
-          onSubmit={(e) => {
-            e.preventDefault();
-            setTermo(busca.trim());
-            setPagina(1);
-          }}
-          role="search"
-        >
-          <div className="grade-formulario">
+      <BarraDeFerramentas
+        rotulo="Filtros das demandas"
+        aoBuscar={() => {
+          setTermo(busca.trim());
+          setPagina(1);
+        }}
+        acoes={
+          <>
+            <Abas
+              segmentada
+              rotulo="Forma de ver as demandas"
+              valor={visao}
+              aoMudar={setVisao}
+              itens={[
+                { id: 'lista', rotulo: 'Lista', icone: <List size={16} aria-hidden="true" /> },
+                {
+                  id: 'quadro',
+                  rotulo: 'Quadro',
+                  icone: <Kanban size={16} aria-hidden="true" />,
+                },
+              ]}
+            />
+            {visao === 'lista' ? (
+              <Botao
+                type="submit"
+                variante="secundario"
+                icone={<Search size={16} aria-hidden="true" />}
+              >
+                Buscar
+              </Botao>
+            ) : null}
+          </>
+        }
+      >
+        {visao === 'lista' ? (
+          <>
             <Campo rotulo="Buscar" ajuda="Protocolo, título, nome ou parte do telefone.">
               {(p) => (
                 <input
@@ -122,30 +143,30 @@ export function PaginaDemandas({ sessao }: { sessao: RespostaDaSessao }) {
                 </select>
               )}
             </Campo>
-          </div>
-          <label className="opcao">
-            <input
-              type="checkbox"
-              checked={atrasadas}
-              onChange={(e) => {
-                setAtrasadas(e.target.checked);
-                setPagina(1);
-              }}
-            />
-            Só as atrasadas
-          </label>
-          <p>
-            <Botao type="submit" pequeno>
-              Buscar
-            </Botao>
-          </p>
-        </form>
-      ) : null}
+            <label className="opcao">
+              <input
+                type="checkbox"
+                checked={atrasadas}
+                onChange={(e) => {
+                  setAtrasadas(e.target.checked);
+                  setPagina(1);
+                }}
+              />
+              Só as atrasadas
+            </label>
+          </>
+        ) : (
+          <DicaDeUso>
+            O quadro mostra as demandas por etapa. Abra uma para mover, comentar ou publicar para o
+            cidadão.
+          </DicaDeUso>
+        )}
+      </BarraDeFerramentas>
 
       <AvisoDeErro erro={lista.error ?? quadro.error} />
       {visao === 'lista' ? (
         lista.isLoading ? (
-          <Carregando />
+          <EsqueletoDeTabela colunas={8} />
         ) : lista.data ? (
           <ListaDeDemandas pagina={lista.data} aoAbrir={abrir} aoMudarPagina={setPagina} />
         ) : null

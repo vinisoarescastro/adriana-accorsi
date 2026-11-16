@@ -6,8 +6,13 @@ import {
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useTarefas } from '../api/trabalho';
-import { AvisoDeErro, Botao, Campo, Carregando, Selo } from '../componentes/ui';
-import { rotuloDaPrioridade, rotuloDoStatus } from '../rotulos';
+import { ListChecks, Plus, Search } from 'lucide-react';
+import { CabecalhoDaPagina } from '../componentes/cabecalho';
+import { EstadoVazio } from '../componentes/dicas';
+import { SeloDeAtraso, SeloDePrioridade, SeloDeStatus } from '../componentes/situacao';
+import { BarraDeFerramentas, EsqueletoDeTabela, Paginacao } from '../componentes/tabela';
+import { AvisoDeErro, Botao, Campo } from '../componentes/ui';
+import { rotuloDoStatus } from '../rotulos';
 import { FichaDaTarefa } from './FichaDaTarefa';
 import { NovaTarefa } from './NovaTarefa';
 
@@ -42,10 +47,15 @@ export function PaginaTarefas({ sessao }: { sessao: RespostaDaSessao }) {
 
   return (
     <section>
-      <h1>Tarefas</h1>
-      <div className="acoes" style={{ marginBottom: 'var(--espaco-4)' }}>
-        {!criando ? <Botao onClick={() => setCriando(true)}>Nova tarefa</Botao> : null}
-      </div>
+      <CabecalhoDaPagina
+        titulo="Tarefas"
+        descricao="O trabalho da equipe, com responsável, prazo e etapa."
+        acoes={
+          <Botao icone={<Plus size={16} aria-hidden="true" />} onClick={() => setCriando(true)}>
+            Nova tarefa
+          </Botao>
+        }
+      />
 
       {criando ? (
         <NovaTarefa
@@ -58,46 +68,46 @@ export function PaginaTarefas({ sessao }: { sessao: RespostaDaSessao }) {
         />
       ) : null}
 
-      <form
-        className="cartao"
-        role="search"
-        onSubmit={(e) => {
-          e.preventDefault();
+      <BarraDeFerramentas
+        rotulo="Filtros das tarefas"
+        aoBuscar={() => {
           setTermo(busca.trim());
           setPagina(1);
         }}
+        acoes={
+          <Botao
+            type="submit"
+            variante="secundario"
+            icone={<Search size={16} aria-hidden="true" />}
+          >
+            Buscar
+          </Botao>
+        }
       >
-        <div className="grade-formulario">
-          <Campo rotulo="Buscar" ajuda="Parte do título da tarefa.">
-            {(p) => (
-              <input
-                {...p}
-                type="search"
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-              />
-            )}
-          </Campo>
-          <Campo rotulo="Situação">
-            {(p) => (
-              <select
-                {...p}
-                value={status}
-                onChange={(e) => {
-                  setStatus(e.target.value as StatusDeTarefa | '');
-                  setPagina(1);
-                }}
-              >
-                <option value="">Todas</option>
-                {statusDeTarefa.map((s) => (
-                  <option key={s} value={s}>
-                    {rotuloDoStatus[s]}
-                  </option>
-                ))}
-              </select>
-            )}
-          </Campo>
-        </div>
+        <Campo rotulo="Buscar" ajuda="Parte do título da tarefa.">
+          {(p) => (
+            <input {...p} type="search" value={busca} onChange={(e) => setBusca(e.target.value)} />
+          )}
+        </Campo>
+        <Campo rotulo="Situação">
+          {(p) => (
+            <select
+              {...p}
+              value={status}
+              onChange={(e) => {
+                setStatus(e.target.value as StatusDeTarefa | '');
+                setPagina(1);
+              }}
+            >
+              <option value="">Todas</option>
+              {statusDeTarefa.map((s) => (
+                <option key={s} value={s}>
+                  {rotuloDoStatus[s]}
+                </option>
+              ))}
+            </select>
+          )}
+        </Campo>
         <label className="opcao">
           <input
             type="checkbox"
@@ -120,70 +130,60 @@ export function PaginaTarefas({ sessao }: { sessao: RespostaDaSessao }) {
           />
           Só as atrasadas
         </label>
-        <p>
-          <Botao type="submit" pequeno>
-            Buscar
-          </Botao>
-        </p>
-      </form>
+      </BarraDeFerramentas>
 
       <AvisoDeErro erro={lista.error} />
-      {lista.isLoading ? <Carregando /> : null}
+      {lista.isLoading ? <EsqueletoDeTabela colunas={6} /> : null}
       {lista.data ? (
-        <div className="cartao tabela-rolavel">
-          <table className="tabela">
-            <caption>
-              {lista.data.total} tarefa(s), página {lista.data.pagina} de {totalDePaginas}
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Título</th>
-                <th scope="col">Etapa</th>
-                <th scope="col">Situação</th>
-                <th scope="col">Prioridade</th>
-                <th scope="col">Responsável</th>
-                <th scope="col">Prazo</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lista.data.itens.map((t) => (
-                <tr key={t.id}>
-                  <td>
-                    <button type="button" className="link-botao" onClick={() => abrir(t.id)}>
-                      {t.titulo}
-                    </button>
-                  </td>
-                  <td>{t.etapa.nome}</td>
-                  <td>
-                    <Selo tipo={t.status === 'em_andamento' ? 'ativo' : 'inativo'}>
-                      {rotuloDoStatus[t.status]}
-                    </Selo>{' '}
-                    {t.atrasada ? <Selo>Atrasada</Selo> : null}
-                  </td>
-                  <td>{rotuloDaPrioridade[t.prioridade]}</td>
-                  <td>{t.responsavel.nome}</td>
-                  <td>{t.prazo ?? '-'}</td>
+        <div className="cartao cartao--tabela">
+          <div className="tabela-rolavel">
+            <table className="tabela">
+              <caption>
+                {lista.data.total} tarefa(s), página {lista.data.pagina} de {totalDePaginas}
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Título</th>
+                  <th scope="col">Etapa</th>
+                  <th scope="col">Situação</th>
+                  <th scope="col">Prioridade</th>
+                  <th scope="col">Responsável</th>
+                  <th scope="col">Prazo</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          {lista.data.itens.length === 0 ? <p>Nenhuma tarefa encontrada.</p> : null}
-          <div className="acoes" style={{ marginTop: 'var(--espaco-4)' }}>
-            <Botao
-              variante="secundario"
-              onClick={() => setPagina(pagina - 1)}
-              disabled={pagina <= 1}
-            >
-              Anterior
-            </Botao>
-            <Botao
-              variante="secundario"
-              onClick={() => setPagina(pagina + 1)}
-              disabled={pagina >= totalDePaginas}
-            >
-              Próxima
-            </Botao>
+              </thead>
+              <tbody>
+                {lista.data.itens.map((t) => (
+                  <tr key={t.id}>
+                    <td>
+                      <button type="button" className="link-botao" onClick={() => abrir(t.id)}>
+                        {t.titulo}
+                      </button>
+                    </td>
+                    <td>{t.etapa.nome}</td>
+                    <td>
+                      <div className="acoes">
+                        <SeloDeStatus status={t.status} />
+                        {t.atrasada ? <SeloDeAtraso /> : null}
+                      </div>
+                    </td>
+                    <td>
+                      <SeloDePrioridade prioridade={t.prioridade} />
+                    </td>
+                    <td>{t.responsavel.nome}</td>
+                    <td>{t.prazo ?? '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+          {lista.data.itens.length === 0 ? (
+            <EstadoVazio
+              icone={<ListChecks size={24} />}
+              titulo="Nenhuma tarefa encontrada."
+              texto="Ajuste os filtros ou crie uma tarefa nova."
+            />
+          ) : null}
+          <Paginacao pagina={pagina} totalDePaginas={totalDePaginas} aoMudar={setPagina} />
         </div>
       ) : null}
 

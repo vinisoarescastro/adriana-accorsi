@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { chavesDoAtendimento } from '../api/atendimento';
 import { useAcompanhamento } from '../api/cidadao';
 import { chamar } from '../api/cliente';
+import { useConfirmacao } from '../componentes/modal';
 import { ConsentimentoDeNotificacao } from '../componentes/ConsentimentoDeNotificacao';
 import { Aviso, AvisoDeErro, Botao, Campo, Carregando, Selo } from '../componentes/ui';
 import { formatarDataHora } from '../formatos';
@@ -153,10 +154,12 @@ export function AcompanhamentoDoCidadao({
     setCopiado(true);
     setTimeout(() => setCopiado(false), 2500);
   };
+  const { pedir, elemento: confirmacao } = useConfirmacao();
   const gere = pode('link.gerir', autoridade);
 
   return (
     <div className="painel-do-usuario" aria-labelledby="titulo-acompanhamento">
+      {confirmacao}
       <h3 id="titulo-acompanhamento">Acompanhamento do cidadão</h3>
       {isLoading ? <Carregando /> : null}
       <AvisoDeErro erro={error ?? acao.error ?? publicar.error ?? remover.error} />
@@ -212,9 +215,12 @@ export function AcompanhamentoDoCidadao({
                 variante="secundario"
                 disabled={acao.isPending}
                 onClick={() => {
-                  if (window.confirm('Gerar um novo link? O link antigo deixa de funcionar.')) {
-                    acao.mutate('regenerar');
-                  }
+                  pedir({
+                    titulo: 'Gerar um novo link?',
+                    mensagem: 'O link antigo deixa de funcionar.',
+                    rotuloDeConfirmar: 'Gerar novo link',
+                    aoConfirmar: () => acao.mutate('regenerar'),
+                  });
                 }}
               >
                 Gerar novo link
@@ -225,13 +231,14 @@ export function AcompanhamentoDoCidadao({
                   variante="perigo"
                   disabled={acao.isPending}
                   onClick={() => {
-                    if (
-                      window.confirm(
-                        'Revogar o link? O segredo é apagado e não há volta (só gerando um novo). A consulta por protocolo e telefone continua valendo.',
-                      )
-                    ) {
-                      acao.mutate('revogar');
-                    }
+                    pedir({
+                      titulo: 'Revogar o link?',
+                      mensagem:
+                        'O segredo é apagado e não há volta (só gerando um novo). A consulta por protocolo e telefone continua valendo.',
+                      rotuloDeConfirmar: 'Revogar link',
+                      perigo: true,
+                      aoConfirmar: () => acao.mutate('revogar'),
+                    });
                   }}
                 >
                   Revogar link

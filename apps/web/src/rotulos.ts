@@ -120,6 +120,13 @@ export const rotuloDaVisibilidade: Record<VisibilidadeDeCompromissoDto, string> 
   restrito: 'Restrito (some para quem não participa)',
 };
 
+/** A mesma visibilidade em uma frase curta, para o resumo do compromisso. */
+export const rotuloCurtoDaVisibilidade: Record<VisibilidadeDeCompromissoDto, string> = {
+  aberto: 'Todos veem os detalhes',
+  participantes: 'Os demais veem só o horário ocupado',
+  restrito: 'Só os participantes veem',
+};
+
 export const rotuloDaResposta: Record<RespostaDeParticipanteDto, string> = {
   sem_resposta: 'Sem resposta',
   confirmado: 'Confirmado',

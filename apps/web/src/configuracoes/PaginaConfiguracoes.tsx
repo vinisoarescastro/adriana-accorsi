@@ -1,11 +1,17 @@
 import { pode } from '@gabinete/autorizacao';
 import type { IdentidadeDoGabinete, RespostaDaSessao } from '@gabinete/compartilhado';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState, type FormEvent } from 'react';
+import { BellRing, Building2, Globe, Image } from 'lucide-react';
+import { useState, type FormEvent, type ReactNode } from 'react';
+import { useSearchParams } from 'react-router';
 import { chamar } from '../api/cliente';
 import { chaves, useGabinete } from '../api/consultas';
 import { EnvioDeFoto } from '../componentes/EnvioDeFoto';
-import { Aviso, AvisoDeErro, Botao, Campo, Carregando } from '../componentes/ui';
+import { CabecalhoDaPagina } from '../componentes/cabecalho';
+import { Cartao } from '../componentes/cartao';
+import { EsqueletoDeTabela } from '../componentes/tabela';
+import { useToast } from '../componentes/toast';
+import { Aviso, AvisoDeErro, Botao, Campo } from '../componentes/ui';
 import { AvisosDePrazo } from './AvisosDePrazo';
 import { PoliticaDePublicacao } from './PoliticaDePublicacao';
 
@@ -48,6 +54,7 @@ function paraCampos(g: IdentidadeDoGabinete | null | undefined): Campos {
 
 function Formulario({ inicial, edita }: { inicial: IdentidadeDoGabinete | null; edita: boolean }) {
   const cliente = useQueryClient();
+  const avisar = useToast();
   const [campos, setCampos] = useState<Campos>(paraCampos(inicial));
   const definir = (nome: keyof Campos) => (e: { target: { value: string } }) =>
     setCampos((c) => ({ ...c, [nome]: e.target.value }));
@@ -66,7 +73,10 @@ function Formulario({ inicial, edita }: { inicial: IdentidadeDoGabinete | null; 
           contatoEndereco: campos.contatoEndereco || null,
         },
       }),
-    onSuccess: (salvo) => cliente.setQueryData(chaves.gabinete, salvo),
+    onSuccess: (salvo) => {
+      cliente.setQueryData(chaves.gabinete, salvo);
+      avisar({ tom: 'sucesso', titulo: 'Identidade salva' });
+    },
   });
 
   const enviar = (evento: FormEvent) => {
@@ -94,90 +104,143 @@ function Formulario({ inicial, edita }: { inicial: IdentidadeDoGabinete | null; 
   );
 
   return (
-    <form className="cartao" onSubmit={enviar}>
-      <h2>Identidade</h2>
-      <AvisoDeErro erro={salvar.error} />
-      {salvar.isSuccess ? <Aviso tipo="sucesso" titulo="Identidade salva." /> : null}
-      <div className="grade-formulario">
-        {campo('Nome do gabinete', 'nome', { obrigatorio: true })}
-        {campo('Nome da Parlamentar', 'parlamentarNome', { obrigatorio: true })}
-        {campo('Cargo', 'cargo', { obrigatorio: true })}
-        {campo('Partido', 'partido')}
-        {campo('Mandato', 'mandato')}
-        {campo('Telefone', 'contatoTelefone', { tipo: 'tel' })}
-        {campo('E-mail de contato', 'contatoEmail', { tipo: 'email' })}
-        {campo('Endereço', 'contatoEndereco')}
-      </div>
-      {edita ? (
-        <Botao
-          type="submit"
-          disabled={salvar.isPending || !campos.nome || !campos.parlamentarNome || !campos.cargo}
-        >
-          {salvar.isPending ? 'Salvando…' : 'Salvar identidade'}
-        </Botao>
-      ) : null}
+    <form onSubmit={enviar}>
+      <Cartao
+        titulo="Identidade"
+        descricao="Os dados do gabinete aparecem no cabeçalho do sistema e na página do cidadão."
+        rodape={
+          edita ? (
+            <Botao
+              type="submit"
+              carregando={salvar.isPending}
+              disabled={!campos.nome || !campos.parlamentarNome || !campos.cargo}
+            >
+              Salvar identidade
+            </Botao>
+          ) : undefined
+        }
+      >
+        <AvisoDeErro erro={salvar.error} />
+        <div className="grade-formulario">
+          {campo('Nome do gabinete', 'nome', { obrigatorio: true })}
+          {campo('Nome da Parlamentar', 'parlamentarNome', { obrigatorio: true })}
+          {campo('Cargo', 'cargo', { obrigatorio: true })}
+          {campo('Partido', 'partido')}
+          {campo('Mandato', 'mandato')}
+          {campo('Telefone', 'contatoTelefone', { tipo: 'tel' })}
+          {campo('E-mail de contato', 'contatoEmail', { tipo: 'email' })}
+          {campo('Endereço', 'contatoEndereco')}
+        </div>
+      </Cartao>
     </form>
   );
 }
 
+type Secao = 'identidade' | 'politica' | 'avisos' | 'foto';
+
 export function PaginaConfiguracoes({ sessao }: { sessao: RespostaDaSessao }) {
   const cliente = useQueryClient();
+  const [parametros, definirParametros] = useSearchParams();
   const { data: gabinete, isLoading, error } = useGabinete();
   const [versaoDaFoto, setVersaoDaFoto] = useState(0);
-  const edita = pode('gabinete.editar', {
-    perfil: sessao.usuario.perfil,
-    habilitacoes: sessao.usuario.habilitacoes,
-  });
+  const autoridade = { perfil: sessao.usuario.perfil, habilitacoes: sessao.usuario.habilitacoes };
+  const edita = pode('gabinete.editar', autoridade);
 
-  if (isLoading) return <Carregando />;
+  const secoes: { id: Secao; rotulo: string; icone: ReactNode }[] = [
+    { id: 'identidade', rotulo: 'Identidade', icone: <Building2 size={18} aria-hidden="true" /> },
+    ...(pode('publicacao.consultar_politica', autoridade)
+      ? [
+          {
+            id: 'politica' as const,
+            rotulo: 'Política de publicação',
+            icone: <Globe size={18} aria-hidden="true" />,
+          },
+        ]
+      : []),
+    ...(pode('avisos.configurar', autoridade)
+      ? [
+          {
+            id: 'avisos' as const,
+            rotulo: 'Avisos de prazo',
+            icone: <BellRing size={18} aria-hidden="true" />,
+          },
+        ]
+      : []),
+    { id: 'foto', rotulo: 'Foto do gabinete', icone: <Image size={18} aria-hidden="true" /> },
+  ];
+  const pedida = parametros.get('secao');
+  const atual: Secao = secoes.some((x) => x.id === pedida) ? (pedida as Secao) : 'identidade';
+
+  if (isLoading) return <EsqueletoDeTabela linhas={3} colunas={2} />;
 
   return (
     <section>
-      <h1>Configurações</h1>
+      <CabecalhoDaPagina
+        titulo="Configurações"
+        descricao="Identidade do gabinete, o que o cidadão vê e os avisos da equipe."
+      />
       <AvisoDeErro erro={error} />
       {gabinete === null ? (
         <Aviso tipo="atencao" titulo="A identidade do gabinete ainda não foi configurada.">
           {edita ? 'Preencha os dados abaixo.' : 'Peça ao Chefe de Gabinete ou ao Administrador.'}
         </Aviso>
       ) : null}
-      {/* A chave recria o formulário quando os dados chegam ou mudam. */}
-      <Formulario
-        key={gabinete ? gabinete.nome + gabinete.parlamentarNome : 'novo'}
-        inicial={gabinete ?? null}
-        edita={edita}
-      />
 
-      <PoliticaDePublicacao sessao={sessao} />
+      <div className="configuracoes">
+        <nav className="configuracoes__menu" aria-label="Seções das configurações">
+          {secoes.map((x) => (
+            <button
+              key={x.id}
+              type="button"
+              className="configuracoes__item"
+              aria-current={atual === x.id}
+              onClick={() => definirParametros(x.id === 'identidade' ? {} : { secao: x.id })}
+            >
+              {x.icone}
+              {x.rotulo}
+            </button>
+          ))}
+        </nav>
 
-      {pode('avisos.configurar', {
-        perfil: sessao.usuario.perfil,
-        habilitacoes: sessao.usuario.habilitacoes,
-      }) ? (
-        <AvisosDePrazo />
-      ) : null}
-
-      {gabinete?.temFoto ? (
-        <div className="cartao">
-          <h2>Foto do gabinete</h2>
-          <img
-            className="foto foto--grande"
-            src={`/api/gabinete/foto?v=${versaoDaFoto}`}
-            alt="Foto do gabinete"
-          />
+        <div className="configuracoes__secao">
+          {atual === 'identidade' ? (
+            // A chave recria o formulário quando os dados chegam ou mudam.
+            <Formulario
+              key={gabinete ? gabinete.nome + gabinete.parlamentarNome : 'novo'}
+              inicial={gabinete ?? null}
+              edita={edita}
+            />
+          ) : null}
+          {atual === 'politica' ? <PoliticaDePublicacao sessao={sessao} /> : null}
+          {atual === 'avisos' ? <AvisosDePrazo /> : null}
+          {atual === 'foto' ? (
+            <Cartao
+              titulo="Foto do gabinete"
+              descricao="Aparece na página do cidadão e nos e-mails."
+            >
+              {gabinete?.temFoto ? (
+                <img
+                  className="foto foto--grande"
+                  src={`/api/gabinete/foto?v=${versaoDaFoto}`}
+                  alt="Foto do gabinete"
+                />
+              ) : (
+                <p className="campo__ajuda">Nenhuma foto enviada.</p>
+              )}
+              {edita && gabinete ? (
+                <EnvioDeFoto
+                  rotulo="Trocar a foto do gabinete"
+                  endereco="/api/gabinete/foto"
+                  aoEnviar={() => {
+                    setVersaoDaFoto((v) => v + 1);
+                    void cliente.invalidateQueries({ queryKey: chaves.gabinete });
+                  }}
+                />
+              ) : null}
+            </Cartao>
+          ) : null}
         </div>
-      ) : null}
-      {edita && gabinete ? (
-        <div className="cartao">
-          <EnvioDeFoto
-            rotulo="Trocar a foto do gabinete"
-            endereco="/api/gabinete/foto"
-            aoEnviar={() => {
-              setVersaoDaFoto((v) => v + 1);
-              void cliente.invalidateQueries({ queryKey: chaves.gabinete });
-            }}
-          />
-        </div>
-      ) : null}
+      </div>
     </section>
   );
 }

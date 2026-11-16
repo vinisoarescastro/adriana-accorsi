@@ -10,18 +10,21 @@ import { useState } from 'react';
 import { chavesDoAtendimento } from '../api/atendimento';
 import { chamar } from '../api/cliente';
 import { useEquipe, useFluxos } from '../api/consultas';
+import { useToast } from '../componentes/toast';
 import { AvisoDeErro, Botao, Campo } from '../componentes/ui';
 import { rotuloDaPrioridade } from '../rotulos';
 
 /** Executa uma ação sobre a demanda, atualiza a ficha na hora e invalida lista, quadro e painel. */
-function useAcao(id: number, caminho: string, metodo = 'POST') {
+function useAcao(id: number, caminho: string, mensagem: string, metodo = 'POST') {
   const cliente = useQueryClient();
+  const avisar = useToast();
   return useMutation({
     mutationFn: (corpo: unknown) =>
       chamar<DemandaFicha>(metodo, `/api/demandas/${id}${caminho}`, { corpo }),
     onSuccess: async (ficha) => {
       cliente.setQueryData(chavesDoAtendimento.ficha(id), ficha);
       await cliente.invalidateQueries({ queryKey: chavesDoAtendimento.tudo });
+      avisar({ tom: 'sucesso', titulo: mensagem });
     },
   });
 }
@@ -61,10 +64,10 @@ export function AcoesDaDemanda({
   const [justificativa, setJustificativa] = useState('');
   const [confirmandoCancelamento, setConfirmandoCancelamento] = useState(false);
 
-  const mover = useAcao(ficha.id, '/mover');
-  const editar = useAcao(ficha.id, '', 'PATCH');
-  const reatribuir = useAcao(ficha.id, '/reatribuir');
-  const cancelar = useAcao(ficha.id, '/cancelar');
+  const mover = useAcao(ficha.id, '/mover', 'Demanda movida');
+  const editar = useAcao(ficha.id, '', 'Alterações salvas', 'PATCH');
+  const reatribuir = useAcao(ficha.id, '/reatribuir', 'Responsável alterado');
+  const cancelar = useAcao(ficha.id, '/cancelar', 'Demanda cancelada');
   const erro = mover.error ?? editar.error ?? reatribuir.error ?? cancelar.error;
 
   if (ficha.status === 'cancelada') return null;

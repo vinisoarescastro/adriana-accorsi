@@ -1,9 +1,21 @@
 import { estadosDeEnvio, type EstadoDeEnvioDto } from '@gabinete/compartilhado';
+import { Mail } from 'lucide-react';
 import { useState } from 'react';
 import { useFilaDeEmails } from '../api/cidadao';
-import { AvisoDeErro, Botao, Campo, Carregando, Selo } from '../componentes/ui';
+import { CabecalhoDaPagina } from '../componentes/cabecalho';
+import { EstadoVazio } from '../componentes/dicas';
+import { BarraDeFerramentas, EsqueletoDeTabela, Paginacao } from '../componentes/tabela';
+import { AvisoDeErro, Campo, Selo, type TomDoSelo } from '../componentes/ui';
 import { formatarDataHora } from '../formatos';
 import { rotuloDoEstadoDeEnvio, rotuloDoEventoDeEmail } from '../rotulos';
+
+const tomDoEnvio: Record<EstadoDeEnvioDto, TomDoSelo> = {
+  pendente: 'info',
+  enviando: 'primario',
+  enviado: 'sucesso',
+  falhou: 'perigo',
+  cancelado: 'neutro',
+};
 
 /**
  * Fila de e-mails ao cidadão (Supervisor em diante): o que foi enviado, o que falhou e o que foi
@@ -17,23 +29,23 @@ export function PaginaEmails() {
 
   return (
     <section>
-      <h1>E-mails ao cidadão</h1>
-      <p>
-        Os avisos de andamento enviados a quem autorizou. Uma falha de envio nunca desfaz o ato que
-        a gerou: o envio é repetido, e o resultado aparece aqui.
-      </p>
+      <CabecalhoDaPagina
+        titulo="E-mails ao cidadão"
+        descricao="Os avisos de andamento enviados a quem autorizou. Uma falha de envio nunca desfaz o ato que a gerou: o envio é repetido, e o resultado aparece aqui."
+      />
 
       {data ? (
-        <ul className="resumo-da-fila" aria-label="Resumo por situação">
+        <ul className="cartoes-do-painel resumo-da-fila" aria-label="Resumo por situação">
           {estadosDeEnvio.map((e) => (
-            <li key={e}>
-              <strong>{data.porEstado[e]}</strong> {rotuloDoEstadoDeEnvio[e].toLowerCase()}
+            <li key={e} className="cartao-numero">
+              <span className="cartao-numero__valor">{data.porEstado[e]}</span>{' '}
+              <span>{rotuloDoEstadoDeEnvio[e].toLowerCase()}</span>
             </li>
           ))}
         </ul>
       ) : null}
 
-      <div className="cartao">
+      <BarraDeFerramentas rotulo="Filtro dos e-mails">
         <Campo rotulo="Situação">
           {(p) => (
             <select
@@ -53,66 +65,55 @@ export function PaginaEmails() {
             </select>
           )}
         </Campo>
-      </div>
+      </BarraDeFerramentas>
 
       <AvisoDeErro erro={error} />
-      {isLoading ? <Carregando /> : null}
+      {isLoading ? <EsqueletoDeTabela colunas={6} /> : null}
       {data ? (
-        <div className="cartao tabela-rolavel">
-          <table className="tabela">
-            <caption>
-              {data.total} e-mail(s), página {data.pagina} de {totalDePaginas}
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Protocolo</th>
-                <th scope="col">Motivo do e-mail</th>
-                <th scope="col">Situação</th>
-                <th scope="col">Tentativas</th>
-                <th scope="col">Quando</th>
-                <th scope="col">Observação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.itens.map((i) => (
-                <tr key={i.id}>
-                  <td>{i.protocolo}</td>
-                  <td>{rotuloDoEventoDeEmail[i.evento]}</td>
-                  <td>
-                    <Selo tipo={i.estado === 'enviado' ? 'ativo' : 'inativo'}>
-                      {rotuloDoEstadoDeEnvio[i.estado]}
-                    </Selo>
-                  </td>
-                  <td>{i.tentativas}</td>
-                  <td>
-                    {i.enviadoEm
-                      ? `Enviado em ${formatarDataHora(i.enviadoEm)}`
-                      : i.proximaTentativa
-                        ? `Próxima tentativa em ${formatarDataHora(i.proximaTentativa)}`
-                        : `Criado em ${formatarDataHora(i.criadoEm)}`}
-                  </td>
-                  <td>{i.erro ?? '-'}</td>
+        <div className="cartao cartao--tabela">
+          <div className="tabela-rolavel">
+            <table className="tabela">
+              <caption>
+                {data.total} e-mail(s), página {data.pagina} de {totalDePaginas}
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Protocolo</th>
+                  <th scope="col">Motivo do e-mail</th>
+                  <th scope="col">Situação</th>
+                  <th scope="col">Tentativas</th>
+                  <th scope="col">Quando</th>
+                  <th scope="col">Observação</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          {data.itens.length === 0 ? <p>Nenhum e-mail encontrado.</p> : null}
-          <div className="acoes" style={{ marginTop: 'var(--espaco-4)' }}>
-            <Botao
-              variante="secundario"
-              onClick={() => setPagina((p) => p - 1)}
-              disabled={pagina <= 1}
-            >
-              Anterior
-            </Botao>
-            <Botao
-              variante="secundario"
-              onClick={() => setPagina((p) => p + 1)}
-              disabled={pagina >= totalDePaginas}
-            >
-              Próxima
-            </Botao>
+              </thead>
+              <tbody>
+                {data.itens.map((i) => (
+                  <tr key={i.id}>
+                    <td>{i.protocolo}</td>
+                    <td>{rotuloDoEventoDeEmail[i.evento]}</td>
+                    <td>
+                      <Selo tom={tomDoEnvio[i.estado]} ponto>
+                        {rotuloDoEstadoDeEnvio[i.estado]}
+                      </Selo>
+                    </td>
+                    <td className="e-numero">{i.tentativas}</td>
+                    <td>
+                      {i.enviadoEm
+                        ? `Enviado em ${formatarDataHora(i.enviadoEm)}`
+                        : i.proximaTentativa
+                          ? `Próxima tentativa em ${formatarDataHora(i.proximaTentativa)}`
+                          : `Criado em ${formatarDataHora(i.criadoEm)}`}
+                    </td>
+                    <td>{i.erro ?? '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+          {data.itens.length === 0 ? (
+            <EstadoVazio icone={<Mail size={24} />} titulo="Nenhum e-mail encontrado." />
+          ) : null}
+          <Paginacao pagina={pagina} totalDePaginas={totalDePaginas} aoMudar={setPagina} />
         </div>
       ) : null}
     </section>
