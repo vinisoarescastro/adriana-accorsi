@@ -7,10 +7,10 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | Fase | Nome | Estado | Concluída em | Observações |
 | --- | --- | --- | --- | --- |
 | 0 | Planejamento | **concluída** | 2026-11-12 | Aprovada. Validações externas (PV-A a PV-F) seguem abertas; as perguntas estão em [perguntas-ao-gabinete.md](perguntas-ao-gabinete.md) |
-| 1 | Fundação | **implementada; falta fechar** (CI verde) | | Código, testes e infraestrutura prontos e verificados **localmente**. Faltam dois itens da definição de pronto: implantação no ambiente de apresentação (decidido: será feita ao fim de todas as fases, PV-E) e conferência manual ([roteiro](../operacao/conferencias/fase1-fundacao.md)). Ver "Fase 1" abaixo |
-| 2 | Atendimento | **implementada; falta fechar** (conferência manual, implantação) | | Código e testes prontos; **CI verde no GitHub** (324 testes). Ver "Fase 2" abaixo |
-| 3 | Cidadão (área pública e e-mail) | **implementada; falta fechar** (conferência manual, SPF/DKIM/DMARC reais, implantação) | | Marco de apresentação à deputada. Código e testes prontos, verificados **localmente** com Postgres, API, app público, worker e Mailpit de verdade (425 testes verdes e um fluxo completo de 25 verificações). Ver "Fase 3" abaixo |
-| 4 | Trabalho da equipe | não iniciada | | |
+| 1 | Fundação | **concluída** (aceite do usuário) | 2026-11-16 | Código, testes, CI verde e infraestrutura verificados. Encerrada por decisão do usuário; **segue pendente a implantação na VPS** (PV-E), feita ao fim de todas as fases. Ver "Fase 1" abaixo |
+| 2 | Atendimento | **concluída** (aceite do usuário) | 2026-11-16 | Código e testes prontos; **CI verde no GitHub** (324 testes). Encerrada por decisão do usuário; **segue pendente a implantação** (PV-E). Ver "Fase 2" abaixo |
+| 3 | Cidadão (área pública e e-mail) | **concluída** (aceite do usuário) | 2026-11-16 | Encerrada por decisão do usuário; **seguem pendentes** SPF/DKIM/DMARC reais, envio com o Resend e implantação (PV-E, PV-F). Marco de apresentação à deputada. Código e testes prontos, verificados **localmente** com Postgres, API, app público, worker e Mailpit de verdade (425 testes verdes e um fluxo completo de 25 verificações). Ver "Fase 3" abaixo |
+| 4 | Trabalho da equipe | **em andamento** | | Aprovada para começar em 2026-11-16 |
 | 5 | Legislativo | não iniciada | | Depende de PV-A |
 | 6 | Financeiro (emendas e CEAP) | não iniciada | | Depende de PV-A e PV-B |
 | 7 | Consolidação | não iniciada | | |
@@ -208,6 +208,8 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | 2026-11-12 | Fase 0 aprovada; fase 1 implementada por inteiro |
 | 2026-11-13 | Fase 3 implementada por inteiro (ver "Fase 3" acima) |
 | 2026-11-13 | Demanda cancelada é **só de leitura**: sem comentário nem documento novo, e sem remover os existentes (ler e baixar seguem). Fase 3 aprovada para começar |
+
+| 2026-11-16 | Fases 1, 2 e 3 encerradas por aceite do usuário. Ficam pendentes, para a implantação ao fim das fases: VPS e DNS (PV-E), e-mail real com SPF, DKIM e DMARC, revisão jurídica (PV-F) e os itens de infraestrutura dos roteiros. Fase 4 aprovada para começar |
 
 ## Decisões abertas
 
