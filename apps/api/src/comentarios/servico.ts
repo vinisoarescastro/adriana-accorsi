@@ -2,6 +2,7 @@ import { nivelDoPerfil } from '@gabinete/autorizacao';
 import {
   comentarioInterno,
   comentarioMencao,
+  criarAvisos,
   habilitacao,
   registrarTrilha,
   usuario,
@@ -70,6 +71,18 @@ export class ServicoDeComentarios {
           .insert(comentarioMencao)
           .values(mencionados.map((usuarioId) => ({ comentarioId, usuarioId })));
       }
+      // A menção avisa o colega, na mesma transação; o aviso não leva o texto (RN-COM-03).
+      await criarAvisos(
+        tx,
+        ator.usuarioId,
+        mencionados.map((destinatarioId) => ({
+          destinatarioId,
+          natureza: 'mencao' as const,
+          registroTipo: 'demanda' as const,
+          registroId: demandaId,
+          geradoEm: this.agora(),
+        })),
+      );
       // A trilha guarda o id, nunca o texto.
       await registrarTrilha(tx, {
         origem: 'usuario',

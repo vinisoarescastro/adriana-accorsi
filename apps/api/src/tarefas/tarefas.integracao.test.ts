@@ -1,11 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- corpos JSON das respostas, sem tipo */
 import { afterEach, describe, expect, it } from 'vitest';
-import {
-  a,
-  etapaPor,
-  preparar,
-  registrar,
-} from '../demandas/auxiliares-de-demandas.js';
+import { a, etapaPor, preparar, registrar } from '../demandas/auxiliares-de-demandas.js';
 
 afterEach(async () => {
   await a.encerrar();
