@@ -17,6 +17,20 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | 8 | Endurecimento | não iniciada | | |
 | 9 | Opcional (verba de gabinete, WhatsApp) | não iniciada | | Só se o gabinete pedir |
 
+## Fase 4: blocos
+
+| Bloco | Conteúdo | Estado |
+| --- | --- | --- |
+| 4.A | Banco (migração 0009): tarefa, aviso, compromisso, participantes, bloqueio, evento, participação, parâmetros; papel do worker só insere em `aviso` | a fazer |
+| 4.B | Autorização: operações de tarefa, agenda, evento, presença e aviso, com a matriz esperada | a fazer |
+| 4.C | Tarefas na API: criar, vincular (herda alcance), mover, reatribuir, cancelar, reabrir | a fazer |
+| 4.D | Avisos na API e menções: sino, marcar lido, aviso sem texto nem dado pessoal, alcance do registro de origem | a fazer |
+| 4.E | Agenda na API: compromissos, três visibilidades, "envolve a Parlamentar", resposta, bloqueios, conflito | a fazer |
+| 4.F | Eventos e presença na API: cadastro, encerrar, presença por telefone, correção em 30 minutos, remoção com justificativa | a fazer |
+| 4.G | Worker de prazos: prazo próximo e vencido, uma vez por dia, antecedência configurável, expurgo de avisos; falha de passagem não derruba o processo | a fazer |
+| 4.H | Front: tarefas, sino, agenda, eventos e presença em poucos toques no celular | a fazer |
+| 4.I | Roteiro de conferência, documentação e CI | a fazer |
+
 ## Fase 3: blocos
 
 | Bloco | Conteúdo | Estado |
