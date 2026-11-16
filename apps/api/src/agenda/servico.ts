@@ -89,6 +89,7 @@ export class ServicoDeAgenda {
         .values({
           criadorId: ator.usuarioId,
           titulo: dados.titulo,
+          descricao: dados.descricao || null,
           local: dados.local ?? null,
           inicio,
           fim,
@@ -174,6 +175,7 @@ export class ServicoDeAgenda {
 
       const mudancas: Partial<typeof compromisso.$inferInsert> = { inicio, fim };
       if (dados.titulo !== undefined) mudancas.titulo = dados.titulo;
+      if (dados.descricao !== undefined) mudancas.descricao = dados.descricao || null;
       if (dados.local !== undefined) mudancas.local = dados.local;
       if (dados.diaInteiro !== undefined) mudancas.diaInteiro = dados.diaInteiro;
       if (dados.visibilidade !== undefined) mudancas.visibilidade = dados.visibilidade;

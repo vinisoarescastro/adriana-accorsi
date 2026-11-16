@@ -96,6 +96,7 @@ export class ConsultasDeAgenda {
       return {
         id: l.id,
         titulo: l.titulo,
+        descricao: l.descricao,
         local: l.local,
         inicio: l.inicio.toISOString(),
         fim: l.fim.toISOString(),

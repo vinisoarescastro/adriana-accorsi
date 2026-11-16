@@ -174,6 +174,7 @@ const periodo = z
 export const esquemaNovoCompromisso = z
   .object({
     titulo: texto(200).min(1),
+    descricao: texto(2000).optional(),
     local: texto(300).optional(),
     inicio: instante,
     fim: instante,
@@ -193,6 +194,7 @@ export type CorpoNovoCompromisso = z.infer<typeof esquemaNovoCompromisso>;
 export const esquemaAtualizarCompromisso = z
   .object({
     titulo: texto(200).min(1).optional(),
+    descricao: texto(2000).nullable().optional(),
     local: texto(300).nullable().optional(),
     inicio: instante.optional(),
     fim: instante.optional(),
@@ -230,6 +232,8 @@ export interface ParticipanteInternoDto {
 export interface CompromissoDto {
   readonly id: number;
   readonly titulo: string;
+  /** O que será tratado, em texto livre. */
+  readonly descricao: string | null;
   readonly local: string | null;
   readonly inicio: string;
   readonly fim: string;

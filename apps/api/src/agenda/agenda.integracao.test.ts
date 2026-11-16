@@ -48,6 +48,23 @@ describe('marcar compromisso', () => {
     expect((await a.trilha('compromisso.criar')).length).toBe(1);
   });
 
+  it('guarda a descrição, limita o tamanho e permite apagá-la ao alterar', async () => {
+    const e = await preparar();
+    const r = await marcar(e.cookie.interno, { descricao: '  Pauta: orçamento da saúde.  ' });
+    expect(r.statusCode, r.body).toBe(201);
+    expect(r.json().compromisso.descricao).toBe('Pauta: orçamento da saúde.');
+    expect((await marcar(e.cookie.interno)).json().compromisso.descricao).toBeNull();
+    expect((await marcar(e.cookie.interno, { descricao: 'x'.repeat(2001) })).statusCode).toBe(400);
+
+    const id = r.json().compromisso.id;
+    const alterado = await a.chamar('PATCH', `/api/agenda/compromissos/${id}`, {
+      cookie: e.cookie.interno,
+      corpo: { descricao: null },
+    });
+    expect(alterado.statusCode, alterado.body).toBe(200);
+    expect(alterado.json().compromisso.descricao).toBeNull();
+  });
+
   it('o Assessor Externo consulta, mas não marca; sem a habilitação de Agenda a rota some', async () => {
     const e = await preparar();
     expect((await marcar(e.cookie.externo)).statusCode).toBe(404);

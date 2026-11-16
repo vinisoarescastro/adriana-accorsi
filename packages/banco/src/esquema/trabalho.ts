@@ -114,6 +114,7 @@ export const compromisso = pgTable('compromisso', {
     .notNull()
     .references(() => usuario.id),
   titulo: text('titulo').notNull(),
+  descricao: text('descricao'),
   local: text('local'),
   inicio: instante('inicio').notNull(),
   fim: instante('fim').notNull(),
