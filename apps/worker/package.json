@@ -12,11 +12,8 @@
   "dependencies": {
     "@gabinete/banco": "*",
     "@gabinete/compartilhado": "*",
-    "nodemailer": "^7.0.10",
+    "nodemailer": "^10.6.0",
     "postgres": "^4.1.1",
     "tsx": "^4.23.15"
-  },
-  "devDependencies": {
-    "@types/nodemailer": "^7.0.4"
   }
 }
