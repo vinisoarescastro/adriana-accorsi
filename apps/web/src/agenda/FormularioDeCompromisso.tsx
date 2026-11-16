@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { chamar } from '../api/cliente';
 import { useEquipe } from '../api/consultas';
 import { chavesDoTrabalho } from '../api/trabalho';
+import { CampoComMencoes, idsMencionados, useColegas } from '../componentes/mencoes';
 import { Modal } from '../componentes/modal';
 import { SeletorDePessoas } from '../componentes/seletor-de-pessoas';
 import { AvisoDeErro, Botao, Campo } from '../componentes/ui';
@@ -39,6 +40,7 @@ export function FormularioDeCompromisso({
 }) {
   const cliente = useQueryClient();
   const { data: equipe } = useEquipe();
+  const colegas = useColegas(sessao, 'AG');
   const autoridade = { perfil: sessao.usuario.perfil, habilitacoes: sessao.usuario.habilitacoes };
   const podeRestrito = pode('agenda.criar_restrito', autoridade);
   const dia = diaInicial ?? hojeNoGabinete();
@@ -72,6 +74,7 @@ export function FormularioDeCompromisso({
       const corpo = {
         titulo: titulo.trim(),
         descricao: descricao.trim() || (compromisso ? null : undefined),
+        mencoes: idsMencionados(descricao, colegas),
         local: local.trim() || (compromisso ? null : undefined),
         inicio: deCampoDeDataHora(inicio),
         fim: deCampoDeDataHora(fim),
@@ -111,20 +114,14 @@ export function FormularioDeCompromisso({
           />
         )}
       </Campo>
-      <Campo
+      <CampoComMencoes
         rotulo="Descrição (opcional)"
-        ajuda="O que será tratado: pauta, objetivo, o que levar."
-      >
-        {(p) => (
-          <textarea
-            {...p}
-            rows={3}
-            maxLength={2000}
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
-          />
-        )}
-      </Campo>
+        ajuda="O que será tratado: pauta, objetivo, o que levar. Mencione colegas com @."
+        valor={descricao}
+        aoMudar={setDescricao}
+        colegas={colegas}
+        maxLength={2000}
+      />
       <div className="grade-formulario">
         <Campo rotulo="Início">
           {(p) => (

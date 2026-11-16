@@ -1,30 +1,42 @@
+import { nivelDoPerfil } from '@gabinete/autorizacao';
 import {
   statusDeTarefa,
   type RespostaDaSessao,
   type StatusDeTarefa,
 } from '@gabinete/compartilhado';
+import { AlarmClock, Kanban, List, Plus, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
-import { useTarefas } from '../api/trabalho';
-import { ListChecks, Plus, Search } from 'lucide-react';
+import { useEtapasDeTarefa, useTarefas } from '../api/trabalho';
+import { Abas } from '../componentes/abas';
+import { respondePeloItem } from '../componentes/responsaveis';
 import { CabecalhoDaPagina } from '../componentes/cabecalho';
-import { EstadoVazio } from '../componentes/dicas';
-import { SeloDeAtraso, SeloDePrioridade, SeloDeStatus } from '../componentes/situacao';
-import { BarraDeFerramentas, EsqueletoDeTabela, Paginacao } from '../componentes/tabela';
-import { AvisoDeErro, Botao, Campo } from '../componentes/ui';
+import { BarraDeFiltros, FiltroRapido } from '../componentes/filtros';
+import { EsqueletoDeCartoes, EsqueletoDeTabela } from '../componentes/tabela';
+import { AvisoDeErro, Botao } from '../componentes/ui';
 import { rotuloDoStatus } from '../rotulos';
 import { FichaDaTarefa } from './FichaDaTarefa';
+import { ListaDeTarefas, QuadroDeTarefas } from './ListaEQuadroDeTarefas';
 import { NovaTarefa } from './NovaTarefa';
+import { useMoverTarefa } from './useMoverTarefa';
+
+const maximoNoQuadro = 100;
 
 /**
- * Tarefas: lista com busca, filtros e paginação no servidor. A ficha abre numa gaveta, e o endereço
- * guarda a tarefa aberta (`?tarefa=<id>`), então o link serve para compartilhar e para o sino.
+ * Tarefas: quadro por etapa (a visão padrão) e lista, com busca, filtros e paginação no servidor. A
+ * ficha abre numa gaveta, e o endereço guarda a tarefa aberta (`?tarefa=<id>`), então o link serve para
+ * compartilhar e para o sino.
  */
 export function PaginaTarefas({ sessao }: { sessao: RespostaDaSessao }) {
   const [parametros, definirParametros] = useSearchParams();
   const aberta = Number(parametros.get('tarefa')) || null;
+  // Quem chega com um filtro de situação (os links do painel) cai na lista; senão, o quadro.
+  const visaoDoEndereco = parametros.get('visao');
+  const visao: 'lista' | 'quadro' =
+    visaoDoEndereco === 'lista' || (visaoDoEndereco === null && parametros.get('status'))
+      ? 'lista'
+      : 'quadro';
   const [criando, setCriando] = useState(false);
-  const [busca, setBusca] = useState('');
   const [termo, setTermo] = useState('');
   const [status, setStatus] = useState<StatusDeTarefa | ''>(
     (parametros.get('status') as StatusDeTarefa) || '',
@@ -33,7 +45,13 @@ export function PaginaTarefas({ sessao }: { sessao: RespostaDaSessao }) {
   const [minhas, setMinhas] = useState(parametros.get('minhas') === 'true');
   const [pagina, setPagina] = useState(1);
 
-  const lista = useTarefas({ pagina, busca: termo, status, atrasadas, minhas });
+  const lista = useTarefas({ pagina, busca: termo, status, atrasadas, minhas }, visao === 'lista');
+  const doQuadro = useTarefas(
+    { pagina: 1, porPagina: maximoNoQuadro, busca: termo, status: '', atrasadas, minhas },
+    visao === 'quadro',
+  );
+  const etapas = useEtapasDeTarefa();
+  const mover = useMoverTarefa();
 
   const abrir = (id: number | null) => {
     const novos = new URLSearchParams(parametros);
@@ -41,9 +59,18 @@ export function PaginaTarefas({ sessao }: { sessao: RespostaDaSessao }) {
     else novos.set('tarefa', String(id));
     definirParametros(novos);
   };
-  const totalDePaginas = lista.data
-    ? Math.max(1, Math.ceil(lista.data.total / lista.data.porPagina))
-    : 1;
+  const mudarVisao = (nova: 'lista' | 'quadro') => {
+    const novos = new URLSearchParams(parametros);
+    novos.set('visao', nova);
+    definirParametros(novos, { replace: true });
+  };
+  const limpar = () => {
+    setTermo('');
+    setStatus('');
+    setAtrasadas(false);
+    setMinhas(false);
+    setPagina(1);
+  };
 
   return (
     <section>
@@ -68,123 +95,91 @@ export function PaginaTarefas({ sessao }: { sessao: RespostaDaSessao }) {
         />
       ) : null}
 
-      <BarraDeFerramentas
+      <BarraDeFiltros
         rotulo="Filtros das tarefas"
-        aoBuscar={() => {
-          setTermo(busca.trim());
+        termo={termo}
+        aoBuscar={(t) => {
+          setTermo(t);
           setPagina(1);
         }}
-        acoes={
-          <Botao
-            type="submit"
-            variante="secundario"
-            icone={<Search size={16} aria-hidden="true" />}
-          >
-            Buscar
-          </Botao>
-        }
-      >
-        <Campo rotulo="Buscar" ajuda="Parte do título da tarefa.">
-          {(p) => (
-            <input {...p} type="search" value={busca} onChange={(e) => setBusca(e.target.value)} />
-          )}
-        </Campo>
-        <Campo rotulo="Situação">
-          {(p) => (
-            <select
-              {...p}
-              value={status}
-              onChange={(e) => {
-                setStatus(e.target.value as StatusDeTarefa | '');
+        placeholder="Buscar pelo título da tarefa"
+        ativos={Boolean(termo || status || atrasadas || minhas)}
+        aoLimpar={limpar}
+        filtros={
+          <>
+            {visao === 'lista' ? (
+              <select
+                className="filtros__selecao"
+                aria-label="Situação"
+                value={status}
+                onChange={(e) => {
+                  setStatus(e.target.value as StatusDeTarefa | '');
+                  setPagina(1);
+                }}
+              >
+                <option value="">Todas as situações</option>
+                {statusDeTarefa.map((s) => (
+                  <option key={s} value={s}>
+                    {rotuloDoStatus[s]}
+                  </option>
+                ))}
+              </select>
+            ) : null}
+            <FiltroRapido
+              rotulo="Minhas"
+              icone={<UserRound size={14} aria-hidden="true" />}
+              ativo={minhas}
+              aoAlternar={(v) => {
+                setMinhas(v);
                 setPagina(1);
               }}
-            >
-              <option value="">Todas</option>
-              {statusDeTarefa.map((s) => (
-                <option key={s} value={s}>
-                  {rotuloDoStatus[s]}
-                </option>
-              ))}
-            </select>
-          )}
-        </Campo>
-        <label className="opcao">
-          <input
-            type="checkbox"
-            checked={minhas}
-            onChange={(e) => {
-              setMinhas(e.target.checked);
-              setPagina(1);
-            }}
-          />
-          Só as minhas
-        </label>
-        <label className="opcao">
-          <input
-            type="checkbox"
-            checked={atrasadas}
-            onChange={(e) => {
-              setAtrasadas(e.target.checked);
-              setPagina(1);
-            }}
-          />
-          Só as atrasadas
-        </label>
-      </BarraDeFerramentas>
-
-      <AvisoDeErro erro={lista.error} />
-      {lista.isLoading ? <EsqueletoDeTabela colunas={6} /> : null}
-      {lista.data ? (
-        <div className="cartao cartao--tabela">
-          <div className="tabela-rolavel">
-            <table className="tabela">
-              <caption>
-                {lista.data.total} tarefa(s), página {lista.data.pagina} de {totalDePaginas}
-              </caption>
-              <thead>
-                <tr>
-                  <th scope="col">Título</th>
-                  <th scope="col">Etapa</th>
-                  <th scope="col">Situação</th>
-                  <th scope="col">Prioridade</th>
-                  <th scope="col">Responsável</th>
-                  <th scope="col">Prazo</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lista.data.itens.map((t) => (
-                  <tr key={t.id}>
-                    <td>
-                      <button type="button" className="link-botao" onClick={() => abrir(t.id)}>
-                        {t.titulo}
-                      </button>
-                    </td>
-                    <td>{t.etapa.nome}</td>
-                    <td>
-                      <div className="acoes">
-                        <SeloDeStatus status={t.status} />
-                        {t.atrasada ? <SeloDeAtraso /> : null}
-                      </div>
-                    </td>
-                    <td>
-                      <SeloDePrioridade prioridade={t.prioridade} />
-                    </td>
-                    <td>{t.responsavel.nome}</td>
-                    <td>{t.prazo ?? '-'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {lista.data.itens.length === 0 ? (
-            <EstadoVazio
-              icone={<ListChecks size={24} />}
-              titulo="Nenhuma tarefa encontrada."
-              texto="Ajuste os filtros ou crie uma tarefa nova."
             />
-          ) : null}
-          <Paginacao pagina={pagina} totalDePaginas={totalDePaginas} aoMudar={setPagina} />
-        </div>
+            <FiltroRapido
+              rotulo="Atrasadas"
+              icone={<AlarmClock size={14} aria-hidden="true" />}
+              ativo={atrasadas}
+              aoAlternar={(v) => {
+                setAtrasadas(v);
+                setPagina(1);
+              }}
+            />
+          </>
+        }
+        visao={
+          <Abas
+            segmentada
+            rotulo="Forma de ver as tarefas"
+            valor={visao}
+            aoMudar={mudarVisao}
+            itens={[
+              { id: 'quadro', rotulo: 'Quadro', icone: <Kanban size={16} aria-hidden="true" /> },
+              { id: 'lista', rotulo: 'Lista', icone: <List size={16} aria-hidden="true" /> },
+            ]}
+          />
+        }
+      />
+
+      <AvisoDeErro erro={lista.error ?? doQuadro.error ?? etapas.error} />
+      {visao === 'lista' ? (
+        lista.isLoading ? (
+          <EsqueletoDeTabela colunas={5} />
+        ) : lista.data ? (
+          <ListaDeTarefas pagina={lista.data} aoAbrir={abrir} aoMudarPagina={setPagina} />
+        ) : null
+      ) : doQuadro.isLoading || etapas.isLoading ? (
+        <EsqueletoDeCartoes quantidade={4} />
+      ) : doQuadro.data && etapas.data ? (
+        <QuadroDeTarefas
+          etapas={etapas.data}
+          tarefas={doQuadro.data.itens}
+          total={doQuadro.data.total}
+          aoAbrir={abrir}
+          // Supervisor ou superior, ou o responsável, movem (a mesma regra das ações da ficha).
+          podeMover={(t) =>
+            nivelDoPerfil[sessao.usuario.perfil] >= 3 || respondePeloItem(t, sessao.usuario.id)
+          }
+          aoMover={(t, destino) => mover.mutate({ id: t.id, destino })}
+        />
       ) : null}
 
       {aberta ? <FichaDaTarefa id={aberta} sessao={sessao} aoFechar={() => abrir(null)} /> : null}

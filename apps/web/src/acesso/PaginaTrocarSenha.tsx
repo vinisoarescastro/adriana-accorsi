@@ -1,4 +1,4 @@
-import { Landmark } from 'lucide-react';
+import logo from '../assets/logo-gabinete-digital-branco.png';
 import { Navigate, useNavigate } from 'react-router';
 import { useSessao } from '../api/consultas';
 import { Aviso, Carregando } from '../componentes/ui';
@@ -16,11 +16,8 @@ export function PaginaTrocarSenha() {
   return (
     <main className="pagina-centralizada">
       <div className="entrada">
-        <div className="entrada__marca" aria-hidden="true">
-          <span className="entrada__logo">
-            <Landmark size={22} />
-          </span>
-          <span>Gabinete parlamentar</span>
+        <div className="entrada__marca">
+          <img className="entrada__logo" src={logo} alt="Gabinete Digital" />
         </div>
         <div className="cartao">
           <h1>Troque a senha inicial</h1>

@@ -39,10 +39,15 @@ export interface FiltroDeTarefas {
   readonly status: StatusDeTarefa | '';
   readonly atrasadas: boolean;
   readonly minhas: boolean;
+  /** Padrão 25; o quadro pede o máximo (100) de uma vez. */
+  readonly porPagina?: number;
 }
 
 export function consultaDeTarefas(filtro: FiltroDeTarefas): string {
-  const q = new URLSearchParams({ pagina: String(filtro.pagina), porPagina: '25' });
+  const q = new URLSearchParams({
+    pagina: String(filtro.pagina),
+    porPagina: String(filtro.porPagina ?? 25),
+  });
   if (filtro.busca) q.set('busca', filtro.busca);
   if (filtro.status) q.set('status', filtro.status);
   if (filtro.atrasadas) q.set('atrasadas', 'true');
@@ -50,9 +55,10 @@ export function consultaDeTarefas(filtro: FiltroDeTarefas): string {
   return q.toString();
 }
 
-export const useTarefas = (filtro: FiltroDeTarefas) =>
+export const useTarefas = (filtro: FiltroDeTarefas, ativo = true) =>
   useQuery({
     queryKey: chavesDoTrabalho.tarefas(filtro),
+    enabled: ativo,
     queryFn: () => chamar<PaginaDeTarefas>('GET', `/api/tarefas?${consultaDeTarefas(filtro)}`),
   });
 
@@ -133,7 +139,10 @@ export const useEventos = (filtro: { pagina: number; situacao: string }) =>
   useQuery({
     queryKey: chavesDoTrabalho.eventos(filtro),
     queryFn: () => {
-      const q = new URLSearchParams({ pagina: String(filtro.pagina), porPagina: '25' });
+      const q = new URLSearchParams({
+        pagina: String(filtro.pagina),
+        porPagina: '25',
+      });
       if (filtro.situacao) q.set('situacao', filtro.situacao);
       return chamar<PaginaDeEventos>('GET', `/api/eventos?${q.toString()}`);
     },

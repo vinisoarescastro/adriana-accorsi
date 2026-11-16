@@ -1,4 +1,4 @@
-import { pode } from '@gabinete/autorizacao';
+import { nivelDoPerfil, pode } from '@gabinete/autorizacao';
 import {
   statusDeDemanda,
   type RespostaDaSessao,
@@ -7,27 +7,34 @@ import {
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useDemandas, useQuadro } from '../api/atendimento';
-import { Kanban, List, Plus, Search } from 'lucide-react';
+import { AlarmClock, Kanban, List, Plus } from 'lucide-react';
 import { Abas } from '../componentes/abas';
+import { respondePeloItem } from '../componentes/responsaveis';
 import { CabecalhoDaPagina } from '../componentes/cabecalho';
-import { DicaDeUso } from '../componentes/dicas';
-import { BarraDeFerramentas, EsqueletoDeTabela } from '../componentes/tabela';
-import { AvisoDeErro, Botao, Campo, Carregando } from '../componentes/ui';
+import { BarraDeFiltros, FiltroRapido } from '../componentes/filtros';
+import { EsqueletoDeCartoes, EsqueletoDeTabela } from '../componentes/tabela';
+import { AvisoDeErro, Botao } from '../componentes/ui';
 import { rotuloDoStatus } from '../rotulos';
 import { FichaDaDemanda } from './FichaDaDemanda';
 import { ListaDeDemandas, QuadroDasDemandas } from './ListaEQuadro';
 import { NovaDemanda } from './NovaDemanda';
+import { useMoverDemanda } from './useMoverDemanda';
 
 /**
- * Demandas: lista e quadro por etapa, com busca, filtros e paginação no servidor. A ficha abre numa
+ * Demandas: quadro por etapa (a visão padrão) e lista, com busca, filtros e paginação no servidor. A ficha abre numa
  * gaveta, e o endereço guarda a demanda aberta (`?demanda=<id>`), então o link serve para compartilhar.
  */
 export function PaginaDemandas({ sessao }: { sessao: RespostaDaSessao }) {
   const [parametros, definirParametros] = useSearchParams();
   const aberta = Number(parametros.get('demanda')) || null;
-  const [visao, setVisao] = useState<'lista' | 'quadro'>('lista');
+  // O quadro é a visão padrão. Quem chega com um filtro de situação (os links do painel) cai na lista,
+  // porque o quadro já separa por etapa.
+  const visaoDoEndereco = parametros.get('visao');
+  const visao: 'lista' | 'quadro' =
+    visaoDoEndereco === 'lista' || (visaoDoEndereco === null && parametros.get('status'))
+      ? 'lista'
+      : 'quadro';
   const [criando, setCriando] = useState(false);
-  const [busca, setBusca] = useState('');
   const [termo, setTermo] = useState('');
   const [status, setStatus] = useState<StatusDeDemanda | ''>(
     (parametros.get('status') as StatusDeDemanda) || '',
@@ -36,21 +43,36 @@ export function PaginaDemandas({ sessao }: { sessao: RespostaDaSessao }) {
   const [pagina, setPagina] = useState(1);
 
   const solicitanteId = Number(parametros.get('solicitante')) || undefined;
-  const lista = useDemandas({
-    pagina,
-    busca: termo,
-    status,
-    atrasadas,
-    ...(solicitanteId ? { solicitanteId } : {}),
-  });
-  const quadro = useQuadro(visao === 'quadro');
+  const lista = useDemandas(
+    {
+      pagina,
+      busca: termo,
+      status,
+      atrasadas,
+      ...(solicitanteId ? { solicitanteId } : {}),
+    },
+    visao === 'lista',
+  );
+  const quadro = useQuadro(visao === 'quadro', { busca: termo, atrasadas, solicitanteId });
   const autoridade = { perfil: sessao.usuario.perfil, habilitacoes: sessao.usuario.habilitacoes };
+  const mover = useMoverDemanda();
 
   const abrir = (id: number | null) => {
     const novos = new URLSearchParams(parametros);
     if (id === null) novos.delete('demanda');
     else novos.set('demanda', String(id));
     definirParametros(novos);
+  };
+  const mudarVisao = (nova: 'lista' | 'quadro') => {
+    const novos = new URLSearchParams(parametros);
+    novos.set('visao', nova);
+    definirParametros(novos, { replace: true });
+  };
+  const limpar = () => {
+    setTermo('');
+    setStatus('');
+    setAtrasadas(false);
+    setPagina(1);
   };
 
   return (
@@ -78,102 +100,80 @@ export function PaginaDemandas({ sessao }: { sessao: RespostaDaSessao }) {
         />
       ) : null}
 
-      <BarraDeFerramentas
+      <BarraDeFiltros
         rotulo="Filtros das demandas"
-        aoBuscar={() => {
-          setTermo(busca.trim());
+        termo={termo}
+        aoBuscar={(t) => {
+          setTermo(t);
           setPagina(1);
         }}
-        acoes={
+        placeholder="Buscar por protocolo, título ou nome"
+        ativos={Boolean(termo || status || atrasadas)}
+        aoLimpar={limpar}
+        filtros={
           <>
-            <Abas
-              segmentada
-              rotulo="Forma de ver as demandas"
-              valor={visao}
-              aoMudar={setVisao}
-              itens={[
-                { id: 'lista', rotulo: 'Lista', icone: <List size={16} aria-hidden="true" /> },
-                {
-                  id: 'quadro',
-                  rotulo: 'Quadro',
-                  icone: <Kanban size={16} aria-hidden="true" />,
-                },
-              ]}
-            />
             {visao === 'lista' ? (
-              <Botao
-                type="submit"
-                variante="secundario"
-                icone={<Search size={16} aria-hidden="true" />}
-              >
-                Buscar
-              </Botao>
-            ) : null}
-          </>
-        }
-      >
-        {visao === 'lista' ? (
-          <>
-            <Campo rotulo="Buscar" ajuda="Protocolo, título, nome ou parte do telefone.">
-              {(p) => (
-                <input
-                  {...p}
-                  type="search"
-                  value={busca}
-                  onChange={(e) => setBusca(e.target.value)}
-                />
-              )}
-            </Campo>
-            <Campo rotulo="Situação">
-              {(p) => (
-                <select
-                  {...p}
-                  value={status}
-                  onChange={(e) => {
-                    setStatus(e.target.value as StatusDeDemanda | '');
-                    setPagina(1);
-                  }}
-                >
-                  <option value="">Todas</option>
-                  {statusDeDemanda.map((s) => (
-                    <option key={s} value={s}>
-                      {rotuloDoStatus[s]}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </Campo>
-            <label className="opcao">
-              <input
-                type="checkbox"
-                checked={atrasadas}
+              <select
+                className="filtros__selecao"
+                aria-label="Situação"
+                value={status}
                 onChange={(e) => {
-                  setAtrasadas(e.target.checked);
+                  setStatus(e.target.value as StatusDeDemanda | '');
                   setPagina(1);
                 }}
-              />
-              Só as atrasadas
-            </label>
+              >
+                <option value="">Todas as situações</option>
+                {statusDeDemanda.map((s) => (
+                  <option key={s} value={s}>
+                    {rotuloDoStatus[s]}
+                  </option>
+                ))}
+              </select>
+            ) : null}
+            <FiltroRapido
+              rotulo="Atrasadas"
+              icone={<AlarmClock size={14} aria-hidden="true" />}
+              ativo={atrasadas}
+              aoAlternar={(v) => {
+                setAtrasadas(v);
+                setPagina(1);
+              }}
+            />
           </>
-        ) : (
-          <DicaDeUso>
-            O quadro mostra as demandas por etapa. Abra uma para mover, comentar ou publicar para o
-            cidadão.
-          </DicaDeUso>
-        )}
-      </BarraDeFerramentas>
+        }
+        visao={
+          <Abas
+            segmentada
+            rotulo="Forma de ver as demandas"
+            valor={visao}
+            aoMudar={mudarVisao}
+            itens={[
+              { id: 'quadro', rotulo: 'Quadro', icone: <Kanban size={16} aria-hidden="true" /> },
+              { id: 'lista', rotulo: 'Lista', icone: <List size={16} aria-hidden="true" /> },
+            ]}
+          />
+        }
+      />
 
       <AvisoDeErro erro={lista.error ?? quadro.error} />
       {visao === 'lista' ? (
         lista.isLoading ? (
-          <EsqueletoDeTabela colunas={8} />
+          <EsqueletoDeTabela colunas={5} />
         ) : lista.data ? (
           <ListaDeDemandas pagina={lista.data} aoAbrir={abrir} aoMudarPagina={setPagina} />
         ) : null
       ) : quadro.isLoading ? (
-        <Carregando />
+        <EsqueletoDeCartoes quantidade={4} />
       ) : quadro.data ? (
-        <QuadroDasDemandas quadro={quadro.data} aoAbrir={abrir} />
+        <QuadroDasDemandas
+          quadro={quadro.data}
+          aoAbrir={abrir}
+          // Supervisor ou superior, ou o responsável, movem (a mesma regra das ações da ficha).
+          podeMover={(d) =>
+            nivelDoPerfil[sessao.usuario.perfil] >= 3 || respondePeloItem(d, sessao.usuario.id)
+          }
+          aoMover={(d, destino) => mover.mutate({ id: d.id, destino })}
+        />
       ) : null}
 
       {aberta ? <FichaDaDemanda id={aberta} sessao={sessao} aoFechar={() => abrir(null)} /> : null}

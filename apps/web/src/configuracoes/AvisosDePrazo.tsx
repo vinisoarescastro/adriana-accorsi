@@ -1,3 +1,4 @@
+import { BellRing } from 'lucide-react';
 import { antecedenciaPadraoDoAvisoDePrazo } from '@gabinete/compartilhado';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -35,6 +36,7 @@ export function AvisosDePrazo() {
     >
       <Cartao
         titulo="Avisos de prazo"
+        icone={<BellRing size={18} />}
         descricao="O sistema avisa o responsável quando o prazo de uma tarefa ou demanda está chegando e quando vence, uma vez por dia."
         rodape={
           <Botao type="submit" disabled={!valido} carregando={salvar.isPending}>

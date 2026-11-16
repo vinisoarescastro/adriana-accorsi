@@ -6,12 +6,15 @@ import {
   type TarefaFicha,
 } from '@gabinete/compartilhado';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link2 } from 'lucide-react';
 import { useState } from 'react';
 import { chamar } from '../api/cliente';
 import { useEquipe } from '../api/consultas';
 import { chavesDoTrabalho } from '../api/trabalho';
+import { CampoComMencoes, idsMencionados, useColegas } from '../componentes/mencoes';
 import { AvisoDeErro, Botao, Campo } from '../componentes/ui';
 import { Modal } from '../componentes/modal';
+import { SeletorDePessoas } from '../componentes/seletor-de-pessoas';
 import { useToast } from '../componentes/toast';
 import { hojeNoGabinete } from '../formatos';
 import { rotuloDaPrioridade } from '../rotulos';
@@ -33,23 +36,29 @@ export function NovaTarefa({
   const avisar = useToast();
   const { data: equipe } = useEquipe();
   const podeDesignar = nivelDoPerfil[sessao.usuario.perfil] >= 2;
+  const colegas = useColegas(sessao);
 
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
   const [prioridade, setPrioridade] = useState<Prioridade>('media');
   const [prazo, setPrazo] = useState('');
   const [responsavelId, setResponsavelId] = useState('');
+  const [outros, setOutros] = useState<number[]>([]);
   const [demandaId, setDemandaId] = useState('');
+  const [ligando, setLigando] = useState(false);
 
   const criar = useMutation({
     mutationFn: () =>
       chamar<TarefaFicha>('POST', '/api/tarefas', {
         corpo: {
           titulo: titulo.trim(),
-          ...(descricao.trim() ? { descricao: descricao.trim() } : {}),
+          ...(descricao.trim()
+            ? { descricao: descricao.trim(), mencoes: idsMencionados(descricao, colegas) }
+            : {}),
           prioridade,
           ...(prazo ? { prazo } : {}),
           ...(responsavelId ? { responsavelId: Number(responsavelId) } : {}),
+          corresponsaveis: outros.filter((id) => id !== Number(responsavelId)),
           ...(demandaId ? { vinculo: { tipo: 'demanda', id: Number(demandaId) } } : {}),
         },
       }),
@@ -82,44 +91,14 @@ export function NovaTarefa({
             />
           )}
         </Campo>
-        <Campo rotulo="Descrição (opcional)">
-          {(p) => (
-            <textarea
-              {...p}
-              rows={3}
-              maxLength={5000}
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-            />
-          )}
-        </Campo>
+        <CampoComMencoes
+          rotulo="Descrição (opcional)"
+          valor={descricao}
+          aoMudar={setDescricao}
+          colegas={colegas}
+          maxLength={5000}
+        />
         <div className="grade-formulario">
-          <Campo rotulo="Prioridade">
-            {(p) => (
-              <select
-                {...p}
-                value={prioridade}
-                onChange={(e) => setPrioridade(e.target.value as Prioridade)}
-              >
-                {prioridades.map((v) => (
-                  <option key={v} value={v}>
-                    {rotuloDaPrioridade[v]}
-                  </option>
-                ))}
-              </select>
-            )}
-          </Campo>
-          <Campo rotulo="Prazo (opcional)" ajuda="Não pode ser anterior a hoje.">
-            {(p) => (
-              <input
-                {...p}
-                type="date"
-                min={hojeNoGabinete()}
-                value={prazo}
-                onChange={(e) => setPrazo(e.target.value)}
-              />
-            )}
-          </Campo>
           {podeDesignar ? (
             <Campo rotulo="Responsável" ajuda="Quem recebe a tarefa é avisado. Em branco: você.">
               {(p) => (
@@ -140,7 +119,45 @@ export function NovaTarefa({
               )}
             </Campo>
           ) : null}
-          <Campo rotulo="Número da demanda (opcional)" ajuda="Liga a tarefa a uma demanda sua.">
+          <Campo rotulo="Prioridade">
+            {(p) => (
+              <select
+                {...p}
+                value={prioridade}
+                onChange={(e) => setPrioridade(e.target.value as Prioridade)}
+              >
+                {prioridades.map((v) => (
+                  <option key={v} value={v}>
+                    {rotuloDaPrioridade[v]}
+                  </option>
+                ))}
+              </select>
+            )}
+          </Campo>
+          <Campo rotulo="Prazo (opcional)">
+            {(p) => (
+              <input
+                {...p}
+                type="date"
+                min={hojeNoGabinete()}
+                value={prazo}
+                onChange={(e) => setPrazo(e.target.value)}
+              />
+            )}
+          </Campo>
+        </div>
+        {podeDesignar ? (
+          <SeletorDePessoas
+            rotulo="Outros responsáveis (opcional)"
+            opcoes={(equipe ?? [])
+              .filter((u) => u.situacao === 'ativo' && u.id !== Number(responsavelId))
+              .map((u) => ({ id: u.id, nome: u.nome, temFoto: u.temFoto }))}
+            valor={outros}
+            aoMudar={setOutros}
+          />
+        ) : null}
+        {ligando ? (
+          <Campo rotulo="Número da demanda" ajuda="Liga a tarefa a uma demanda sua.">
             {(p) => (
               <input
                 {...p}
@@ -151,7 +168,16 @@ export function NovaTarefa({
               />
             )}
           </Campo>
-        </div>
+        ) : (
+          <Botao
+            variante="fantasma"
+            pequeno
+            icone={<Link2 size={14} aria-hidden="true" />}
+            onClick={() => setLigando(true)}
+          >
+            Ligar a uma demanda
+          </Botao>
+        )}
         <div className="acoes">
           <Botao type="submit" disabled={!titulo.trim()} carregando={criar.isPending}>
             Criar tarefa

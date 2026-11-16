@@ -11,6 +11,7 @@ import type {
   RespostaDeParticipanteDto,
   StatusDeDemanda,
   TipoDeProcessoDto,
+  TipoDeVinculoDeTarefaDto,
   VisibilidadeDeCompromissoDto,
 } from '@gabinete/compartilhado';
 
@@ -131,4 +132,12 @@ export const rotuloDaResposta: Record<RespostaDeParticipanteDto, string> = {
   sem_resposta: 'Sem resposta',
   confirmado: 'Confirmado',
   recusado: 'Recusado',
+};
+
+/** O vínculo de uma tarefa, em uma frase curta para a lista e o quadro. */
+export const rotuloDoVinculo: Record<TipoDeVinculoDeTarefaDto, string> = {
+  demanda: 'Vinculada a uma demanda',
+  pessoa: 'Vinculada a uma pessoa',
+  compromisso: 'Vinculada a um compromisso',
+  evento: 'Vinculada a um evento',
 };

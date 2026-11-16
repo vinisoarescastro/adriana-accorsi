@@ -1,5 +1,6 @@
+import userEvent from '@testing-library/user-event';
 import { screen, within } from '@testing-library/react';
-import { renderizar, sessaoDe } from '../teste/auxiliares';
+import { abrirGuia, renderizar, sessaoDe } from '../teste/auxiliares';
 
 /** Construtores de respostas simuladas da API, para os testes das telas da fase 3. */
 export const naoEncontrado = {
@@ -114,6 +115,14 @@ export const base = (perfil: Perfil = 'supervisor', extra: Record<string, unknow
 export const abrirFicha = async () => {
   renderizar('/g/demandas?demanda=7');
   const gaveta = await screen.findByRole('dialog');
+  await within(gaveta).findByRole('tab', { name: 'Cidadão' });
+  await abrirGuia(gaveta, 'Cidadão');
   await within(gaveta).findByText('Acompanhamento do cidadão');
   return gaveta;
+};
+
+/** Abre o menu "Gerenciar o link" da guia Cidadão (as ações do link ficam nele). */
+export const abrirMenuDoLink = async (gaveta: HTMLElement) => {
+  await userEvent.setup().click(within(gaveta).getByRole('button', { name: 'Gerenciar o link' }));
+  return screen.findByRole('menu');
 };

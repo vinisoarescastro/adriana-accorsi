@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
-import { renderizar, sessaoDe, simularApi } from '../teste/auxiliares';
+import { abrirGuia, renderizar, sessaoDe, simularApi } from '../teste/auxiliares';
 
 const naoEncontrado = {
   status: 404,
@@ -133,7 +133,7 @@ describe('lista de demandas', () => {
         3,
       ),
     });
-    renderizar('/g/demandas');
+    renderizar('/g/demandas?visao=lista');
 
     const tabela = await screen.findByRole('table');
     expect(within(tabela).getByText(/3 demanda\(s\), página 1 de 1/)).toBeInTheDocument();
@@ -150,12 +150,11 @@ describe('lista de demandas', () => {
       'GET /api/demandas?pagina=1&porPagina=25&busca=poda&status=concluido': pagina([]),
     });
     const usuario = userEvent.setup();
-    renderizar('/g/demandas');
+    renderizar('/g/demandas?visao=lista');
     await screen.findByRole('table');
 
-    await usuario.type(screen.getByLabelText('Buscar', { exact: false }), 'poda');
     await usuario.selectOptions(screen.getByLabelText('Situação'), 'concluido');
-    await usuario.click(screen.getByRole('button', { name: 'Buscar' }));
+    await usuario.type(screen.getByLabelText('Buscar'), 'poda{Enter}');
 
     expect(await screen.findByText('Nenhuma demanda encontrada.')).toBeInTheDocument();
     expect(
@@ -165,7 +164,7 @@ describe('lista de demandas', () => {
     ).toBe(true);
   });
 
-  it('o quadro mostra uma coluna por etapa, com o total', async () => {
+  it('o quadro é a visão padrão e mostra uma coluna por etapa, com o total', async () => {
     simularApi({
       ...base(),
       'GET /api/demandas?pagina=1&porPagina=25': pagina([]),
@@ -187,10 +186,9 @@ describe('lista de demandas', () => {
         },
       },
     });
-    const usuario = userEvent.setup();
     renderizar('/g/demandas');
-    await usuario.click(await screen.findByRole('button', { name: 'Quadro' }));
 
+    // O quadro é a visão padrão.
     const quadro = await screen.findByRole('list', { name: 'Quadro de demandas por etapa' });
     expect(within(quadro).getAllByRole('listitem')).toHaveLength(2);
     expect(within(quadro).getByText('Poda de árvore 1')).toBeInTheDocument();
@@ -303,6 +301,7 @@ describe('ficha da demanda', () => {
     expect(await within(gaveta).findByText('Galho caindo na calçada')).toBeInTheDocument();
     expect(within(gaveta).getByText('Liguei para a prefeitura')).toBeInTheDocument();
     expect(within(gaveta).getByText(/Comentário removido por Fulano de Tal/)).toBeInTheDocument();
+    await abrirGuia(gaveta, /^Documentos/);
     expect(within(gaveta).getByRole('link', { name: 'comprovante.pdf' })).toHaveAttribute(
       'href',
       '/api/documentos/5/conteudo',
@@ -344,6 +343,8 @@ describe('ficha da demanda', () => {
     renderizar('/g/demandas?demanda=7');
     const gaveta = await screen.findByRole('dialog');
 
+    await within(gaveta).findByRole('tab', { name: 'Ações' });
+    await abrirGuia(gaveta, 'Ações');
     await usuario.click(await within(gaveta).findByRole('button', { name: 'Cancelar demanda' }));
     const confirmar = within(gaveta).getByRole('button', { name: 'Confirmar o cancelamento' });
     expect(confirmar).toBeDisabled();
@@ -403,11 +404,15 @@ describe('ficha da demanda', () => {
     renderizar('/g/demandas?demanda=7');
     const gaveta = await screen.findByRole('dialog');
 
+    await within(gaveta).findByRole('tab', { name: /^Comentários/ });
+    await abrirGuia(gaveta, /^Comentários/);
     await usuario.type(
       await within(gaveta).findByLabelText('Novo comentário'),
       'Precisa de retorno',
     );
-    await usuario.click(await within(gaveta).findByLabelText('Beltrana'));
+    // Digitar @ abre as sugestões; escolher uma insere @Nome no texto.
+    await usuario.type(within(gaveta).getByLabelText('Novo comentário'), ' @Belt');
+    await usuario.click(await screen.findByRole('option', { name: /Beltrana/ }));
     await usuario.click(within(gaveta).getByRole('button', { name: 'Comentar' }));
 
     await waitFor(() =>

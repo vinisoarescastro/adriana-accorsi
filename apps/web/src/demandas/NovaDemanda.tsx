@@ -13,8 +13,10 @@ import { useState, type FormEvent } from 'react';
 import { chamar } from '../api/cliente';
 import { buscarPessoaPorTelefone, chavesDoAtendimento } from '../api/atendimento';
 import { useEquipe } from '../api/consultas';
+import { CampoComMencoes, idsMencionados, useColegas } from '../componentes/mencoes';
 import { Aviso, AvisoDeErro, Botao, Campo } from '../componentes/ui';
 import { Modal } from '../componentes/modal';
+import { SeletorDePessoas } from '../componentes/seletor-de-pessoas';
 import { useToast } from '../componentes/toast';
 import { rotuloDaOrigemDoConsentimento, rotuloDaPrioridade } from '../rotulos';
 
@@ -34,6 +36,7 @@ export function NovaDemanda({
   const cliente = useQueryClient();
   const avisar = useToast();
   const { data: equipe } = useEquipe();
+  const colegas = useColegas(sessao, 'AT');
   const [telefone, setTelefone] = useState('');
   const [existente, setExistente] = useState<PessoaDto | null>(null);
   const [verificado, setVerificado] = useState(false);
@@ -47,6 +50,7 @@ export function NovaDemanda({
   const [prioridade, setPrioridade] = useState<Prioridade>('media');
   const [prazo, setPrazo] = useState('');
   const [responsavelId, setResponsavelId] = useState('');
+  const [outros, setOutros] = useState<number[]>([]);
   const [registrada, setRegistrada] = useState<DemandaRegistrada | null>(null);
 
   const podeEscolherResponsavel = nivelDoPerfil[sessao.usuario.perfil] >= 2;
@@ -87,9 +91,12 @@ export function NovaDemanda({
               },
           titulo,
           prioridade,
-          ...(descricao ? { descricao } : {}),
+          ...(descricao.trim()
+            ? { descricao: descricao.trim(), mencoes: idsMencionados(descricao, colegas) }
+            : {}),
           ...(prazo ? { prazo } : {}),
           ...(responsavelId ? { responsavelId: Number(responsavelId) } : {}),
+          corresponsaveis: outros.filter((id) => id !== Number(responsavelId)),
         },
       }),
     onSuccess: async (resposta) => {
@@ -246,17 +253,14 @@ export function NovaDemanda({
             />
           )}
         </Campo>
-        <Campo rotulo="Descrição (opcional)" ajuda="Uso interno: nunca aparece para o cidadão.">
-          {(p) => (
-            <textarea
-              {...p}
-              rows={3}
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-              maxLength={5000}
-            />
-          )}
-        </Campo>
+        <CampoComMencoes
+          rotulo="Descrição (opcional)"
+          ajuda="Uso interno: nunca aparece para o cidadão. Mencione colegas com @."
+          valor={descricao}
+          aoMudar={setDescricao}
+          colegas={colegas}
+          maxLength={5000}
+        />
 
         <div className="grade-formulario">
           <Campo rotulo="Prioridade">
@@ -298,6 +302,16 @@ export function NovaDemanda({
             </Campo>
           ) : null}
         </div>
+        {podeEscolherResponsavel ? (
+          <SeletorDePessoas
+            rotulo="Outros responsáveis (opcional)"
+            opcoes={responsaveis
+              .filter((u) => u.id !== Number(responsavelId))
+              .map((u) => ({ id: u.id, nome: u.nome, temFoto: u.temFoto }))}
+            valor={outros}
+            aoMudar={setOutros}
+          />
+        ) : null}
 
         <div className="acoes">
           <Botao

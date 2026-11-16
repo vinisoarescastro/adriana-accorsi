@@ -7,10 +7,20 @@ import {
   type RespostaDaSessao,
 } from '@gabinete/compartilhado';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { FileArchive, FileImage, FileText, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { chavesDoAtendimento } from '../api/atendimento';
 import { chamar } from '../api/cliente';
 import { useEquipe } from '../api/consultas';
+import { Avatar } from '../componentes/avatar';
+import { EditarDocumento } from './EditarDocumento';
+import {
+  CampoComMencoes,
+  TextoComMencoes,
+  idsMencionados,
+  useColegas,
+  useNomesDaEquipe,
+} from '../componentes/mencoes';
 import { Aviso, AvisoDeErro, Botao, Campo, Selo } from '../componentes/ui';
 import { formatarDataHora } from '../formatos';
 import { rotuloDaNatureza } from '../rotulos';
@@ -35,26 +45,20 @@ export function ComentariosDaDemanda({
 }) {
   const atualizar = useAtualizarFicha();
   const { data: equipe } = useEquipe();
+  const colegas = useColegas(sessao, 'AT');
+  const nomes = useNomesDaEquipe();
   const [texto, setTexto] = useState('');
-  const [mencoes, setMencoes] = useState<number[]>([]);
   const autoridade = { perfil: sessao.usuario.perfil, habilitacoes: sessao.usuario.habilitacoes };
-  const colegas = (equipe ?? []).filter(
-    (u) => u.situacao === 'ativo' && u.id !== sessao.usuario.id,
-  );
+  const fotoDe = new Map((equipe ?? []).map((u) => [u.id, u.temFoto]));
 
   const comentar = useMutation({
-    mutationFn: () => {
-      // O nome mencionado fica no texto, como @Nome.
-      const nomes = colegas
-        .filter((c) => mencoes.includes(c.id) && !texto.includes(`@${c.nome}`))
-        .map((c) => `@${c.nome}`);
-      return chamar<ComentarioDto[]>('POST', `/api/demandas/${demandaId}/comentarios`, {
-        corpo: { texto: [texto.trim(), ...nomes].join(' '), mencoes },
-      });
-    },
+    mutationFn: () =>
+      chamar<ComentarioDto[]>('POST', `/api/demandas/${demandaId}/comentarios`, {
+        // O nome citado fica no texto, como @Nome; a API avisa quem foi mencionado.
+        corpo: { texto: texto.trim(), mencoes: idsMencionados(texto, colegas) },
+      }),
     onSuccess: async () => {
       setTexto('');
-      setMencoes([]);
       await atualizar();
     },
   });
@@ -68,72 +72,60 @@ export function ComentariosDaDemanda({
       <h3>Comentários internos</h3>
       <p className="campo__ajuda">Só a equipe vê. Nada aqui chega ao cidadão.</p>
       <AvisoDeErro erro={comentar.error ?? remover.error} />
-      <ul className="lista-simples">
+      <ul className="comentarios">
         {comentarios.map((c) => (
-          <li key={c.id}>
-            <strong>{c.autor.nome}</strong>{' '}
-            <span className="campo__ajuda">{formatarDataHora(c.criadoEm)}</span>
-            {c.removido ? (
-              <p>
-                <em>
-                  Comentário removido por {c.removidoPor} em{' '}
-                  {c.removidoEm ? formatarDataHora(c.removidoEm) : ''}.
-                </em>
-              </p>
-            ) : (
-              <>
-                <p>{c.texto}</p>
-                {!somenteLeitura &&
-                pode('comentarios.remover', autoridade) &&
-                (c.autor.id === sessao.usuario.id || nivelDoPerfil[sessao.usuario.perfil] >= 3) ? (
-                  <Botao
-                    pequeno
-                    variante="secundario"
-                    onClick={() => remover.mutate(c.id)}
-                    disabled={remover.isPending}
-                  >
-                    Remover
-                  </Botao>
-                ) : null}
-              </>
-            )}
+          <li key={c.id} className="comentario">
+            <Avatar nome={c.autor.nome} id={c.autor.id} temFoto={fotoDe.get(c.autor.id)} pequeno />
+            <div className="comentario__corpo">
+              <div className="comentario__cabecalho">
+                <strong>{c.autor.nome}</strong>
+                <span className="campo__ajuda">{formatarDataHora(c.criadoEm)}</span>
+              </div>
+              {c.removido ? (
+                <p>
+                  <em>
+                    Comentário removido por {c.removidoPor} em{' '}
+                    {c.removidoEm ? formatarDataHora(c.removidoEm) : ''}.
+                  </em>
+                </p>
+              ) : (
+                <>
+                  <p className="ficha-texto">
+                    <TextoComMencoes texto={c.texto ?? ''} nomes={nomes} />
+                  </p>
+                  {!somenteLeitura &&
+                  pode('comentarios.remover', autoridade) &&
+                  (c.autor.id === sessao.usuario.id ||
+                    nivelDoPerfil[sessao.usuario.perfil] >= 3) ? (
+                    <Botao
+                      pequeno
+                      variante="fantasma"
+                      onClick={() => remover.mutate(c.id)}
+                      disabled={remover.isPending}
+                    >
+                      Remover
+                    </Botao>
+                  ) : null}
+                </>
+              )}
+            </div>
           </li>
         ))}
-        {comentarios.length === 0 ? <li>Nenhum comentário ainda.</li> : null}
+        {comentarios.length === 0 ? (
+          <li className="campo__ajuda">Nenhum comentário ainda.</li>
+        ) : null}
       </ul>
 
       {!somenteLeitura && pode('comentarios.criar', autoridade) ? (
         <>
-          <Campo rotulo="Novo comentário">
-            {(p) => (
-              <textarea
-                {...p}
-                rows={3}
-                value={texto}
-                onChange={(e) => setTexto(e.target.value)}
-                maxLength={5000}
-              />
-            )}
-          </Campo>
-          <fieldset className="grupo-de-opcoes">
-            <legend>
-              Mencionar colegas (eles serão avisados quando a caixa de avisos existir)
-            </legend>
-            {colegas.map((c) => (
-              <label key={c.id} className="opcao">
-                <input
-                  type="checkbox"
-                  checked={mencoes.includes(c.id)}
-                  onChange={() =>
-                    setMencoes((m) =>
-                      m.includes(c.id) ? m.filter((x) => x !== c.id) : [...m, c.id],
-                    )
-                  }
-                />
-                {c.nome}
-              </label>
-            ))}
-          </fieldset>
+          <CampoComMencoes
+            rotulo="Novo comentário"
+            ajuda="Quem for mencionado com @ recebe um aviso."
+            valor={texto}
+            aoMudar={setTexto}
+            colegas={colegas}
+            maxLength={5000}
+          />
           <Botao
             pequeno
             disabled={!texto.trim() || comentar.isPending}
@@ -160,7 +152,23 @@ const formatarTamanho = (bytes: number) =>
     ? `${(bytes / 1024 / 1024).toFixed(1)} MB`
     : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
-/** Documentos: PDF, PNG, JPEG e ZIP até 25 MB. Baixa sempre como anexo; remover só marca. */
+/** Um ícone por tipo de arquivo, só para reconhecer de relance. */
+function IconeDoArquivo({ nome }: { nome: string }) {
+  const extensao = nome.split('.').pop()?.toLowerCase() ?? '';
+  const Icone =
+    extensao === 'png' || extensao === 'jpg' || extensao === 'jpeg'
+      ? FileImage
+      : extensao === 'zip'
+        ? FileArchive
+        : FileText;
+  return (
+    <span className="documento__icone" aria-hidden="true">
+      <Icone size={18} />
+    </span>
+  );
+}
+
+/** Documentos da demanda: enviar no alto, lista simples embaixo (nome, tipo, tamanho, quem e quando). */
 export function DocumentosDaDemanda({
   demandaId,
   documentos,
@@ -194,48 +202,18 @@ export function DocumentosDaDemanda({
     mutationFn: (id: number) => chamar<DocumentoDto[]>('DELETE', `/api/documentos/${id}`),
     onSuccess: atualizar,
   });
+  const podeRemover = !somenteLeitura && pode('documentos.remover', autoridade);
+  const podeEditar = !somenteLeitura && pode('documentos.anexar', autoridade);
+  const [editando, setEditando] = useState<DocumentoDto | null>(null);
 
   return (
-    <div className="painel-do-usuario">
-      <h3>Documentos</h3>
+    <div className="documentos">
+      <h3 className="somente-leitor">Documentos</h3>
       {problema ? <Aviso tipo="erro" titulo={problema} /> : null}
       <AvisoDeErro erro={anexar.error ?? remover.error} />
-      <ul className="lista-simples">
-        {documentos.map((d) => (
-          <li key={d.id}>
-            {d.removido ? (
-              <em>
-                {d.nome} (removido
-                {d.removidoEm ? ` em ${formatarDataHora(d.removidoEm)}` : ''})
-              </em>
-            ) : (
-              <>
-                <a href={`/api/documentos/${d.id}/conteudo`} download>
-                  {d.nome}
-                </a>{' '}
-                <Selo>{rotuloDaNatureza[d.natureza]}</Selo>{' '}
-                <span className="campo__ajuda">
-                  {formatarTamanho(d.tamanho)} · {d.enviadoPor} · {formatarDataHora(d.enviadoEm)}
-                </span>{' '}
-                {!somenteLeitura && pode('documentos.remover', autoridade) ? (
-                  <Botao
-                    pequeno
-                    variante="secundario"
-                    onClick={() => remover.mutate(d.id)}
-                    disabled={remover.isPending}
-                  >
-                    Remover
-                  </Botao>
-                ) : null}
-              </>
-            )}
-          </li>
-        ))}
-        {documentos.length === 0 ? <li>Nenhum documento anexado.</li> : null}
-      </ul>
 
       {!somenteLeitura && pode('documentos.anexar', autoridade) ? (
-        <div className="grade-formulario">
+        <div className="documentos__novo">
           <Campo rotulo="Natureza">
             {(p) => (
               <select
@@ -274,6 +252,71 @@ export function DocumentosDaDemanda({
             )}
           </Campo>
         </div>
+      ) : null}
+
+      {documentos.length === 0 ? (
+        <p className="campo__ajuda">Nenhum documento anexado.</p>
+      ) : (
+        <ul className="documentos__lista">
+          {documentos.map((d) => (
+            <li key={d.id} className={`documento${d.removido ? ' documento--removido' : ''}`}>
+              <IconeDoArquivo nome={d.nome} />
+              {d.removido ? (
+                <div className="documento__corpo">
+                  <em>
+                    {d.nome} (removido
+                    {d.removidoEm ? ` em ${formatarDataHora(d.removidoEm)}` : ''})
+                  </em>
+                </div>
+              ) : (
+                <>
+                  <div className="documento__corpo">
+                    <a
+                      className="documento__nome"
+                      href={`/api/documentos/${d.id}/conteudo`}
+                      download
+                    >
+                      {d.nome}
+                    </a>
+                    <span className="documento__meta">
+                      <Selo>{rotuloDaNatureza[d.natureza]}</Selo>
+                      <span>
+                        {formatarTamanho(d.tamanho)} · {d.enviadoPor} ·{' '}
+                        {formatarDataHora(d.enviadoEm)}
+                      </span>
+                    </span>
+                  </div>
+                  {podeEditar ? (
+                    <Botao
+                      pequeno
+                      variante="fantasma"
+                      icone={<Pencil size={14} aria-hidden="true" />}
+                      aria-label={`Editar ${d.nome}`}
+                      onClick={() => setEditando(d)}
+                    >
+                      Editar
+                    </Botao>
+                  ) : null}
+                  {podeRemover ? (
+                    <Botao
+                      pequeno
+                      variante="fantasma"
+                      className="botao--perigo-suave"
+                      icone={<Trash2 size={14} aria-hidden="true" />}
+                      onClick={() => remover.mutate(d.id)}
+                      disabled={remover.isPending}
+                    >
+                      Remover
+                    </Botao>
+                  ) : null}
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      {editando ? (
+        <EditarDocumento documento={editando} aoFechar={() => setEditando(null)} />
       ) : null}
     </div>
   );

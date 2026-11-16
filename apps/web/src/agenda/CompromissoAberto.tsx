@@ -11,6 +11,7 @@ import { chamar } from '../api/cliente';
 import { useEquipe } from '../api/consultas';
 import { chavesDoTrabalho, useCompromisso } from '../api/trabalho';
 import { Avatar } from '../componentes/avatar';
+import { TextoComMencoes, useNomesDaEquipe } from '../componentes/mencoes';
 import { Modal } from '../componentes/modal';
 import { useToast } from '../componentes/toast';
 import { Aviso, AvisoDeErro, Botao, Carregando, Selo } from '../componentes/ui';
@@ -35,6 +36,7 @@ export function CompromissoAberto({
   const cliente = useQueryClient();
   const { data: c, isLoading, error } = useCompromisso(id);
   const { data: equipe } = useEquipe();
+  const nomes = useNomesDaEquipe();
   const fotoDe = new Map((equipe ?? []).map((u) => [u.id, u.temFoto]));
   const [alterando, setAlterando] = useState(false);
   const [conflitos, setConflitos] = useState<CompromissoSalvo['conflitos']>([]);
@@ -163,7 +165,9 @@ export function CompromissoAberto({
               <h3 id="titulo-descricao" className="compromisso__secao">
                 Descrição
               </h3>
-              <p className="compromisso__descricao">{c.descricao}</p>
+              <p className="compromisso__descricao">
+                <TextoComMencoes texto={c.descricao} nomes={nomes} />
+              </p>
             </section>
           ) : null}
 

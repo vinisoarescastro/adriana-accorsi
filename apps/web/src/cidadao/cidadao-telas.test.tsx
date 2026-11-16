@@ -229,7 +229,7 @@ describe('fila de e-mails', () => {
     expect(within(tabela).getByText('Falhou')).toBeInTheDocument();
     expect(within(tabela).getByText('O provedor respondeu 422.')).toBeInTheDocument();
     expect(within(tabela).getByText('Cancelamento')).toBeInTheDocument();
-    expect(screen.getByLabelText('Resumo por situação')).toHaveTextContent(/1 falhou/);
+    expect(screen.getByLabelText('Resumo por situação')).toHaveTextContent(/Falhou\s*1/);
     expect(document.body).not.toHaveTextContent('@');
   });
 

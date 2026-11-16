@@ -25,8 +25,22 @@ export function SeloDeStatus({ status }: { status: StatusDeDemanda }) {
   );
 }
 
-export function SeloDePrioridade({ prioridade }: { prioridade: Prioridade }) {
-  return <Selo tom={tomDaPrioridade[prioridade]}>{rotuloDaPrioridade[prioridade]}</Selo>;
+export function SeloDePrioridade({
+  prioridade,
+  compacto,
+}: {
+  prioridade: Prioridade;
+  /** No cartão do quadro: pequeno, com ponto, e preenchido quando é urgente. */
+  compacto?: boolean;
+}) {
+  if (!compacto)
+    return <Selo tom={tomDaPrioridade[prioridade]}>{rotuloDaPrioridade[prioridade]}</Selo>;
+  const urgente = prioridade === 'urgente';
+  return (
+    <Selo tom={tomDaPrioridade[prioridade]} pequeno solido={urgente} ponto={!urgente}>
+      {rotuloDaPrioridade[prioridade]}
+    </Selo>
+  );
 }
 
 export function SeloDeAtraso() {

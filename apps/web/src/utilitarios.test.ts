@@ -27,3 +27,14 @@ describe('validarFoto (aviso cedo; a API decide pelo conteúdo)', () => {
     expect(validarFoto({ type: 'image/png', size: 2 * 1024 * 1024 + 1 })).toMatch(/2 MB/);
   });
 });
+
+describe('nomeCurto', () => {
+  it('fica só com o primeiro e o segundo nome, sem contar as partículas', async () => {
+    const { nomeCurto } = await import('./formatos');
+    expect(nomeCurto('Fulano de Tal')).toBe('Fulano Tal');
+    expect(nomeCurto('Maria da Silva Santos')).toBe('Maria Silva');
+    expect(nomeCurto('Ana Beatriz Souza Lima')).toBe('Ana Beatriz');
+    expect(nomeCurto('Beltrana')).toBe('Beltrana');
+    expect(nomeCurto('  João   dos Santos ')).toBe('João Santos');
+  });
+});

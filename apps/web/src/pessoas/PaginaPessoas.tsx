@@ -2,7 +2,7 @@ import { pode } from '@gabinete/autorizacao';
 import type { PessoaDto, RespostaDaSessao } from '@gabinete/compartilhado';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { chavesDoAtendimento, usePessoas } from '../api/atendimento';
 import { chamar } from '../api/cliente';
 import { ConsentimentoDeNotificacao } from '../componentes/ConsentimentoDeNotificacao';
@@ -24,20 +24,8 @@ import { iniciais } from '../formatos';
 import { Modal, useConfirmacao } from '../componentes/modal';
 import { BarraDeFerramentas, EsqueletoDeTabela, Paginacao } from '../componentes/tabela';
 import { AvisoDeErro, Botao, Campo, Selo } from '../componentes/ui';
-
-const rotuloDaSituacao = {
-  ativa: 'Ativa',
-  inativa: 'Inativa',
-  dados_eliminados: 'Dados eliminados',
-} as const;
-
-/** Em texto, nunca só por cor: consentimento, e-mail ausente ou recusado pelo provedor. */
-function rotuloDosAvisos(p: PessoaDto): string {
-  if (p.situacao === 'dados_eliminados') return '-';
-  if (!p.email) return 'Sem e-mail';
-  if (p.emailInvalido) return 'E-mail recusado';
-  return p.consentimento ? 'Ativados' : 'Desativados';
-}
+import { FichaDaPessoa } from './FichaDaPessoa';
+import { rotuloDaSituacao, rotuloDosAvisos } from './rotulos-da-pessoa';
 
 function FormularioDePessoa({
   pessoa,
@@ -251,6 +239,14 @@ function AcoesDaPessoa({ pessoa, sessao }: { pessoa: PessoaDto; sessao: Resposta
 }
 
 export function PaginaPessoas({ sessao }: { sessao: RespostaDaSessao }) {
+  const [parametros, definirParametros] = useSearchParams();
+  const pessoaAberta = Number(parametros.get('pessoa')) || null;
+  const abrirPessoa = (id: number | null) => {
+    const novos = new URLSearchParams(parametros);
+    if (id === null) novos.delete('pessoa');
+    else novos.set('pessoa', String(id));
+    definirParametros(novos);
+  };
   const [busca, setBusca] = useState('');
   const [termo, setTermo] = useState('');
   const [situacao, setSituacao] = useState('');
@@ -370,9 +366,17 @@ export function PaginaPessoas({ sessao }: { sessao: RespostaDaSessao }) {
                           {p.nomeCompleto ? iniciais(p.nomeCompleto) : '–'}
                         </span>
                         <div className="pessoa-celula__texto">
-                          <span className="pessoa-celula__nome">
-                            {p.nomeCompleto ?? 'Dados eliminados'}
-                          </span>
+                          {p.nomeCompleto ? (
+                            <button
+                              type="button"
+                              className="link-botao pessoa-celula__nome"
+                              onClick={() => abrirPessoa(p.id)}
+                            >
+                              {p.nomeCompleto}
+                            </button>
+                          ) : (
+                            <span className="pessoa-celula__nome">Dados eliminados</span>
+                          )}
                           {p.email ? <span className="pessoa-celula__apoio">{p.email}</span> : null}
                         </div>
                       </div>
@@ -397,6 +401,9 @@ export function PaginaPessoas({ sessao }: { sessao: RespostaDaSessao }) {
           ) : null}
           <Paginacao pagina={pagina} totalDePaginas={totalDePaginas} aoMudar={setPagina} />
         </div>
+      ) : null}
+      {pessoaAberta ? (
+        <FichaDaPessoa id={pessoaAberta} sessao={sessao} aoFechar={() => abrirPessoa(null)} />
       ) : null}
     </section>
   );

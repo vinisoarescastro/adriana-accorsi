@@ -1,3 +1,4 @@
+import { Camera } from 'lucide-react';
 import { pode } from '@gabinete/autorizacao';
 import type { IdentidadeDoGabinete, RespostaDaSessao } from '@gabinete/compartilhado';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -107,6 +108,7 @@ function Formulario({ inicial, edita }: { inicial: IdentidadeDoGabinete | null; 
     <form onSubmit={enviar}>
       <Cartao
         titulo="Identidade"
+        icone={<Building2 size={18} />}
         descricao="Os dados do gabinete aparecem no cabeçalho do sistema e na página do cidadão."
         rodape={
           edita ? (
@@ -216,6 +218,7 @@ export function PaginaConfiguracoes({ sessao }: { sessao: RespostaDaSessao }) {
           {atual === 'foto' ? (
             <Cartao
               titulo="Foto do gabinete"
+              icone={<Camera size={18} />}
               descricao="Aparece na página do cidadão e nos e-mails."
             >
               {gabinete?.temFoto ? (

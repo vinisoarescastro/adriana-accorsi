@@ -1,3 +1,4 @@
+import { Globe } from 'lucide-react';
 import { pode } from '@gabinete/autorizacao';
 import {
   exibicoesDeNome,
@@ -133,6 +134,7 @@ export function PoliticaDePublicacao({ sessao }: { sessao: RespostaDaSessao }) {
     <Cartao
       rotulo="Política de publicação"
       titulo="Política de publicação"
+      icone={<Globe size={18} />}
       descricao="O que o cidadão vê na página de acompanhamento. Nada é público por padrão: o andamento é sempre um texto escrito para ele, e comentários internos, documentos, prioridade e responsável nunca aparecem."
     >
       <AvisoDeErro erro={error} />

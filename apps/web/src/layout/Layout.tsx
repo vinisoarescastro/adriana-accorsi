@@ -6,7 +6,6 @@ import {
   FileText,
   GitBranch,
   History,
-  Landmark,
   LayoutDashboard,
   ListChecks,
   LogOut,
@@ -27,8 +26,9 @@ import { SinoDeAvisos } from '../avisos/SinoDeAvisos';
 import { BotaoDeIcone } from '../componentes/dicas';
 import { MenuSuspenso } from '../componentes/menu';
 import { Botao } from '../componentes/ui';
-import { iniciais } from '../formatos';
+import { iniciais, nomeCurto } from '../formatos';
 import { rotuloDoPerfil } from '../rotulos';
+import logo from '../assets/logo-gabinete-digital-branco.png';
 import { aplicarTema, temaInicial, type Tema } from './tema';
 
 /** Ícone e grupo de cada página da barra. Página fora desta lista cai em "Sistema", sem ícone próprio. */
@@ -92,10 +92,8 @@ export function Layout({ sessao }: { sessao: RespostaDaSessao }) {
 
       <aside className={`lateral${aberta ? ' lateral--aberta' : ''}`} aria-label="Menu principal">
         <div className="lateral__marca">
-          <span className="lateral__logo" aria-hidden="true">
-            <Landmark size={18} />
-          </span>
-          <span className="lateral__nome">{gabinete?.nome ?? 'Gabinete'}</span>
+          <img className="lateral__logo" src={logo} alt="" />
+          <span className="somente-leitor">{gabinete?.nome ?? 'Gabinete'}</span>
         </div>
         <nav className="lateral__nav">
           {grupos.map((grupo) => (
@@ -167,13 +165,9 @@ export function Layout({ sessao }: { sessao: RespostaDaSessao }) {
                   <span className="foto" role="img" aria-label={`Iniciais de ${usuario.nome}`}>
                     {iniciais(usuario.nome)}
                   </span>
-                  {usuario.perfil ? (
-                    <span>
-                      {usuario.nome} ({rotuloDoPerfil[usuario.perfil]})
-                    </span>
-                  ) : (
-                    <span>{usuario.nome}</span>
-                  )}
+                  <span title={`${usuario.nome} · ${rotuloDoPerfil[usuario.perfil]}`}>
+                    {nomeCurto(usuario.nome)}
+                  </span>
                 </>
               }
               itens={[

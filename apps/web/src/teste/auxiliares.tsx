@@ -1,6 +1,7 @@
+import userEvent from '@testing-library/user-event';
 import type { Perfil, RespostaDaSessao } from '@gabinete/compartilhado';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render } from '@testing-library/react';
+import { render, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { vi } from 'vitest';
 import { App } from '../App';
@@ -107,4 +108,9 @@ export function renderizar(caminho: string) {
       </MemoryRouter>
     </QueryClientProvider>,
   );
+}
+
+/** Abre uma guia (aba) de dentro de um modal: o conteúdo das outras fica oculto. */
+export async function abrirGuia(dentro: HTMLElement, nome: string | RegExp) {
+  await userEvent.setup().click(within(dentro).getByRole('tab', { name: nome }));
 }

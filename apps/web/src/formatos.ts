@@ -65,3 +65,17 @@ export function paraCampoDeDataHora(iso: string): string {
   }).format(new Date(iso));
   return partes.replace(' ', 'T');
 }
+
+const particulas = new Set(['de', 'da', 'do', 'das', 'dos', 'e']);
+
+/**
+ * Só o primeiro e o segundo nome ("Fulano de Tal" vira "Fulano Tal"): as partículas (de, da, do…) não
+ * contam como segundo nome. Nome de uma palavra só fica como está.
+ */
+export function nomeCurto(nome: string): string {
+  const palavras = nome.trim().split(/\s+/).filter(Boolean);
+  const primeiro = palavras[0];
+  if (!primeiro) return nome;
+  const segundo = palavras.slice(1).find((p) => !particulas.has(p.toLowerCase()));
+  return segundo ? `${primeiro} ${segundo}` : primeiro;
+}

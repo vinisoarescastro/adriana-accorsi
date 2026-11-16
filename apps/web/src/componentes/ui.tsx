@@ -169,16 +169,23 @@ export function Selo({
   tom,
   tipo,
   ponto,
+  pequeno,
+  solido,
   children,
 }: {
   tom?: TomDoSelo;
   tipo?: 'ativo' | 'inativo';
   ponto?: boolean;
+  pequeno?: boolean;
+  /** Preenchido (a prioridade mais alta nos cartões do quadro). */
+  solido?: boolean;
   children: ReactNode;
 }) {
   const efetivo: TomDoSelo = tom ?? (tipo === 'ativo' ? 'sucesso' : 'neutro');
   return (
-    <span className={`selo selo--${efetivo}`}>
+    <span
+      className={`selo selo--${efetivo}${pequeno ? ' selo--pequeno' : ''}${solido ? ' selo--solido' : ''}`}
+    >
       {ponto ? <span className="selo__ponto" aria-hidden="true" /> : null}
       {children}
     </span>

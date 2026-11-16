@@ -5,6 +5,9 @@ import { Botao } from './ui';
 
 export type TamanhoDoModal = 'sm' | 'md' | 'lg' | 'xl';
 
+/** Modais abertos, do mais antigo ao mais novo: só o do topo reage ao Esc e ao Tab. */
+const pilha: symbol[] = [];
+
 const seletorDeFocaveis =
   'a[href],button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex]:not([tabindex="-1"])';
 
@@ -16,6 +19,7 @@ export function Modal({
   titulo,
   descricao,
   tamanho = 'md',
+  classe,
   aoFechar,
   rodape,
   children,
@@ -23,6 +27,8 @@ export function Modal({
   titulo: string;
   descricao?: string;
   tamanho?: TamanhoDoModal;
+  /** Classe extra no painel (para estilos de um tipo de modal, como a ficha). */
+  classe?: string;
   aoFechar: () => void;
   rodape?: ReactNode;
   children?: ReactNode;
@@ -33,6 +39,8 @@ export function Modal({
   fechar.current = aoFechar;
 
   useEffect(() => {
+    const eu = Symbol('modal');
+    pilha.push(eu);
     const anterior = document.activeElement as HTMLElement | null;
     const corpo = painel.current;
     // Foca o primeiro controle do CORPO (o título e o botão de fechar ficam por último na ordem de foco).
@@ -41,6 +49,7 @@ export function Modal({
       corpo?.querySelector<HTMLElement>(seletorDeFocaveis)
     )?.focus();
     const aoTeclar = (e: KeyboardEvent) => {
+      if (pilha[pilha.length - 1] !== eu) return;
       if (e.key === 'Escape') {
         fechar.current();
         return;
@@ -63,6 +72,7 @@ export function Modal({
     document.addEventListener('keydown', aoTeclar);
     return () => {
       document.removeEventListener('keydown', aoTeclar);
+      pilha.splice(pilha.indexOf(eu), 1);
       document.body.style.overflow = rolagem;
       anterior?.focus?.();
     };
@@ -80,7 +90,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={id}
-        className={`modal modal--${tamanho}`}
+        className={`modal modal--${tamanho}${classe ? ` ${classe}` : ''}`}
       >
         <div className="modal__cabecalho">
           <div className="modal__titulos">

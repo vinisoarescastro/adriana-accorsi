@@ -1,7 +1,7 @@
 import type { RespostaDaSessao } from '@gabinete/compartilhado';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
-import { Landmark } from 'lucide-react';
+import logo from '../assets/logo-gabinete-digital-branco.png';
 import { Navigate, useNavigate } from 'react-router';
 import { chamar } from '../api/cliente';
 import { chaves, useSessao } from '../api/consultas';
@@ -37,11 +37,8 @@ export function PaginaEntrar() {
   return (
     <main className="pagina-centralizada">
       <div className="entrada">
-        <div className="entrada__marca" aria-hidden="true">
-          <span className="entrada__logo">
-            <Landmark size={22} />
-          </span>
-          <span>Gabinete parlamentar</span>
+        <div className="entrada__marca">
+          <img className="entrada__logo" src={logo} alt="Gabinete Digital" />
         </div>
         <form className="cartao" onSubmit={enviar} noValidate>
           <h1>Entrar</h1>

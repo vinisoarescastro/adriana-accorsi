@@ -19,6 +19,15 @@ import { Dica } from '../componentes/dicas';
 import { Botao } from '../componentes/ui';
 import { formatarDataHora } from '../formatos';
 
+/** O tipo do registro, para dizer onde a menção aconteceu. */
+const rotuloDoRegistro = {
+  tarefa: 'Tarefa',
+  demanda: 'Demanda',
+  compromisso: 'Compromisso',
+  despesa: 'Despesa',
+  destinacao: 'Destinação',
+} as const;
+
 /** Para onde cada aviso leva: o registro de origem, na própria página dele. */
 export function destinoDoAviso(aviso: AvisoDto): string | null {
   switch (aviso.registro.tipo) {
@@ -47,6 +56,7 @@ const aparencia: Record<AvisoDto['natureza'], { icone: LucideIcon; tom: Tom }> =
   despesa_aguardando_analise: { icone: ClipboardList, tom: 'info' },
   saldo_abaixo_limite: { icone: Clock, tom: 'atencao' },
   mencao: { icone: AtSign, tom: 'info' },
+  demanda_designada: { icone: ClipboardList, tom: 'primario' },
 };
 
 /**
@@ -131,10 +141,13 @@ export function SinoDeAvisos() {
                     <span className="sino__texto">
                       <span className="sino__titulo">
                         {a.lido ? '' : 'Novo: '}
-                        {a.frase}
+                        {a.natureza === 'mencao' && a.de ? `${a.de} mencionou você` : a.frase}
                       </span>
                       {a.registro.titulo ? (
-                        <span className="sino__descricao">{a.registro.titulo}</span>
+                        <span className="sino__descricao">
+                          {a.natureza === 'mencao' ? `${rotuloDoRegistro[a.registro.tipo]}: ` : ''}
+                          {a.registro.titulo}
+                        </span>
                       ) : null}
                       <span className="sino__hora">{formatarDataHora(a.geradoEm)}</span>
                     </span>
@@ -147,7 +160,7 @@ export function SinoDeAvisos() {
                       <Link
                         to={destino}
                         className="sino__linha"
-                        aria-label={`Abrir: ${a.frase}`}
+                        aria-label={`Abrir: ${a.natureza === 'mencao' && a.de ? `${a.de} mencionou você` : a.frase}`}
                         onClick={() => {
                           marcar.mutate({ ids: [a.id] });
                           setAberto(false);

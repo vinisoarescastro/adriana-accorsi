@@ -2,7 +2,14 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { renderizar, simularApi } from '../teste/auxiliares';
-import { abrirFicha, acompanhamento, base, consentimento, ficha } from './auxiliares';
+import {
+  abrirFicha,
+  abrirMenuDoLink,
+  acompanhamento,
+  base,
+  consentimento,
+  ficha,
+} from './auxiliares';
 
 describe('acompanhamento do cidadão na ficha', () => {
   it('mostra o estado do link em TEXTO, o link, a prévia e os andamentos, com a marca dos removidos', async () => {
@@ -35,17 +42,17 @@ describe('acompanhamento do cidadão na ficha', () => {
   it('o Supervisor gere o link; o Assessor Interno só vê e publica', async () => {
     simularApi(base('supervisor'));
     const gaveta = await abrirFicha();
+    const menu = within(await abrirMenuDoLink(gaveta));
     for (const nome of ['Suspender link', 'Gerar novo link', 'Revogar link']) {
-      expect(within(gaveta).getByRole('button', { name: nome })).toBeInTheDocument();
+      expect(menu.getByRole('menuitem', { name: nome })).toBeInTheDocument();
     }
   });
 
   it('o Assessor Interno não vê os botões de gestão do link', async () => {
     simularApi(base('assessor_interno'));
     const gaveta = await abrirFicha();
-    expect(within(gaveta).queryByRole('button', { name: 'Revogar link' })).not.toBeInTheDocument();
     expect(
-      within(gaveta).queryByRole('button', { name: 'Suspender link' }),
+      within(gaveta).queryByRole('button', { name: 'Gerenciar o link' }),
     ).not.toBeInTheDocument();
     expect(
       within(gaveta).getByRole('button', { name: 'Publicar para o cidadão' }),
@@ -75,16 +82,19 @@ describe('acompanhamento do cidadão na ficha', () => {
     );
     const usuario = userEvent.setup();
     const gaveta = await abrirFicha();
-    await usuario.click(within(gaveta).getByRole('button', { name: 'Suspender link' }));
+    await abrirMenuDoLink(gaveta);
+    await usuario.click(screen.getByRole('menuitem', { name: 'Suspender link' }));
     await waitFor(() =>
       expect(chamadas.some((c) => c.caminho === '/api/demandas/7/link/suspender')).toBe(true),
     );
 
-    await usuario.click(within(gaveta).getByRole('button', { name: 'Revogar link' }));
+    await abrirMenuDoLink(gaveta);
+    await usuario.click(screen.getByRole('menuitem', { name: 'Revogar link' }));
     const confirmacao = await screen.findByRole('dialog', { name: 'Revogar o link?' });
     await usuario.click(within(confirmacao).getByRole('button', { name: 'Cancelar' }));
     expect(chamadas.some((c) => c.caminho === '/api/demandas/7/link/revogar')).toBe(false);
-    await usuario.click(within(gaveta).getByRole('button', { name: 'Revogar link' }));
+    await abrirMenuDoLink(gaveta);
+    await usuario.click(screen.getByRole('menuitem', { name: 'Revogar link' }));
     await usuario.click(
       within(await screen.findByRole('dialog', { name: 'Revogar o link?' })).getByRole('button', {
         name: 'Revogar link',
@@ -106,8 +116,9 @@ describe('acompanhamento do cidadão na ficha', () => {
     const gaveta = await abrirFicha();
     expect(await within(gaveta).findByText('Link revogado')).toBeInTheDocument();
     expect(within(gaveta).getByText(/consultar pelo protocolo e telefone/)).toBeInTheDocument();
-    expect(within(gaveta).queryByRole('button', { name: 'Revogar link' })).not.toBeInTheDocument();
-    expect(within(gaveta).getByRole('button', { name: 'Gerar novo link' })).toBeInTheDocument();
+    const menu = within(await abrirMenuDoLink(gaveta));
+    expect(menu.queryByRole('menuitem', { name: 'Revogar link' })).not.toBeInTheDocument();
+    expect(menu.getByRole('menuitem', { name: 'Gerar novo link' })).toBeInTheDocument();
   });
 
   it('publicar envia o texto escrito para o cidadão; o botão só habilita com texto', async () => {
@@ -149,7 +160,9 @@ describe('acompanhamento do cidadão na ficha', () => {
     expect(
       within(gaveta).queryByRole('button', { name: 'Remover andamento' }),
     ).not.toBeInTheDocument();
-    expect(within(gaveta).getByRole('button', { name: 'Revogar link' })).toBeInTheDocument();
+    expect(
+      within(await abrirMenuDoLink(gaveta)).getByRole('menuitem', { name: 'Revogar link' }),
+    ).toBeInTheDocument();
   });
 
   it('o Supervisor remove andamento', async () => {

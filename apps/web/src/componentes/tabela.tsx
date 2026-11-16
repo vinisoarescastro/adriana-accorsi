@@ -108,15 +108,15 @@ export function EsqueletoDeTabela({
   );
 }
 
-/** Esqueleto de cartões de número, para o painel. */
+/** Esqueleto de cartões de indicador, para o painel. */
 export function EsqueletoDeCartoes({ quantidade = 4 }: { quantidade?: number }) {
   return (
-    <div className="cartoes-do-painel" role="status" aria-busy="true">
+    <div className="indicadores" role="status" aria-busy="true">
       <span className="somente-leitor">Carregando…</span>
       {Array.from({ length: quantidade }, (_, i) => (
-        <div key={i} className="cartao-numero" aria-hidden="true">
-          <span className="esqueleto esqueleto--valor" />
+        <div key={i} className="cartao indicador" aria-hidden="true">
           <span className="esqueleto esqueleto--medio" />
+          <span className="esqueleto esqueleto--valor" />
         </div>
       ))}
     </div>

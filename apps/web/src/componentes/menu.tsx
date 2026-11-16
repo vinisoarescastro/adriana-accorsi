@@ -22,10 +22,13 @@ const alturaDoItem = 36;
 export function MenuSuspenso({
   rotulo,
   gatilho,
+  icone,
   itens,
 }: {
   rotulo: string;
   gatilho?: ReactNode;
+  /** Ícone do botão quando não há `gatilho` (padrão: reticências). */
+  icone?: ReactNode;
   itens: readonly ItemDeMenu[];
 }) {
   const [posicao, setPosicao] = useState<CSSProperties | null>(null);
@@ -105,7 +108,7 @@ export function MenuSuspenso({
             <ChevronDown size={16} aria-hidden="true" className="menu-suspenso__seta" />
           </>
         ) : (
-          <MoreHorizontal size={18} aria-hidden="true" />
+          (icone ?? <MoreHorizontal size={18} aria-hidden="true" />)
         )}
       </button>
       {aberto

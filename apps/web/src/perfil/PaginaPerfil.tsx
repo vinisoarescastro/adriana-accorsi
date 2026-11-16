@@ -1,6 +1,6 @@
 import type { Area, RespostaDaSessao } from '@gabinete/compartilhado';
 import { useQueryClient } from '@tanstack/react-query';
-import { Clock, Mail, ShieldCheck } from 'lucide-react';
+import { Camera, Clock, KeyRound, Mail, ShieldCheck } from 'lucide-react';
 import { FormularioDeTrocaDeSenha } from '../acesso/FormularioDeTrocaDeSenha';
 import { chaves } from '../api/consultas';
 import { EnvioDeFoto } from '../componentes/EnvioDeFoto';
@@ -60,7 +60,11 @@ export function PaginaPerfil({ sessao }: { sessao: RespostaDaSessao }) {
             ) : null}
           </Cartao>
 
-          <Cartao titulo="Foto de perfil" descricao="Aparece na equipe e no seu cabeçalho.">
+          <Cartao
+            titulo="Foto de perfil"
+            icone={<Camera size={18} />}
+            descricao="Aparece na equipe e no seu cabeçalho."
+          >
             <EnvioDeFoto
               rotulo="Enviar foto"
               endereco="/api/perfil/foto"
@@ -72,6 +76,7 @@ export function PaginaPerfil({ sessao }: { sessao: RespostaDaSessao }) {
         <div className="perfil-grade__principal">
           <Cartao
             titulo="Áreas de acesso"
+            icone={<ShieldCheck size={18} />}
             descricao="O que você pode usar no gabinete. Para mudar, fale com a administração."
           >
             {usuario.habilitacoes.length > 0 ? (
@@ -95,6 +100,7 @@ export function PaginaPerfil({ sessao }: { sessao: RespostaDaSessao }) {
 
           <Cartao
             titulo="Segurança"
+            icone={<KeyRound size={18} />}
             descricao="Ao trocar a senha, as suas outras sessões são encerradas."
           >
             <FormularioDeTrocaDeSenha />

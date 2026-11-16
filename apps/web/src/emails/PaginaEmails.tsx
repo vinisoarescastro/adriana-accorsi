@@ -2,7 +2,9 @@ import { estadosDeEnvio, type EstadoDeEnvioDto } from '@gabinete/compartilhado';
 import { Mail } from 'lucide-react';
 import { useState } from 'react';
 import { useFilaDeEmails } from '../api/cidadao';
+import { Ban, CheckCheck, Clock, MailWarning, Send } from 'lucide-react';
 import { CabecalhoDaPagina } from '../componentes/cabecalho';
+import { CartaoDeIndicador, GradeDeIndicadores } from '../componentes/indicador';
 import { EstadoVazio } from '../componentes/dicas';
 import { BarraDeFerramentas, EsqueletoDeTabela, Paginacao } from '../componentes/tabela';
 import { AvisoDeErro, Campo, Selo, type TomDoSelo } from '../componentes/ui';
@@ -21,6 +23,14 @@ const tomDoEnvio: Record<EstadoDeEnvioDto, TomDoSelo> = {
  * Fila de e-mails ao cidadão (Supervisor em diante): o que foi enviado, o que falhou e o que foi
  * cancelado, com o motivo. Não mostra o endereço de e-mail nem o conteúdo: só o protocolo.
  */
+const iconesDoEstado = {
+  pendente: <Clock size={18} />,
+  enviando: <Send size={18} />,
+  enviado: <CheckCheck size={18} />,
+  falhou: <MailWarning size={18} />,
+  cancelado: <Ban size={18} />,
+};
+
 export function PaginaEmails() {
   const [estado, setEstado] = useState<EstadoDeEnvioDto | ''>('');
   const [pagina, setPagina] = useState(1);
@@ -35,14 +45,16 @@ export function PaginaEmails() {
       />
 
       {data ? (
-        <ul className="cartoes-do-painel resumo-da-fila" aria-label="Resumo por situação">
+        <GradeDeIndicadores rotulo="Resumo por situação">
           {estadosDeEnvio.map((e) => (
-            <li key={e} className="cartao-numero">
-              <span className="cartao-numero__valor">{data.porEstado[e]}</span>{' '}
-              <span>{rotuloDoEstadoDeEnvio[e].toLowerCase()}</span>
-            </li>
+            <CartaoDeIndicador
+              key={e}
+              rotulo={rotuloDoEstadoDeEnvio[e]}
+              valor={data.porEstado[e]}
+              icone={iconesDoEstado[e]}
+            />
           ))}
-        </ul>
+        </GradeDeIndicadores>
       ) : null}
 
       <BarraDeFerramentas rotulo="Filtro dos e-mails">

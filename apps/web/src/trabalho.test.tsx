@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
-import { renderizar, sessaoDe, simularApi } from './teste/auxiliares';
+import { abrirGuia, renderizar, sessaoDe, simularApi } from './teste/auxiliares';
 
 const naoEncontrado = {
   status: 404,
@@ -83,17 +83,36 @@ describe('tarefas', () => {
       'GET /api/tarefas?pagina=1&porPagina=25&atrasadas=true&minhas=true': pagina([]),
     });
     const usuario = userEvent.setup();
-    renderizar('/g/tarefas');
+    renderizar('/g/tarefas?visao=lista');
 
     const tabela = await screen.findByRole('table');
     expect(within(tabela).getByText(/2 tarefa\(s\), página 1 de 1/)).toBeInTheDocument();
     expect(within(tabela).getByText('Atrasada')).toBeInTheDocument();
-    expect(within(tabela).getAllByText('Em andamento')).toHaveLength(2);
+    expect(within(tabela).getAllByText('A fazer')).toHaveLength(2);
 
-    await usuario.click(screen.getByLabelText('Só as minhas'));
-    await usuario.click(screen.getByLabelText('Só as atrasadas'));
+    await usuario.click(screen.getByRole('button', { name: 'Minhas' }));
+    await usuario.click(screen.getByRole('button', { name: 'Atrasadas' }));
     expect(await screen.findByText('Nenhuma tarefa encontrada.')).toBeInTheDocument();
     expect(chamadas.some((c) => c.caminho.includes('atrasadas=true&minhas=true'))).toBe(true);
+  });
+
+  it('o quadro é a visão padrão: uma coluna por etapa, sem as canceladas', async () => {
+    simularApi({
+      ...base(),
+      'GET /api/tarefas/etapas': { corpo: etapasDeTarefa },
+      'GET /api/tarefas?pagina=1&porPagina=100': pagina([
+        tarefa(1),
+        tarefa(2, { etapa: { id: 3, nome: 'Concluída', papel: 'conclusao' }, status: 'concluido' }),
+        tarefa(3, { status: 'cancelada' }),
+      ]),
+    });
+    renderizar('/g/tarefas');
+
+    const quadro = await screen.findByRole('list', { name: 'Quadro de tarefas por etapa' });
+    expect(within(quadro).getAllByRole('listitem')).toHaveLength(3);
+    expect(within(quadro).getByRole('button', { name: /prefeitura 1/ })).toBeInTheDocument();
+    expect(within(quadro).getByRole('button', { name: /prefeitura 2/ })).toBeInTheDocument();
+    expect(within(quadro).queryByRole('button', { name: /prefeitura 3/ })).not.toBeInTheDocument();
   });
 
   it('o Assessor Externo cria só para si: a escolha do responsável não aparece', async () => {
@@ -150,6 +169,7 @@ describe('tarefas', () => {
 
     const gaveta = await screen.findByRole('dialog');
     expect(await within(gaveta).findByText(/Criada em/)).toBeInTheDocument();
+    await abrirGuia(gaveta, 'Ações');
     await usuario.selectOptions(await within(gaveta).findByLabelText(/Mover para a etapa/), '2');
     await usuario.click(within(gaveta).getByRole('button', { name: 'Mover' }));
     await waitFor(() =>
@@ -170,10 +190,16 @@ describe('tarefas', () => {
     const usuario = userEvent.setup();
     renderizar('/g/tarefas?tarefa=1');
     const gaveta = await screen.findByRole('dialog');
-    const botao = await within(gaveta).findByRole('button', { name: 'Cancelar tarefa' });
-    expect(botao).toBeDisabled();
-    await usuario.type(within(gaveta).getByLabelText(/Cancelar a tarefa/), 'Já resolvido');
-    expect(botao).toBeEnabled();
+    await within(gaveta).findByRole('tab', { name: 'Ações' });
+    await abrirGuia(gaveta, 'Ações');
+    await usuario.click(await within(gaveta).findByRole('button', { name: 'Cancelar tarefa' }));
+    const confirmar = within(gaveta).getByRole('button', { name: 'Confirmar o cancelamento' });
+    expect(confirmar).toBeDisabled();
+    await usuario.type(
+      within(gaveta).getByLabelText(/Justificativa do cancelamento/),
+      'Já resolvido',
+    );
+    expect(confirmar).toBeEnabled();
   });
 
   it('tarefa cancelada é só de leitura', async () => {

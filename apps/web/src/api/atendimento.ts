@@ -20,6 +20,7 @@ export const chavesDoAtendimento = {
   quadro: ['atendimento', 'quadro'] as const,
   ficha: (id: number) => ['atendimento', 'ficha', id] as const,
   pessoas: (filtro: object) => ['atendimento', 'pessoas', filtro] as const,
+  pessoa: (id: number) => ['atendimento', 'pessoa', id] as const,
   painel: ['atendimento', 'painel'] as const,
 };
 
@@ -40,16 +41,30 @@ export function consultaDeDemandas(filtro: FiltroDeDemandas): string {
   return q.toString();
 }
 
-export const useDemandas = (filtro: FiltroDeDemandas) =>
+export const useDemandas = (filtro: FiltroDeDemandas, ativo = true) =>
   useQuery({
     queryKey: chavesDoAtendimento.demandas(filtro),
+    enabled: ativo,
     queryFn: () => chamar<PaginaDeDemandas>('GET', `/api/demandas?${consultaDeDemandas(filtro)}`),
   });
 
-export const useQuadro = (ativo: boolean) =>
+export interface FiltroDoQuadro {
+  readonly busca: string;
+  readonly atrasadas: boolean;
+  readonly solicitanteId?: number | undefined;
+}
+
+export const useQuadro = (ativo: boolean, filtro: FiltroDoQuadro) =>
   useQuery({
-    queryKey: chavesDoAtendimento.quadro,
-    queryFn: () => chamar<QuadroDeDemandas>('GET', '/api/demandas/quadro'),
+    queryKey: [...chavesDoAtendimento.quadro, filtro] as const,
+    queryFn: () => {
+      const q = new URLSearchParams();
+      if (filtro.busca) q.set('busca', filtro.busca);
+      if (filtro.atrasadas) q.set('atrasadas', 'true');
+      if (filtro.solicitanteId) q.set('solicitanteId', String(filtro.solicitanteId));
+      const texto = q.toString();
+      return chamar<QuadroDeDemandas>('GET', `/api/demandas/quadro${texto ? `?${texto}` : ''}`);
+    },
     enabled: ativo,
   });
 
@@ -89,3 +104,10 @@ export async function buscarPessoaPorTelefone(telefone: string): Promise<PessoaD
 
 export type { ComentarioDto, DemandaFicha, DemandaRegistrada, DocumentoDto };
 export { ErroDaApi };
+
+export const usePessoa = (id: number | null) =>
+  useQuery({
+    queryKey: chavesDoAtendimento.pessoa(id ?? 0),
+    queryFn: () => chamar<PessoaDto>('GET', `/api/pessoas/${id}`),
+    enabled: id !== null,
+  });

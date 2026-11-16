@@ -1,9 +1,18 @@
 import { pode } from '@gabinete/autorizacao';
 import type { RespostaDaSessao } from '@gabinete/compartilhado';
-import { Link } from 'react-router';
+import {
+  Activity,
+  AlarmClock,
+  CheckCircle2,
+  Hourglass,
+  Inbox,
+  ListChecks,
+  UserRound,
+} from 'lucide-react';
 import { usePainelDeAtendimento } from '../api/atendimento';
 import { usePainelDeTarefas } from '../api/trabalho';
 import { CabecalhoDaPagina } from '../componentes/cabecalho';
+import { CartaoDeIndicador, GradeDeIndicadores } from '../componentes/indicador';
 import { EsqueletoDeCartoes } from '../componentes/tabela';
 import { Aviso, AvisoDeErro } from '../componentes/ui';
 import { rotuloDoPerfil } from '../rotulos';
@@ -33,24 +42,32 @@ export function PaginaPainel({ sessao }: { sessao: RespostaDaSessao }) {
           <AvisoDeErro erro={tarefas.error} />
           {tarefas.isLoading ? <EsqueletoDeCartoes quantidade={4} /> : null}
           {tarefas.data ? (
-            <div className="cartoes-do-painel">
-              <Link className="cartao-numero" to="/g/tarefas?status=em_andamento">
-                <span className="cartao-numero__valor">{tarefas.data.abertas}</span>
-                <span>Tarefas em andamento</span>
-              </Link>
-              <Link className="cartao-numero" to="/g/tarefas?atrasadas=true">
-                <span className="cartao-numero__valor">{tarefas.data.atrasadas}</span>
-                <span>Tarefas atrasadas</span>
-              </Link>
-              <Link className="cartao-numero" to="/g/tarefas?status=em_andamento&minhas=true">
-                <span className="cartao-numero__valor">{tarefas.data.minhasAbertas}</span>
-                <span>Minhas tarefas em andamento</span>
-              </Link>
-              <Link className="cartao-numero" to="/g/tarefas?atrasadas=true&minhas=true">
-                <span className="cartao-numero__valor">{tarefas.data.minhasAtrasadas}</span>
-                <span>Minhas tarefas atrasadas</span>
-              </Link>
-            </div>
+            <GradeDeIndicadores>
+              <CartaoDeIndicador
+                rotulo="Tarefas em andamento"
+                valor={tarefas.data.abertas}
+                icone={<ListChecks size={18} />}
+                para="/g/tarefas?status=em_andamento"
+              />
+              <CartaoDeIndicador
+                rotulo="Tarefas atrasadas"
+                valor={tarefas.data.atrasadas}
+                icone={<AlarmClock size={18} />}
+                para="/g/tarefas?atrasadas=true"
+              />
+              <CartaoDeIndicador
+                rotulo="Minhas tarefas em andamento"
+                valor={tarefas.data.minhasAbertas}
+                icone={<UserRound size={18} />}
+                para="/g/tarefas?status=em_andamento&minhas=true"
+              />
+              <CartaoDeIndicador
+                rotulo="Minhas tarefas atrasadas"
+                valor={tarefas.data.minhasAtrasadas}
+                icone={<Hourglass size={18} />}
+                para="/g/tarefas?atrasadas=true&minhas=true"
+              />
+            </GradeDeIndicadores>
           ) : null}
         </>
       ) : null}
@@ -62,32 +79,43 @@ export function PaginaPainel({ sessao }: { sessao: RespostaDaSessao }) {
           {isLoading ? <EsqueletoDeCartoes quantidade={6} /> : null}
           {data ? (
             <>
-              <div className="cartoes-do-painel">
-                <Link className="cartao-numero" to="/g/demandas?status=em_andamento">
-                  <span className="cartao-numero__valor">{data.abertas}</span>
-                  <span>Em andamento</span>
-                </Link>
-                <Link className="cartao-numero" to="/g/demandas?atrasadas=true">
-                  <span className="cartao-numero__valor">{data.atrasadas}</span>
-                  <span>Atrasadas</span>
-                </Link>
-                <Link className="cartao-numero" to="/g/demandas?status=em_andamento">
-                  <span className="cartao-numero__valor">{data.paradas}</span>
-                  <span>Paradas há mais de {data.limiteParadoDias} dias</span>
-                </Link>
-                <Link className="cartao-numero" to="/g/demandas">
-                  <span className="cartao-numero__valor">{data.novasNaSemana}</span>
-                  <span>Novas na semana</span>
-                </Link>
-                <Link className="cartao-numero" to="/g/demandas?status=concluido">
-                  <span className="cartao-numero__valor">{data.concluidasNoMes}</span>
-                  <span>Concluídas no mês</span>
-                </Link>
-                <div className="cartao-numero">
-                  <span className="cartao-numero__valor">{data.minhasAbertas}</span>
-                  <span>Minhas em andamento</span>
-                </div>
-              </div>
+              <GradeDeIndicadores>
+                <CartaoDeIndicador
+                  rotulo="Em andamento"
+                  valor={data.abertas}
+                  icone={<Activity size={18} />}
+                  para="/g/demandas?status=em_andamento"
+                />
+                <CartaoDeIndicador
+                  rotulo="Atrasadas"
+                  valor={data.atrasadas}
+                  icone={<AlarmClock size={18} />}
+                  para="/g/demandas?atrasadas=true"
+                />
+                <CartaoDeIndicador
+                  rotulo={`Paradas há mais de ${data.limiteParadoDias} dias`}
+                  valor={data.paradas}
+                  icone={<Hourglass size={18} />}
+                  para="/g/demandas?status=em_andamento"
+                />
+                <CartaoDeIndicador
+                  rotulo="Novas na semana"
+                  valor={data.novasNaSemana}
+                  icone={<Inbox size={18} />}
+                  para="/g/demandas"
+                />
+                <CartaoDeIndicador
+                  rotulo="Concluídas no mês"
+                  valor={data.concluidasNoMes}
+                  icone={<CheckCircle2 size={18} />}
+                  para="/g/demandas?status=concluido"
+                />
+                <CartaoDeIndicador
+                  rotulo="Minhas em andamento"
+                  valor={data.minhasAbertas}
+                  icone={<UserRound size={18} />}
+                />
+              </GradeDeIndicadores>
 
               <div className="cartao cartao--tabela">
                 <div className="tabela-rolavel">
