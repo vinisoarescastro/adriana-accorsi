@@ -52,7 +52,7 @@ export function FormularioDeBeneficiario({
   const [complemento, setComplemento] = useState(beneficiario?.complemento ?? '');
   const [bairro, setBairro] = useState(beneficiario?.bairro ?? '');
   const [cidade, setCidade] = useState(beneficiario?.cidade ?? '');
-  const [estado, setEstado] = useState<Uf>(beneficiario?.estado ?? 'MS');
+  const [estado, setEstado] = useState<Uf>(beneficiario?.estado ?? 'GO');
   const [tocouNoCnpj, setTocouNoCnpj] = useState(false);
 
   const cnpjOk = cnpjValido(cnpj);

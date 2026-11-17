@@ -83,7 +83,7 @@ async function popularBeneficiarios(ctx: Contexto): Promise<void> {
     complemento: sorteio.chance(0.2) ? `Sala ${sorteio.inteiro(1, 40)}` : null,
     bairro: 'Centro',
     cidade: b.cidade,
-    estado: 'MS',
+    estado: 'GO',
     natureza: b.natureza,
     situacao: i >= beneficiariosDeExemplo.length - inativos ? 'inativo' : 'ativo',
     criadoPor: sorteio.escolher(quemCadastra).id,

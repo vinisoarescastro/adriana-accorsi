@@ -81,7 +81,7 @@ describe('página de beneficiários', () => {
     expect(corpo).toMatchObject({
       cnpj: '12ABC34501DE35',
       cep: '79002000',
-      estado: 'MS',
+      estado: 'GO',
       natureza: 'municipio',
     });
     expect(corpo).not.toHaveProperty('complemento');

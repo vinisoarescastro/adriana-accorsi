@@ -1,5 +1,5 @@
 import { consentimentoNotificacao, pessoa } from '@gabinete/banco';
-import { bairros, nomes, ruas, sobrenomes } from './conteudo.js';
+import { bairros, municipios, nomes, ruas, sobrenomes } from './conteudo.js';
 import { comArea, contar, registrarNaTrilha, semAcento, type Contexto } from './contexto.js';
 
 export interface PessoaCriada {
@@ -42,7 +42,7 @@ export async function popularPessoas(ctx: Contexto): Promise<PessoaCriada[]> {
 
     let digitos: string;
     do {
-      digitos = `679${String(sorteio.inteiro(10000000, 99999999))}`;
+      digitos = `629${String(sorteio.inteiro(10000000, 99999999))}`;
     } while (telefones.has(digitos));
     telefones.add(digitos);
 
@@ -53,18 +53,20 @@ export async function popularPessoas(ctx: Contexto): Promise<PessoaCriada[]> {
     const baseDoEmail = semAcento(nomeCompleto).split('.').slice(0, 2).join('.');
     const criadoEm = relogio.diasAtras(sorteio.inteiro(8, 210));
     const bairro = sorteio.escolher(bairros);
+    // A maior parte vive na capital; o resto, no interior do estado.
+    const cidade = sorteio.chance(0.55) ? 'Goiânia' : sorteio.escolher(municipios);
     linhas.push({
       nomeCompleto: situacao === 'dados_eliminados' ? null : nomeCompleto,
       telefoneNormalizado: situacao === 'dados_eliminados' ? null : digitos.slice(0, 11),
       email: temEmail ? `${baseDoEmail}${i}@exemplo.test` : null,
       contatos:
         situacao !== 'dados_eliminados' && sorteio.chance(0.25)
-          ? `Recado com a vizinha, ${sorteio.escolher(nomes)} (67) 3${sorteio.inteiro(100, 999)}-${sorteio.inteiro(1000, 9999)}`
+          ? `Recado com a vizinha, ${sorteio.escolher(nomes)} (62) 3${sorteio.inteiro(100, 999)}-${sorteio.inteiro(1000, 9999)}`
           : null,
       endereco:
         situacao === 'dados_eliminados' || sorteio.chance(0.2)
           ? null
-          : `Rua ${sorteio.escolher(ruas)}, ${sorteio.inteiro(12, 1480)}, ${bairro}, Campo Grande/MS`,
+          : `Rua ${sorteio.escolher(ruas)}, ${sorteio.inteiro(12, 1480)}, ${bairro}, ${cidade}/GO`,
       situacao,
       criadoPor: sorteio.escolher(atendentes).id,
       criadoEm,

@@ -3,6 +3,7 @@ import type { Prioridade } from '@gabinete/compartilhado';
 import { eq } from 'drizzle-orm';
 import {
   bairros,
+  municipios,
   descricoesDeTarefa,
   justificativasDeCancelamento,
   titulosDeTarefaDeDemanda,
@@ -83,7 +84,10 @@ export async function popularTarefas(
     );
     const demandaVinculada =
       candidatas.length > 0 && sorteio.chance(0.5) ? sorteio.escolher(candidatas) : null;
-    const valores = { bairro: sorteio.escolher(bairros) };
+    const valores = {
+      bairro: sorteio.escolher(bairros),
+      municipio: sorteio.escolher(municipios),
+    };
     const titulo = demandaVinculada
       ? `${sorteio.escolher(titulosDeTarefaDeDemanda)} (${demandaVinculada.protocolo})`
       : preencher(sorteio.escolher(titulosDeTarefaInterna), valores);

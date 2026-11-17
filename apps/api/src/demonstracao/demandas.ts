@@ -8,7 +8,13 @@ import {
 } from '@gabinete/banco';
 import type { Prioridade } from '@gabinete/compartilhado';
 import { eq } from 'drizzle-orm';
-import { bairros, justificativasDeCancelamento, observacoesDeMovimento, ruas } from './conteudo.js';
+import {
+  bairros,
+  justificativasDeCancelamento,
+  municipios,
+  observacoesDeMovimento,
+  ruas,
+} from './conteudo.js';
 import { temas, type Tema } from './temas.js';
 import {
   comArea,
@@ -136,6 +142,7 @@ export async function popularDemandas(
       const valores = {
         rua: sorteio.escolher(ruas),
         bairro: sorteio.escolher(bairros),
+        municipio: sorteio.escolher(municipios),
         num: String(sorteio.inteiro(20, 900)),
       };
       const titulo = preencher(sorteio.escolher(tema.titulos), valores);

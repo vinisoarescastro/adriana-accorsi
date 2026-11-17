@@ -7,7 +7,7 @@ import {
   participanteInterno,
 } from '@gabinete/banco';
 import { eq } from 'drizzle-orm';
-import { bairros, compromissos, eventos as modelosDeEvento } from './conteudo.js';
+import { bairros, compromissos, eventos as modelosDeEvento, municipios } from './conteudo.js';
 import {
   avisar,
   comArea,
@@ -78,7 +78,7 @@ export async function popularAgenda(
       ...modelo,
       inicio,
       horas: sorteio.inteiro(1, 3),
-      diaInteiro: modelo.titulo === 'Atendimento ao público' && sorteio.chance(0.5),
+      diaInteiro: modelo.titulo === 'Atendimento ao público em Goiânia' && sorteio.chance(0.5),
     });
   }
 
@@ -86,6 +86,7 @@ export async function popularAgenda(
   let cancelados = 0;
   for (const m of marcas) {
     const bairro = sorteio.escolher(bairros);
+    const municipio = sorteio.escolher(municipios);
     const criador = sorteio.escolher(internos);
     const colega = sorteio.escolher(internos.filter((c) => c.id !== criador.id));
     const fim = new Date(m.inicio.getTime() + m.horas * 3_600_000);
@@ -101,7 +102,9 @@ export async function popularAgenda(
       ['restrito', 14],
     ]);
     const autor = visibilidade === 'restrito' ? sorteio.escolher(supervisores) : criador;
-    const descricao = m.descricao ? preencher(m.descricao, { A: colega.nome, bairro }) : null;
+    const descricao = m.descricao
+      ? preencher(m.descricao, { A: colega.nome, bairro, municipio })
+      : null;
     // Dia inteiro: de 0h a 23h59 de Brasília (3h UTC do dia até 2h59 UTC do seguinte).
     const inicioDoCompromisso = m.diaInteiro
       ? new Date(`${relogio.dia(m.inicio)}T03:00:00Z`)
@@ -115,9 +118,9 @@ export async function popularAgenda(
       .insert(compromisso)
       .values({
         criadorId: autor.id,
-        titulo: preencher(m.titulo, { bairro }),
+        titulo: preencher(m.titulo, { bairro, municipio }),
         descricao,
-        local: m.local ? preencher(m.local, { bairro }) : null,
+        local: m.local ? preencher(m.local, { bairro, municipio }) : null,
         inicio: inicioDoCompromisso,
         fim: fimDoCompromisso,
         diaInteiro: m.diaInteiro,
@@ -242,15 +245,16 @@ export async function popularAgenda(
     const inicio = new Date(relogio.agora.getTime() + diasAteOEvento * UM_DIA);
     inicio.setUTCHours(13 + (i % 4), 0, 0, 0);
     const bairro = sorteio.escolher(bairros);
+    const municipio = sorteio.escolher(municipios);
     const criador = sorteio.escolher(internos);
     const passado = inicio < relogio.agora;
     const [linha] = await ctx.bd
       .insert(evento)
       .values({
         criadorId: criador.id,
-        nome: preencher(modelo.nome, { bairro }),
+        nome: preencher(modelo.nome, { bairro, municipio }),
         inicio,
-        local: preencher(modelo.local, { bairro }),
+        local: preencher(modelo.local, { bairro, municipio }),
         criadoEm: relogio.depois(inicio, -sorteio.inteiro(10, 30)),
       })
       .returning({ id: evento.id });
