@@ -18,6 +18,7 @@ const esperado: Record<NomeDeOperacao, readonly Perfil[]> = {
   'sessao.trocar_senha': perfis,
   'perfil.alterar_foto': perfis,
   'painel.abrir': perfis,
+  'painel.equipe': ['parlamentar', 'administrador', 'chefe'],
   'painel.atendimento': perfis,
   'pessoas.consultar': perfis,
   'pessoas.manter': ['parlamentar', 'administrador', 'chefe', 'supervisor', 'assessor_interno'],

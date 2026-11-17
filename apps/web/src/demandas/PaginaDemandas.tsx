@@ -34,7 +34,8 @@ export function PaginaDemandas({ sessao }: { sessao: RespostaDaSessao }) {
     visaoDoEndereco === 'lista' || (visaoDoEndereco === null && parametros.get('status'))
       ? 'lista'
       : 'quadro';
-  const [criando, setCriando] = useState(false);
+  // O atalho do painel abre o cadastro direto (`?novo=1`).
+  const [criando, setCriando] = useState(parametros.get('novo') === '1');
   const [termo, setTermo] = useState('');
   const [status, setStatus] = useState<StatusDeDemanda | ''>(
     (parametros.get('status') as StatusDeDemanda) || '',

@@ -36,7 +36,7 @@ export function PaginaTarefas({ sessao }: { sessao: RespostaDaSessao }) {
     visaoDoEndereco === 'lista' || (visaoDoEndereco === null && parametros.get('status'))
       ? 'lista'
       : 'quadro';
-  const [criando, setCriando] = useState(false);
+  const [criando, setCriando] = useState(parametros.get('novo') === '1');
   const [termo, setTermo] = useState('');
   const [status, setStatus] = useState<StatusDeTarefa | ''>(
     (parametros.get('status') as StatusDeTarefa) || '',

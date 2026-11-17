@@ -1,0 +1,545 @@
+/* ===== Painel (página inicial): saudação, indicadores, gráficos e blocos laterais ===== */
+.painel {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.painel-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.painel-topo__saudacao {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.015em;
+  line-height: var(--leading-tight);
+}
+
+.painel-topo__data {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.painel-topo__data::first-letter {
+  text-transform: uppercase;
+}
+
+.painel-atalhos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.painel-atalhos .botao {
+  text-decoration: none;
+}
+
+/* Duas colunas: o principal (números e gráficos) e a lateral (o que pede atenção). */
+.painel-grade {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.painel-principal,
+.painel-lateral {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.painel-secao h2 {
+  margin-bottom: var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Sempre quatro por grupo: uma linha quando cabe e duas de dois quando a coluna estreita (nunca 3 + 1). */
+.painel-principal {
+  container-type: inline-size;
+}
+
+.painel-secao .indicadores {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-bottom: 0;
+}
+
+@container (max-width: 40rem) {
+  .painel-secao .indicadores {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.painel-secao .indicador {
+  padding: var(--space-4);
+}
+
+.painel-duplo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-5);
+}
+
+/*
+ * Indicador que pede atenção: uma borda sólida de 2 px em volta de todo o cartão (sem faixa no topo nem
+ * na lateral) e o número em vermelho; a palavra do apoio diz o porquê. A segunda linha da borda é sombra,
+ * para o cartão não mudar de tamanho.
+ */
+.indicador--alerta {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.indicador__valor--alerta {
+  color: var(--danger-text);
+}
+
+/* Pendências */
+.pendencias {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.pendencias__lista,
+.lista-painel {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pendencia,
+.lista-painel__item {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  color: inherit;
+  text-decoration: none;
+  transition: background var(--duration-fast) var(--ease);
+}
+
+.pendencia {
+  flex-direction: column;
+  gap: 2px;
+}
+
+a.pendencia:hover,
+a.lista-painel__item:hover {
+  background: var(--surface-hover);
+  text-decoration: none;
+}
+
+.pendencia__titulo,
+.lista-painel__titulo {
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+  overflow-wrap: anywhere;
+}
+
+.pendencia__meta,
+.lista-painel__meta,
+.pendencia__prazo {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.pendencia__prazo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pendencia__prazo--atrasada {
+  color: var(--danger-text);
+  font-weight: var(--weight-medium);
+}
+
+.pendencias__vazio {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.pendencias__todas {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+/* Listas laterais (compromissos, avisos e atividade) */
+.lista-painel__item {
+  align-items: flex-start;
+}
+
+.lista-painel__item--discreto {
+  color: var(--text-muted);
+}
+
+.lista-painel__icone {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-md);
+  background: var(--primary-soft);
+  color: var(--primary-soft-text);
+}
+
+.lista-painel__item--discreto .lista-painel__icone {
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+.lista-painel__corpo {
+  display: grid;
+  min-width: 0;
+}
+
+.lista-painel__novo {
+  margin-right: var(--space-2);
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 0.6875rem;
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+}
+
+/* ===== Gráficos ===== */
+.grafico {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.grafico__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.grafico__legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  list-style: none;
+}
+
+.grafico__legenda li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.grafico__legenda strong {
+  color: var(--text);
+  font-weight: var(--weight-semibold);
+}
+
+.grafico__chave {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 3px;
+}
+
+.grafico__area {
+  position: relative;
+  border-radius: var(--radius-md);
+  outline-offset: 2px;
+}
+
+.grafico__area svg {
+  display: block;
+  max-width: 100%;
+}
+
+.grafico__grade {
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+}
+
+.grafico__eixo {
+  fill: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 11px;
+}
+
+.grafico__linha {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.grafico__mira {
+  stroke: var(--text-subtle);
+  stroke-width: 1;
+}
+
+/* O marcador tem o anel da cor da superfície, para não se perder onde as linhas se cruzam. */
+.grafico__ponto {
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+.grafico__dica {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  gap: 2px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  font-size: var(--text-sm);
+  pointer-events: none;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.grafico__dica-dia {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.grafico__dica-linha {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.grafico__dica-linha .grafico__chave {
+  width: 0.75rem;
+  height: 2px;
+}
+
+.grafico__tabela {
+  max-height: 15rem;
+}
+
+/* Barras horizontais de uma cor */
+.barras {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.barras__linha {
+  display: grid;
+  grid-template-columns: minmax(6rem, 42%) minmax(0, 1fr) 2.25rem;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 2px 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+a.barras__linha:hover .barras__barra {
+  background: var(--primary-hover);
+}
+
+.barras__rotulo {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barras__trilho {
+  display: block;
+  height: 0.75rem;
+}
+
+/* Fina, da mesma linha de base, redonda só na ponta dos dados. */
+.barras__barra {
+  display: block;
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+  background: var(--chart-1);
+  transition: width var(--duration-base) var(--ease);
+}
+
+.barras__valor {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--weight-semibold);
+  text-align: right;
+}
+
+/* Carga da equipe */
+.carga {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.carga__lista {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.carga__linha {
+  display: grid;
+  grid-template-columns: minmax(7rem, 30%) minmax(0, 1fr) 2rem 4.5rem;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.carga__nome {
+  display: grid;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.carga__apoio,
+.carga__concluidas {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+}
+
+.carga__trilho {
+  display: block;
+  height: 0.75rem;
+}
+
+.carga__barra {
+  display: flex;
+  gap: 2px;
+  height: 100%;
+  transition: width var(--duration-base) var(--ease);
+}
+
+.carga__trecho {
+  min-width: 4px;
+  height: 100%;
+}
+
+.carga__trecho--em-dia {
+  border-radius: 0 0 0 0;
+  background: var(--chart-neutral);
+}
+
+.carga__trecho--atrasada {
+  border-radius: 0 4px 4px 0;
+  background: var(--chart-1);
+}
+
+.carga__trecho--em-dia:last-child {
+  border-radius: 0 4px 4px 0;
+}
+
+.carga__valor {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--weight-semibold);
+  text-align: right;
+}
+
+/* ===== Telas menores ===== */
+@media (max-width: 1100px) {
+  .painel-grade {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /*
+   * Em uma coluna, a ordem é a da importância: o que está com a pessoa e a agenda primeiro, depois os
+   * números e gráficos, e por último os avisos e a atividade.
+   */
+  .painel-grade {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .painel-principal,
+  .painel-bloco {
+    width: 100%;
+  }
+
+  .painel-lateral {
+    display: contents;
+  }
+
+  .painel-bloco--pendencias {
+    order: 1;
+  }
+
+  .painel-bloco--agenda {
+    order: 2;
+  }
+
+  .painel-principal {
+    order: 3;
+  }
+
+  .painel-bloco--avisos {
+    order: 4;
+  }
+
+  .painel-bloco--atividade {
+    order: 5;
+  }
+}
+
+@media (max-width: 640px) {
+  .painel-secao .indicador {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .painel-topo__saudacao {
+    font-size: var(--text-xl);
+  }
+
+  .painel-atalhos {
+    width: 100%;
+  }
+
+  .painel-atalhos .botao {
+    flex: 1 1 calc(50% - var(--space-2));
+    justify-content: center;
+  }
+
+  .barras__linha {
+    grid-template-columns: minmax(5rem, 40%) minmax(0, 1fr) 2rem;
+    gap: var(--space-2);
+  }
+
+  .carga__linha {
+    grid-template-columns: minmax(5rem, 34%) minmax(0, 1fr) 2rem;
+  }
+
+  .carga__concluidas {
+    display: none;
+  }
+}

@@ -36,7 +36,7 @@ export function PaginaProjetos({ sessao }: { sessao: RespostaDaSessao }) {
     (visaoDoEndereco === null && (parametros.get('status') || parametros.get('atrasados')))
       ? 'lista'
       : 'quadro';
-  const [criando, setCriando] = useState(false);
+  const [criando, setCriando] = useState(parametros.get('novo') === '1');
   const [termo, setTermo] = useState('');
   const [status, setStatus] = useState<StatusDeProjeto | ''>(
     (parametros.get('status') as StatusDeProjeto) || '',

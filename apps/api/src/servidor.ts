@@ -28,6 +28,7 @@ import { registrarRotasDoPainel } from './painel/rotas.js';
 import { ServicoDeAcompanhamento } from './publicacao/acompanhamento.js';
 import { ServicoDePoliticaDePublicacao } from './publicacao/politica.js';
 import { registrarRotasDePublicacao } from './publicacao/rotas.js';
+import { ServicoDoPainelDeAcompanhamento } from './painel/acompanhamento.js';
 import { ServicoDoPainel } from './painel/servico.js';
 import { registrarRotasDePessoas } from './pessoas/rotas.js';
 import { ServicoDePessoas } from './pessoas/servico.js';
@@ -182,7 +183,11 @@ export async function construirServidor(dep: DependenciasDoServidor): Promise<Fa
     app,
     new ServicoDeDocumentos(bd, dep.armazenamento, consultasDeDemandas, dep.antivirus, agora),
   );
-  registrarRotasDoPainel(app, new ServicoDoPainel(bd, agora));
+  registrarRotasDoPainel(
+    app,
+    new ServicoDoPainel(bd, agora),
+    new ServicoDoPainelDeAcompanhamento(bd, agora),
+  );
   registrarRotasDePublicacao(
     app,
     new ServicoDePoliticaDePublicacao(bd),

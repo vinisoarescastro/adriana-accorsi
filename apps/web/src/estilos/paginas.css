@@ -492,8 +492,8 @@
 .texto-de-consentimento {
   margin: var(--space-3) 0;
   padding: var(--space-3) var(--space-4);
-  border-left: 3px solid var(--primary);
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   background: var(--surface-muted);
 }
 

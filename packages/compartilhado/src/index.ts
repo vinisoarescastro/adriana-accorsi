@@ -8,3 +8,4 @@ export * from './perfis.js';
 export * from './protocolo.js';
 export * from './trabalho.js';
 export * from './legislativo.js';
+export * from './painel.js';

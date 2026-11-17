@@ -306,6 +306,7 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 
 | 2026-11-16 | Interface adota o design system de referência (tokens, barra lateral, tema escuro, Poppins, ícones), sem mudar funcionalidade. Ver [ADR 0011](../arquitetura/decisoes/0011-design-system-da-interface.md) |
 | 2026-11-16 | Fases 1, 2 e 3 encerradas por aceite do usuário. Ficam pendentes, para a implantação ao fim das fases: VPS e DNS (PV-E), e-mail real com SPF, DKIM e DMARC, revisão jurídica (PV-F) e os itens de infraestrutura dos roteiros. Fase 4 aprovada para começar |
+| 2026-11-17 | Painel inicial reformulado: indicadores por perfil (quatro por grupo), tendência, pendências, agenda, avisos, atividade e carga da equipe, com gráficos próprios; atalhos por perfil. Detalhes no [ADR 0011](../arquitetura/decisoes/0011-design-system-da-interface.md) |
 | 2026-11-17 | Dados de demonstração reescritos como os de um gabinete de **deputada federal em Goiás** (INSS, emendas, saúde federal, DNIT, Receita e Polícia Federal; agenda entre Brasília e Goiânia; municípios goianos), em lugar dos de um vereador. O estado é uma suposição do desenvolvimento: confirmar com o gabinete (pergunta B1.2 de [perguntas-ao-gabinete.md](perguntas-ao-gabinete.md)) |
 | 2026-11-17 | Fase 5 (Legislativo) implementada por inteiro, a pedido do usuário, em blocos consecutivos (ver "Fase 5" acima) |
 | 2026-11-17 | Fase 4 encerrada por aceite do usuário. Seguem pendentes, para a implantação: VPS e DNS (PV-E), e-mail real, e e-mail real. Fase 5 (Legislativo) liberada, com PV-A confirmada |

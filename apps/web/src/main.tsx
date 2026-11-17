@@ -12,6 +12,7 @@ import './estilos/base.css';
 import './estilos/componentes.css';
 import './estilos/paginas.css';
 import './estilos/sistema.css';
+import './estilos/painel.css';
 
 import { temaInicial } from './layout/tema';
 

@@ -299,12 +299,15 @@ describe('painel de tarefas', () => {
       },
     });
     renderizar('/g/painel');
-    const atrasadas = await screen.findByRole('link', { name: /Tarefas atrasadas/ });
+    const secao = await screen.findByRole('region', { name: 'Tarefas' });
+    const atrasadas = await within(secao).findByRole('link', { name: /Atrasadas/ });
     expect(atrasadas).toHaveAttribute('href', '/g/tarefas?atrasadas=true');
     expect(within(atrasadas).getByText('2')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Minhas tarefas atrasadas/ })).toHaveAttribute(
+    // Quantas dessas estão com a própria pessoa fica na linha de apoio.
+    expect(within(atrasadas).getByText('1 com você')).toBeInTheDocument();
+    expect(within(secao).getByRole('link', { name: /Minhas em andamento/ })).toHaveAttribute(
       'href',
-      '/g/tarefas?atrasadas=true&minhas=true',
+      '/g/tarefas?status=em_andamento&minhas=true',
     );
   });
 });

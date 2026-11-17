@@ -118,6 +118,16 @@
   --accent-text: #7a5b00;
   --on-accent: #18181b;
 
+  /*
+   * Gráficos. Duas séries com identidade (vermelho da marca e azul), conferidas com o validador de
+   * paleta (diferença de cor para daltonismo, faixa de luminosidade e contraste com a superfície);
+   * o cinza é só para o que é contexto. O texto do gráfico usa os tokens de texto, nunca estas cores.
+   */
+  --chart-1: #e1062c;
+  --chart-2: #1d6fa5;
+  --chart-neutral: #a1a1aa;
+  --chart-grid: #e4e4e7;
+
   /* Degradês (com intenção: destaque, barra lateral, cartão principal) */
   --gradient-primary: linear-gradient(135deg, #e1062c 0%, #c20524 55%, #a30420 100%);
   --gradient-deep: linear-gradient(160deg, #18181b 0%, #0e0e10 60%, #050506 100%);
@@ -237,6 +247,11 @@
   --info: #38bdf8;
   --info-soft: #082f49;
   --info-border: #0c4a6e;
+
+  --chart-1: #f23a50;
+  --chart-2: #3d8fd1;
+  --chart-neutral: #71717a;
+  --chart-grid: #27272a;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);

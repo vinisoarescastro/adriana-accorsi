@@ -30,3 +30,11 @@ A interface nasceu com uma paleta provisória e componentes simples. O usuário 
 - **Rolagem dos quadros**: barras finas e quase invisíveis, sem trilha nem setinhas.
 - A logo é a atual (texto branco "Gabinete Digital Adriana Accorsi"); trocar pela oficial é só substituir o arquivo.
 
+## Atualização (2026-11-17): o painel e os gráficos
+
+- **Painel por perfil.** A página inicial mostra, na ordem de importância: o que está com a pessoa agora (tarefas e demandas, as atrasadas primeiro), os indicadores, as tendências e, por último, o que andou. Cada bloco só aparece para quem tem a permissão e a habilitação dele (o mesmo decisor das rotas): o Assessor Externo não vê projetos nem carga da equipe; sem a habilitação de atendimento não há bloco nem gráfico de demandas; a **carga da equipe** é do Chefe em diante (operação `painel.equipe`). Os atalhos de cada perfil também passam pelo decisor.
+- **Dados reais, sem métrica nova gravada.** Tendência (recebidas e concluídas por dia), pendências, atividade recente e carga da equipe são leituras calculadas na hora, com o mesmo alcance das listagens (o Externo só conta o que é dele). Nada foi adicionado ao banco.
+- **Quatro indicadores por grupo** (atendimento, tarefas, projetos): uma linha quando cabe e duas de dois quando a coluna estreita, nunca 3 + 1. O indicador que pede atenção ganha **borda sólida de 2 px em volta do cartão e o número em vermelho**; a faixa colorida na lateral ou no topo do cartão não é usada.
+- **Gráficos em SVG e CSS próprios, sem biblioteca.** Seguem o método da skill de visualização: tendência em linhas de 2 px com legenda e totais, mira e dica ao passar o mouse (e pelas setas, com o gráfico em foco), botão "Ver como tabela" com os mesmos números; barras horizontais finas e de uma só cor, com o valor na ponta; a carga da equipe em dois trechos (em dia, em cinza; atrasadas, no vermelho). As duas séries com identidade (`--chart-1` vermelho da marca e `--chart-2` azul) passaram no validador de paleta nos dois temas.
+- **Celular.** Em uma coluna, a ordem é pendências, agenda, indicadores, gráficos, avisos e atividade; sem rolagem horizontal de 390 a 1366 px.
+

@@ -35,7 +35,9 @@ export function PaginaAgenda({ sessao }: { sessao: RespostaDaSessao }) {
   const [referencia, setReferencia] = useState(hoje);
   const [visao, setVisao] = useState<VisaoDaAgenda>('semana');
   const [minha, setMinha] = useState(false);
-  const [modo, setModo] = useState<'nenhum' | 'compromisso' | 'bloqueio'>('nenhum');
+  const [modo, setModo] = useState<'nenhum' | 'compromisso' | 'bloqueio'>(
+    parametros.get('novo') === '1' ? 'compromisso' : 'nenhum',
+  );
   const [bloqueioAberto, setBloqueioAberto] = useState<Extract<
     ItemDaAgenda,
     { tipo: 'bloqueio' }

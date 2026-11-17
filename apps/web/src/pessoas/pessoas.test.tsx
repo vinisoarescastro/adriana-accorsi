@@ -107,13 +107,15 @@ describe('painel de atendimento', () => {
     });
     renderizar('/g/painel');
 
-    expect(await screen.findByText('12')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Atrasadas/ })).toHaveAttribute(
+    const secao = await screen.findByRole('region', { name: 'Atendimento' });
+    expect(await within(secao).findByText('12')).toBeInTheDocument();
+    expect(within(secao).getByRole('link', { name: /Atrasadas/ })).toHaveAttribute(
       'href',
       '/g/demandas?atrasadas=true',
     );
-    expect(screen.getByText(/Paradas há mais de 14 dias/)).toBeInTheDocument();
-    const tabela = screen.getByRole('table', { name: 'Demandas por etapa' });
-    expect(within(tabela).getByText('Recebida').nextSibling).toHaveTextContent('8');
+    expect(within(secao).getByText(/Sem movimento há mais de 14 dias/)).toBeInTheDocument();
+    // O gráfico de barras traz os números em texto: nada depende só da barra.
+    const barras = screen.getByRole('list', { name: 'Demandas por etapa' });
+    expect(within(barras).getByText('Recebida').closest('li')).toHaveTextContent('8');
   });
 });

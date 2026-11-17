@@ -29,6 +29,12 @@ export const operacoes = {
   // Painel (blocos entram a partir da fase 2)
   'painel.abrir': { descricao: 'Abrir o painel', nivelMinimo: 1 },
 
+  'painel.equipe': {
+    descricao: 'Ver a carga de trabalho e a composição da equipe no painel',
+    nivelMinimo: 4,
+    perfisAdicionais: ['parlamentar'],
+  },
+
   // Atendimento (habilitação AT). Painel, pessoas e demandas: ver docs/especificacao/03.
   'painel.atendimento': {
     descricao: 'Ver o bloco de atendimento do painel',

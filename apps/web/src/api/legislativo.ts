@@ -72,9 +72,10 @@ export const useEtapasDeProjeto = () =>
       ),
   });
 
-export const useConsolidadoDeProjetos = () =>
+export const useConsolidadoDeProjetos = (ativo = true) =>
   useQuery({
     queryKey: chavesDoLegislativo.consolidado,
+    enabled: ativo,
     queryFn: () => chamar<ConsolidadoDeProjetos>('GET', '/api/projetos/consolidado'),
   });
 
