@@ -3,7 +3,7 @@
 Roteiro de conferência manual. Os testes automatizados garantem as regras; este roteiro garante que **alguém olhou** as telas (projetos de lei, quadro, ficha, comissões, votações e beneficiários), inclusive no celular.
 
 - **Quem executa:** a pessoa que vai apresentar o sistema (e, se possível, alguém do gabinete).
-- **Estado:** **pendente da parte visual**. As regras foram exercitadas contra a API real (ver "Execução contra o ambiente real"); falta alguém olhar as telas, inclusive em 360 px.
+- **Estado:** **encerrada por aceite do usuário em 2026-11-17**. As regras foram exercitadas contra a API real (ver "Execução contra o ambiente real").
 
 ## Antes de começar
 

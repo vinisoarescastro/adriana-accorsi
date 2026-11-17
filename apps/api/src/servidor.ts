@@ -37,6 +37,18 @@ import { ServicoDeAuditoria } from './auditoria/servico.js';
 import { registrarRotasDeFluxos } from './fluxos/rotas.js';
 import { ServicoDeFluxos } from './fluxos/servico.js';
 import { ServicoDeBeneficiarios } from './beneficiarios/servico.js';
+import { ServicoDeCompetencias } from './ceap/competencias.js';
+import { ServicoDeComprovantes } from './ceap/comprovantes.js';
+import { ConsultasDaCeap } from './ceap/consultas.js';
+import { ServicoDeDespesas } from './ceap/despesas.js';
+import { ServicoDoSaldoDaCeap } from './ceap/painel.js';
+import { ServicoDeParametrosDaCeap } from './ceap/parametros.js';
+import { ServicoDoRelatorioDaCeap } from './ceap/relatorio.js';
+import { registrarRotasDaCeap } from './ceap/rotas.js';
+import { ConsultasDeEmendas } from './emendas/consultas.js';
+import { ServicoDeDestinacoes } from './emendas/destinacoes.js';
+import { registrarRotasDeEmendas } from './emendas/rotas.js';
+import { ServicoDeEmendas } from './emendas/servico.js';
 import { registrarRotasDeBeneficiarios } from './beneficiarios/rotas.js';
 import { ServicoDeAcompanhamentoDoProjeto } from './projetos/acompanhamento.js';
 import { ConsultasDeProjetos } from './projetos/consultas.js';
@@ -228,6 +240,31 @@ export async function construirServidor(dep: DependenciasDoServidor): Promise<Fa
     new ServicoDeAcompanhamentoDoProjeto(bd, consultasDeProjetos, agora),
     new ServicoDeVocabularios(bd),
   );
+
+  const consultasDeEmendas = new ConsultasDeEmendas(bd, agora);
+  registrarRotasDeEmendas(
+    app,
+    consultasDeEmendas,
+    new ServicoDeEmendas({ bd, consultas: consultasDeEmendas, agora }),
+    new ServicoDeDestinacoes(bd, consultasDeEmendas, agora),
+  );
+
+  const consultasDaCeap = new ConsultasDaCeap(bd, agora);
+  registrarRotasDaCeap(app, {
+    consultas: consultasDaCeap,
+    despesas: new ServicoDeDespesas({ bd, consultas: consultasDaCeap, agora }),
+    comprovantes: new ServicoDeComprovantes(
+      bd,
+      dep.armazenamento,
+      consultasDaCeap,
+      dep.antivirus,
+      agora,
+    ),
+    parametros: new ServicoDeParametrosDaCeap(bd, agora),
+    competencias: new ServicoDeCompetencias(bd, agora),
+    saldo: new ServicoDoSaldoDaCeap(bd, agora),
+    relatorio: new ServicoDoRelatorioDaCeap(bd, consultasDaCeap, dep.armazenamento, agora),
+  });
 
   await dep.registrarRotas?.(app);
   return app;

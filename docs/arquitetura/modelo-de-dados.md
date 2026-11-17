@@ -109,23 +109,27 @@ Implementado na migração 0014 (fase 5). Ver [ADR 0012](decisoes/0012-legislati
 
 ## 10. Emendas
 
+Migração 0015. Ver [ADR 0013](decisoes/0013-financeiro-emendas-e-ceap.md).
+
 | Tabela | Colunas principais | Observações |
 | --- | --- | --- |
-| `emenda` | `responsavel_id`, `identificacao`, `exercicio`, `tipo_id`, `finalidade`, `valor_disponibilizado`, `prazo_destinacao`, `prazo_empenho`, `prazo_execucao`, `etapa_atual_id`, cancelamento | Único: (`identificacao`, `exercicio`). **Só `valor_disponibilizado` é cadastrado**; comprometido, utilizado, disponível e a executar são derivados por visão |
-| `destinacao` | `emenda_id`, `beneficiario_id`, `valor`, `finalidade`, `etapa_atual_id`, `situacao`, justificativa | Valor não excede o disponível |
-| `execucao_destinacao` | `destinacao_id`, `valor`, `data` | Valor maior que zero; data não futura |
+| `emenda` | `criador_id`, `responsavel_id`, `identificacao`, `exercicio`, `tipo_id` (categoria `tipo_emenda`), `finalidade`, `prazo_destinacao`, `prazo_empenho`, `prazo_execucao`, `etapa_atual_id`, cancelamento | Único entre as não canceladas: (`identificacao`, `exercicio`). **Desvio:** o valor não é coluna da emenda, e sim histórico em `emenda_valor`. Emenda cancelada não se altera |
+| `emenda_valor` | `emenda_id`, `valor`, `definido_por`, `definido_em` | **Só acrescenta.** O valor disponibilizado é o mais recente; o de uma data passada é o que valia nela |
+| `destinacao` | `emenda_id`, `beneficiario_id`, `valor`, `finalidade`, `etapa_atual_id`, `criada_por`, `criada_em`, cancelamento | A soma das ativas não excede o valor da emenda (gatilho). Valor, emenda e beneficiário não mudam. Com execução, não se cancela |
+| `execucao_destinacao` | `destinacao_id`, `valor`, `data`, `observacao`, `registrado_por`, `registrado_em` | Só acrescenta; valor maior que zero; data não futura; a soma não excede a destinação |
+
+Comprometido, utilizado, a executar e disponível **não são colunas**: a API os calcula na leitura (e na data pedida, na reconstituição).
 
 ## 11. CEAP
 
-Esta é a parte que mais difere do Mandatus. Ver `docs/especificacao/08-ceap.md`.
+Migração 0016. Esta é a parte que mais difere do Mandatus. Ver `docs/especificacao/08-ceap.md` e o [ADR 0013](decisoes/0013-financeiro-emendas-e-ceap.md).
 
 | Tabela | Colunas principais | Observações |
 | --- | --- | --- |
-| `ceap_parametro` | `chave` (por exemplo `cota_mensal`, `prazo_apresentacao_dias`, `guarda_originais_anos`, `limite_alerta`), `valor`, `vigente_de`, `vigente_ate` | Sem sobreposição de vigência para a mesma chave (restrição de exclusão por intervalo) |
-| `ceap_categoria` | `nome`, `item_norma`, `teto_mensal`, `teto_percentual_menor_cota`, `comprovante_obrigatorio`, `situacao`, `vigente_de`, `vigente_ate` | A última ativa não se desativa |
-| `ceap_exercicio` | `ano` (único) | |
-| `ceap_competencia` | `exercicio_id`, `mes`, `cota_mensal_aplicada`, `encerrada_em` | `cota_mensal_aplicada` é o valor do parâmetro vigente congelado na competência, para reconstituir |
-| `despesa` | `competencia_id`, `categoria_id`, `responsavel_id`, `lancado_por`, `decidido_por`, `decisao_pelo_proprio_lancador` (bool), `descricao`, `valor`, `data_documento`, `fornecedor_documento`, `fornecedor_nome`, `numero_documento`, `comprovante_id`, `etapa_atual_id`, `motivo_reprovacao`, `decidida_em`, cancelamento | Restrição e gatilho de segregação; ver abaixo |
+| `ceap_parametro` | `chave` (`cota_mensal`, `prazo_apresentacao_dias`, `guarda_originais_anos`, `limite_alerta_saldo`), `valor`, `vigente_de`, `vigente_ate`, `definido_por`, `definido_em` | Sem sobreposição de vigência para a mesma chave (gatilho). Não se altera nem se apaga: só se encerra a vigência. **Nenhum valor é semeado** |
+| `ceap_categoria` | `nome`, `item_norma`, `teto_mensal`, `comprovante_obrigatorio`, `situacao` | Nome único sem diferenciar maiúsculas. A última ativa não se desativa. **Desvio:** sem vigência própria nem teto percentual; o conjunto inicial é uma proposta a conferir |
+| `ceap_encerramento` | `ano`, `mes` (chave), `encerrada_por`, `encerrada_em`, `reaberta_por`, `reaberta_em` | Substitui `ceap_exercicio` e `ceap_competencia`: o exercício é o ano da data do documento, e a cota de cada mês vem do parâmetro vigente (nada é "congelado") |
+| `despesa` | `categoria_id`, `responsavel_id`, `lancado_por`, `descricao`, `valor`, `data_documento`, `competencia_ano` e `competencia_mes` (colunas geradas da data), `fornecedor_nome`, `fornecedor_documento`, `numero_documento`, `etapa_atual_id`, `decidido_por`, `decidida_em`, `decisao_pelo_proprio_lancador`, `motivo_reprovacao`, cancelamento | Restrição e gatilho de segregação; ver abaixo. Despesa decidida não se edita. Os comprovantes são documentos (fase 2) ligados à despesa |
 
 ### Regra de segregação no banco
 
@@ -137,15 +141,15 @@ CHECK (
 )
 ```
 
-E um gatilho que, ao gravar `decisao_pelo_proprio_lancador = true`, confirma que `decidido_por` tem perfil Chefe ou Administrador no momento da decisão. Assim a exceção só existe para quem pode.
+E um gatilho que, ao gravar `decisao_pelo_proprio_lancador = true`, confirma que `decidido_por` tem perfil Chefe, Administrador ou Parlamentar. Assim a exceção só existe para quem pode.
 
 ### Saldo
 
-Derivado por visão (`ceap_saldo`): para cada competência,
+Calculado pela API (`apps/api/src/ceap/saldo.ts`), sem visão e sem coluna: para cada mês do exercício,
 
-`saldo do exercício = soma das cotas mensais aplicadas até a competência − soma das despesas aprovadas e em análise (e das etapas seguintes que consomem) − nada para despesas reprovadas, canceladas e glosadas`
+`saldo = soma das cotas vigentes até o mês − soma das despesas que consomem (Em análise, Aprovada, Apresentada à Câmara, Ressarcida) até o mês`
 
-Não existe coluna de saldo. O acúmulo é limitado ao exercício (zera na virada).
+Reprovada, cancelada, glosada, arquivada e lançada (ainda não enviada) não consomem. A cota de um mês conta no dia 1; o acúmulo é limitado ao exercício (zera na virada). Reconstituir uma data passada usa a última movimentação até a data para saber em que etapa cada despesa estava.
 
 ## 12. Apoio
 

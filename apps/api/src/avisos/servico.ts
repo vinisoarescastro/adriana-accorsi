@@ -3,6 +3,7 @@ import {
   aviso,
   compromisso,
   demanda,
+  despesa,
   expiracaoDepoisDeLer,
   usuario,
   participanteInterno,
@@ -112,6 +113,17 @@ export class ServicoDeAvisos {
           alcancados.set(`compromisso:${c.id}`, c.titulo);
         }
       }
+    }
+
+    // Despesa da CEAP: quem alcança a CEAP (Financeiro, a partir do Assessor Interno) vê o aviso. O aviso não
+    // leva valor: o título é só a descrição.
+    const despesas = idsDe('despesa');
+    if (despesas.length > 0 && pode('ceap.consultar', autoridade)) {
+      const linhas = await this.bd
+        .select({ id: despesa.id, descricao: despesa.descricao })
+        .from(despesa)
+        .where(inArray(despesa.id, despesas));
+      for (const d of linhas) alcancados.set(`despesa:${d.id}`, d.descricao);
     }
     return alcancados;
   }

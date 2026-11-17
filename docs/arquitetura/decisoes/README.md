@@ -18,6 +18,7 @@ Cada decisão relevante vira um arquivo `NNNN-titulo-curto.md`, numerado em sequ
 | [0010](0010-trabalho-da-equipe-avisos-e-agenda.md) | Trabalho da equipe: avisos, worker de prazos e visibilidade da agenda | aceita |
 | [0011](0011-design-system-da-interface.md) | Design system da interface | aceita |
 | [0012](0012-legislativo-beneficiarios-e-dados-abertos-da-camara.md) | Legislativo: beneficiários, projetos de lei e a integração com os dados abertos da Câmara | aceita |
+| [0013](0013-financeiro-emendas-e-ceap.md) | Financeiro: dinheiro, emendas parlamentares e CEAP | aceita |
 
 ## Modelo
 

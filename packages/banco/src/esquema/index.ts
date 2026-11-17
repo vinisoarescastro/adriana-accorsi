@@ -6,3 +6,4 @@ export * from './gabinete.js';
 export * from './legislativo.js';
 export * from './trabalho.js';
 export * from './trilha.js';
+export * from './ceap.js';

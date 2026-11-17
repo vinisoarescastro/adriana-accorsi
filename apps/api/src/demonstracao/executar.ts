@@ -7,6 +7,7 @@ import { popularAgenda } from './agenda.js';
 import type { Contexto, EtapaConhecida } from './contexto.js';
 import { popularCorresponsaveis } from './corresponsaveis.js';
 import { popularDemandas } from './demandas.js';
+import { popularFinanceiro } from './financeiro.js';
 import { gravarAvisosETrilha } from './gravar.js';
 import { popularInteracoes } from './interacoes.js';
 import { popularLegislativo } from './legislativo.js';
@@ -94,6 +95,8 @@ try {
   await popularAgenda(ctx, pessoas);
   console.log('7b/8 Beneficiários e projetos de lei…');
   await popularLegislativo(ctx);
+  console.log('7c/8 Emendas parlamentares e CEAP…');
+  await popularFinanceiro(ctx);
   console.log('8/8 Avisos e auditoria…');
   await gravarAvisosETrilha(ctx);
 

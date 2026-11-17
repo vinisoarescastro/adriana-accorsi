@@ -9,3 +9,6 @@ export * from './protocolo.js';
 export * from './trabalho.js';
 export * from './legislativo.js';
 export * from './painel.js';
+export * from './dinheiro.js';
+export * from './emendas.js';
+export * from './ceap.js';

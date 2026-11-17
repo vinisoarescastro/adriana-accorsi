@@ -83,7 +83,11 @@ export type Uf = (typeof ufs)[number];
 // Categorias (vocabulários)
 // ---------------------------------------------------------------------------
 
-export const naturezasDeCategoriaDoLegislativo = ['tipo_proposicao', 'assunto_projeto'] as const;
+export const naturezasDeCategoriaDoLegislativo = [
+  'tipo_proposicao',
+  'assunto_projeto',
+  'tipo_emenda',
+] as const;
 export type NaturezaDeCategoriaDoLegislativo = (typeof naturezasDeCategoriaDoLegislativo)[number];
 
 export const esquemaNovaCategoria = z.object({

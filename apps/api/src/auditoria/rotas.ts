@@ -24,6 +24,10 @@ export function registrarRotasDeAuditoria(app: FastifyInstance, servico: Servico
     servico.listar(lerCorpo(esquemaFiltro, request.query)),
   );
 
+  app.get('/api/auditoria/opcoes', { config: { operacao: 'auditoria.consultar_gabinete' } }, () =>
+    servico.opcoes(),
+  );
+
   // Histórico de um registro. Só entidades já liberadas: a de um módulo novo continua
   // inexistente até que o serviço dele confira o alcance do registro (falha fechada).
   app.get(

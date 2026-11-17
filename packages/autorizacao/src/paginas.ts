@@ -17,6 +17,8 @@ export const paginas = {
     titulo: 'Beneficiários',
     operacao: 'beneficiarios.consultar',
   },
+  emendas: { caminho: '/g/emendas', titulo: 'Emendas', operacao: 'emendas.consultar' },
+  ceap: { caminho: '/g/ceap', titulo: 'CEAP', operacao: 'ceap.consultar' },
   pessoas: { caminho: '/g/pessoas', titulo: 'Pessoas', operacao: 'pessoas.consultar' },
   emails: {
     caminho: '/g/emails',

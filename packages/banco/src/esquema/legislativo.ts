@@ -2,6 +2,8 @@ import {
   bigint,
   date,
   index,
+  integer,
+  numeric,
   pgTable,
   primaryKey,
   text,
@@ -174,3 +176,108 @@ export const votacaoProjeto = pgTable('votacao_projeto', {
     .references(() => usuario.id),
   registradoEm: instante('registrado_em').notNull().defaultNow(),
 });
+
+// ---------------------------------------------------------------------------
+// Emendas parlamentares (fase 6)
+// ---------------------------------------------------------------------------
+
+export const emenda = pgTable(
+  'emenda',
+  {
+    id: chave(),
+    criadorId: bigint('criador_id', { mode: 'number' })
+      .notNull()
+      .references(() => usuario.id),
+    responsavelId: bigint('responsavel_id', { mode: 'number' })
+      .notNull()
+      .references(() => usuario.id),
+    identificacao: text('identificacao').notNull(),
+    exercicio: integer('exercicio').notNull(),
+    tipoId: bigint('tipo_id', { mode: 'number' })
+      .notNull()
+      .references(() => categoria.id),
+    finalidade: text('finalidade').notNull(),
+    prazoDestinacao: date('prazo_destinacao', { mode: 'string' }),
+    prazoEmpenho: date('prazo_empenho', { mode: 'string' }),
+    prazoExecucao: date('prazo_execucao', { mode: 'string' }),
+    etapaAtualId: bigint('etapa_atual_id', { mode: 'number' })
+      .notNull()
+      .references(() => etapa.id),
+    canceladaEm: instante('cancelada_em'),
+    canceladaPor: bigint('cancelada_por', { mode: 'number' }).references(() => usuario.id),
+    justificativaCancelamento: text('justificativa_cancelamento'),
+    criadoEm: instante('criado_em').notNull().defaultNow(),
+    atualizadoEm: instante('atualizado_em').notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('emenda_identificacao_unica')
+      .on(sql`lower(${t.identificacao})`, t.exercicio)
+      .where(sql`${t.canceladaEm} IS NULL`),
+    index('emenda_responsavel_idx').on(t.responsavelId),
+    index('emenda_etapa_idx').on(t.etapaAtualId),
+  ],
+);
+
+/** Só acrescenta: o valor atual é o mais recente, e o de uma data passada é o que valia nela. */
+export const emendaValor = pgTable(
+  'emenda_valor',
+  {
+    id: chave(),
+    emendaId: bigint('emenda_id', { mode: 'number' })
+      .notNull()
+      .references(() => emenda.id),
+    valor: numeric('valor', { precision: 14, scale: 2 }).notNull(),
+    definidoPor: bigint('definido_por', { mode: 'number' })
+      .notNull()
+      .references(() => usuario.id),
+    definidoEm: instante('definido_em').notNull().defaultNow(),
+  },
+  (t) => [index('emenda_valor_idx').on(t.emendaId, t.definidoEm.desc(), t.id.desc())],
+);
+
+export const destinacao = pgTable(
+  'destinacao',
+  {
+    id: chave(),
+    emendaId: bigint('emenda_id', { mode: 'number' })
+      .notNull()
+      .references(() => emenda.id),
+    beneficiarioId: bigint('beneficiario_id', { mode: 'number' })
+      .notNull()
+      .references(() => beneficiario.id),
+    valor: numeric('valor', { precision: 14, scale: 2 }).notNull(),
+    finalidade: text('finalidade').notNull(),
+    etapaAtualId: bigint('etapa_atual_id', { mode: 'number' })
+      .notNull()
+      .references(() => etapa.id),
+    criadaPor: bigint('criada_por', { mode: 'number' })
+      .notNull()
+      .references(() => usuario.id),
+    criadaEm: instante('criada_em').notNull().defaultNow(),
+    canceladaEm: instante('cancelada_em'),
+    canceladaPor: bigint('cancelada_por', { mode: 'number' }).references(() => usuario.id),
+    justificativaCancelamento: text('justificativa_cancelamento'),
+  },
+  (t) => [
+    index('destinacao_emenda_idx').on(t.emendaId, t.id),
+    index('destinacao_beneficiario_idx').on(t.beneficiarioId),
+  ],
+);
+
+export const execucaoDestinacao = pgTable(
+  'execucao_destinacao',
+  {
+    id: chave(),
+    destinacaoId: bigint('destinacao_id', { mode: 'number' })
+      .notNull()
+      .references(() => destinacao.id),
+    valor: numeric('valor', { precision: 14, scale: 2 }).notNull(),
+    data: date('data', { mode: 'string' }).notNull(),
+    observacao: text('observacao'),
+    registradoPor: bigint('registrado_por', { mode: 'number' })
+      .notNull()
+      .references(() => usuario.id),
+    registradoEm: instante('registrado_em').notNull().defaultNow(),
+  },
+  (t) => [index('execucao_destinacao_idx').on(t.destinacaoId, t.id)],
+);

@@ -67,6 +67,15 @@ export class ServicoDeAuditoria {
     };
   }
 
+  /** As operações e entidades que já aparecem na trilha, para os filtros da tela. */
+  async opcoes(): Promise<{ operacoes: string[]; entidades: string[] }> {
+    const [operacoes, entidades] = await Promise.all([
+      this.bd.selectDistinct({ valor: trilha.operacao }).from(trilha).orderBy(trilha.operacao),
+      this.bd.selectDistinct({ valor: trilha.entidade }).from(trilha).orderBy(trilha.entidade),
+    ]);
+    return { operacoes: operacoes.map((o) => o.valor), entidades: entidades.map((e) => e.valor) };
+  }
+
   /** Histórico de UM registro. O serviço do módulo dono do registro deve conferir o alcance. */
   async historicoDoRegistro(
     entidade: string,

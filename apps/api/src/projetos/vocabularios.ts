@@ -58,7 +58,10 @@ export class ServicoDeVocabularios {
         .limit(1)
         .for('update');
       // Só as categorias do legislativo se mantêm por aqui (as de despesa e emenda são de outra fase).
-      if (!atual || !['tipo_proposicao', 'assunto_projeto'].includes(atual.natureza)) {
+      if (
+        !atual ||
+        !['tipo_proposicao', 'assunto_projeto', 'tipo_emenda'].includes(atual.natureza)
+      ) {
         throw erros.naoEncontrado();
       }
       if (atual.situacao === situacao) {

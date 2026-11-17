@@ -11,11 +11,51 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | 2 | Atendimento | **concluída** (aceite do usuário) | 2026-11-16 | Código e testes prontos; **CI verde no GitHub** (324 testes). Encerrada por decisão do usuário; **segue pendente a implantação** (PV-E). Ver "Fase 2" abaixo |
 | 3 | Cidadão (área pública e e-mail) | **concluída** (aceite do usuário) | 2026-11-16 | Encerrada por decisão do usuário; **seguem pendentes** SPF/DKIM/DMARC reais, envio com o Resend e implantação (PV-E, PV-F). Marco de apresentação à deputada. Código e testes prontos, verificados **localmente** com Postgres, API, app público, worker e Mailpit de verdade (425 testes verdes e um fluxo completo de 25 verificações). Ver "Fase 3" abaixo |
 | 4 | Trabalho da equipe | **concluída** (aceite do usuário) | 2026-11-17 | Encerrada por decisão do usuário, após a conferência manual com a aplicação rodando. Código e testes prontos, verificados **localmente** (546 testes verdes e um fluxo de 27 verificações contra API e worker reais). **CI verde no GitHub** (conferida em 2026-11-17, no commit do código da fase 4 e no push seguinte). **Segue pendente** a implantação (PV-E). Ver "Fase 4" abaixo |
-| 5 | Legislativo | **implementada; falta fechar** (conferência manual, CI, implantação) | | PV-A confirmada. Código e testes prontos, verificados **localmente** (690 testes verdes no total, 144 novos desta fase, e o gerador de demonstração exercitado em cópia do banco). Ver "Fase 5" abaixo |
-| 6 | Financeiro (emendas e CEAP) | não iniciada | | Depende de PV-A e PV-B |
+| 5 | Legislativo | **concluída** (aceite do usuário) | 2026-11-17 | Encerrada por decisão do usuário. Código e testes prontos; **CI verde no GitHub**; 41 verificações contra a API real. **Segue pendente** a implantação (PV-E). Ver "Fase 5" abaixo |
+| 6 | Financeiro (emendas e CEAP) | **implementada; aguarda a conferência manual** | | Código e testes prontos e verificados localmente; faltam a conferência do [roteiro](../operacao/conferencias/fase6-financeiro.md), a CI no GitHub e a implantação (PV-E). Ver "Fase 6: blocos" abaixo |
 | 7 | Consolidação | não iniciada | | |
 | 8 | Endurecimento | não iniciada | | |
 | 9 | Opcional (verba de gabinete, WhatsApp) | não iniciada | | Só se o gabinete pedir |
+
+## Fase 6: blocos
+
+| Bloco | Conteúdo | Estado |
+| --- | --- | --- |
+| 6.A | Banco (migração 0015): emenda, histórico de valor, destinação e execução, com os invariantes do dinheiro em gatilhos | feito |
+| 6.B | Banco (migração 0016): parâmetros com vigência, categorias, encerramentos de competência e despesa, com a segregação de funções | feito |
+| 6.C | Contratos compartilhados: dinheiro em centavos, emendas e CEAP (saldo, etapas, status) | feito |
+| 6.D | Autorização: operações e páginas Emendas e CEAP, com a matriz esperada | feito |
+| 6.E | Emendas na API: cadastrar, valor, destinar, executar, mover, reatribuir, cancelar, consolidado, quadro e reconstituição | feito |
+| 6.F | CEAP na API: parâmetros, categorias, despesas, comprovantes, análise, competências, saldo, relatório, pacote ZIP, reconstituição e painel financeiro | feito |
+| 6.G | Front: emendas (consolidado, quadro, lista, ficha, destinações) e CEAP (saldo, despesas, parâmetros, relatório), campo de dinheiro e bloco financeiro do painel | feito |
+| 6.H | Dados de demonstração, roteiro de conferência, [ADR 0013](../arquitetura/decisoes/0013-financeiro-emendas-e-ceap.md), modelo de dados e verificação | feito; CI pendente |
+
+### Verificação da fase 6 (2026-11-17)
+
+- **815 testes verdes** em 85 arquivos (unidade, interface e integração com Postgres real), com 44 de API da fase 6 (16 de emendas e 28 de CEAP), os de banco, contratos, autorização e 13 de interface. Formatação, lint, tipos e build do front limpos.
+- **Gerador de demonstração** exercitado numa **cópia** do banco (descartada): 9 emendas, 17 destinações, 11 execuções, 3 parâmetros da CEAP (**valores fictícios**), 72 despesas e 8 competências encerradas. A API real respondeu com saldo, consolidado e painel coerentes com as parcelas.
+- **Migrações 0015 e 0016** aplicadas ao banco local, sobre um banco com dados das fases 2 a 5.
+- Detalhes em "Execução contra o ambiente real", no [roteiro](../operacao/conferencias/fase6-financeiro.md).
+
+### Critérios de aceite da fase 6 (plano)
+
+| # | Critério | Estado |
+| --- | --- | --- |
+| 1 | Só o valor disponibilizado é cadastrado; comprometido, utilizado, disponível e a executar são derivados | verificado (banco, API e interface; não há coluna de saldo) |
+| 2 | A soma das destinações não excede o valor da emenda; a execução não excede a destinação | verificado (gatilhos do banco e API, inclusive escrita concorrente) |
+| 3 | O saldo da CEAP é derivado por vigência da cota, acumulado no exercício, e reconstituível por data | verificado |
+| 4 | Quem lança a despesa não a decide; Chefe, Administrador e Parlamentar podem, com a marca | verificado (API, gatilho do banco e interface) |
+| 5 | Despesa decidida não se edita; mês encerrado não recebe despesa | verificado |
+| 6 | Sem FI não há CEAP; as emendas exigem LG ou FI para ver e LG para acompanhar | verificado (menu, rota e API) |
+
+### Decisões e desvios durante a fase 6
+
+- **Nenhum valor monetário real foi semeado.** A cota, o limite de alerta e os prazos são parâmetros com vigência a cadastrar; as categorias da CEAP são uma **proposta** do gabinete a conferir. Os valores da demonstração são fictícios.
+- **Valor da emenda em histórico** (`emenda_valor`), e não em coluna da emenda: permite reconstituir.
+- **Sem `ceap_exercicio` nem `ceap_competencia`**: a competência vem da data do documento (colunas geradas) e o encerramento é `ceap_encerramento`; a cota de cada mês vem do parâmetro vigente.
+- **Saldo calculado na API**, sem visão no banco (o modelo previa `ceap_saldo`).
+- **Segregação** também para a Parlamentar (decide a própria despesa com a marca), conforme a decisão de PV-C.
+- **Fica para depois:** integração com o portal da Transparência ou da Câmara, tetos por categoria (dependem da norma) e página de manutenção das categorias de emenda.
 
 ## Fase 5: blocos
 
@@ -28,7 +68,7 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | 5.E | Projetos na API: cadastrar, mover pelo fluxo federal, reatribuir, cancelar, quadro, consolidado e atrasados | feito |
 | 5.F | Assuntos, coautores, comissões, votações e vocabulários na API | feito |
 | 5.G | Front: projetos (consolidado, quadro, lista, ficha com guias, comissões e votações) e beneficiários | feito |
-| 5.H | Dados de demonstração, roteiro de conferência, [ADR 0012](../arquitetura/decisoes/0012-legislativo-beneficiarios-e-dados-abertos-da-camara.md) (inclui a avaliação da API da Câmara, 5.8), documentação e verificação | feito; a CI desta fase ainda não rodou |
+| 5.H | Dados de demonstração, roteiro de conferência, [ADR 0012](../arquitetura/decisoes/0012-legislativo-beneficiarios-e-dados-abertos-da-camara.md) (inclui a avaliação da API da Câmara, 5.8), documentação e verificação | feito; CI verde |
 
 ### Verificação da fase 5 (2026-11-17)
 
@@ -36,7 +76,7 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 - **Gerador de demonstração** exercitado numa **cópia** do banco (a cópia foi descartada): 16 beneficiários (2 inativos, CNPJs válidos), 25 projetos de lei em quase todas as etapas, 34 passagens por comissões e 8 votações; há atrasados, concluídos, um arquivado e dois cancelados.
 - **Migração 0014** aplicada no banco local, sobre um banco que já tinha dados das fases 2 a 4, e os invariantes de subida passaram.
 - **Contra processos reais** (Postgres 17 e API rodando, migração 0014 sobre banco com dados das fases 2 a 4, demonstração gerada): 41 de 41 verificações com sessões de cinco perfis. Detalhes em "Execução contra o ambiente real", no [roteiro](../operacao/conferencias/fase5-legislativo.md).
-- **Não verificado ainda:** a conferência visual no navegador e em tela de 360 px (depende de quem olha as telas); CI desta fase; implantação.
+- **CI verde no GitHub** (2026-11-17). **Aceite do usuário** em 2026-11-17, que encerrou a fase; a implantação segue pendente.
 
 ### Critérios de aceite da fase 5 (plano)
 
@@ -306,6 +346,8 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 
 | 2026-11-16 | Interface adota o design system de referência (tokens, barra lateral, tema escuro, Poppins, ícones), sem mudar funcionalidade. Ver [ADR 0011](../arquitetura/decisoes/0011-design-system-da-interface.md) |
 | 2026-11-16 | Fases 1, 2 e 3 encerradas por aceite do usuário. Ficam pendentes, para a implantação ao fim das fases: VPS e DNS (PV-E), e-mail real com SPF, DKIM e DMARC, revisão jurídica (PV-F) e os itens de infraestrutura dos roteiros. Fase 4 aprovada para começar |
+| 2026-11-17 | Fase 5 encerrada por aceite do usuário. Fase 6 (Financeiro) aprovada para começar |
+| 2026-11-17 | Fase 6 (Financeiro) implementada por inteiro, a pedido do usuário, em blocos consecutivos (ver "Fase 6" acima) |
 | 2026-11-17 | Painel inicial reformulado: indicadores por perfil (quatro por grupo), tendência, pendências, agenda, avisos, atividade e carga da equipe, com gráficos próprios; atalhos por perfil. Detalhes no [ADR 0011](../arquitetura/decisoes/0011-design-system-da-interface.md) |
 | 2026-11-17 | Dados de demonstração reescritos como os de um gabinete de **deputada federal em Goiás** (INSS, emendas, saúde federal, DNIT, Receita e Polícia Federal; agenda entre Brasília e Goiânia; municípios goianos), em lugar dos de um vereador. O estado é uma suposição do desenvolvimento: confirmar com o gabinete (pergunta B1.2 de [perguntas-ao-gabinete.md](perguntas-ao-gabinete.md)) |
 | 2026-11-17 | Fase 5 (Legislativo) implementada por inteiro, a pedido do usuário, em blocos consecutivos (ver "Fase 5" acima) |

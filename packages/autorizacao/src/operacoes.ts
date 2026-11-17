@@ -244,6 +244,75 @@ export const operacoes = {
     habilitacao: ['LG', 'FI'],
   },
 
+  // Financeiro (fase 6). Emendas: acompanhar é LG; ver valores aceita LG ou FI. CEAP é FI. O Parlamentar tem
+  // acesso total à CEAP (decisão de 2026-11-17), então os perfis adicionais o incluem onde o nível não basta.
+  'emendas.consultar': {
+    descricao: 'Listar e consultar emendas, com os valores',
+    nivelMinimo: 2,
+    habilitacao: ['LG', 'FI'],
+  },
+  'emendas.registrar': {
+    descricao:
+      'Cadastrar e acompanhar emenda (editar, mover, destinar e registrar execução). Supervisor ou superior, ou o responsável: regra do serviço',
+    nivelMinimo: 2,
+    habilitacao: ['LG'],
+  },
+  'emendas.supervisionar': {
+    descricao: 'Reatribuir e cancelar emenda e destinação',
+    nivelMinimo: 3,
+    habilitacao: ['LG'],
+  },
+  'emendas.reconstituir': {
+    descricao: 'Reconstituir os valores das emendas em uma data passada',
+    nivelMinimo: 5,
+    habilitacao: ['LG', 'FI'],
+    perfisAdicionais: ['parlamentar'],
+  },
+  'ceap.consultar': {
+    descricao: 'Consultar despesas, saldo e parâmetros da CEAP',
+    nivelMinimo: 2,
+    habilitacao: ['FI'],
+  },
+  'ceap.lancar': {
+    descricao:
+      'Lançar despesa, anexar comprovante, enviar para análise e cancelar a própria despesa',
+    nivelMinimo: 2,
+    habilitacao: ['FI'],
+  },
+  'ceap.decidir': {
+    descricao:
+      'Aprovar ou reprovar despesa e acompanhá-la depois (apresentação, ressarcimento, glosa). Decidir a própria despesa: só Chefe, Administrador e Parlamentar (regra do serviço e do banco)',
+    nivelMinimo: 3,
+    habilitacao: ['FI'],
+  },
+  'ceap.supervisionar': {
+    descricao: 'Encerrar e reabrir a competência (mês) da CEAP',
+    nivelMinimo: 3,
+    habilitacao: ['FI'],
+  },
+  'ceap.parametros': {
+    descricao: 'Alterar os parâmetros e as categorias da CEAP (com vigência)',
+    nivelMinimo: 4,
+    habilitacao: ['FI'],
+    perfisAdicionais: ['parlamentar'],
+  },
+  'ceap.reconstituir': {
+    descricao: 'Reconstituir o saldo e a composição da CEAP em uma data passada',
+    nivelMinimo: 5,
+    habilitacao: ['FI'],
+    perfisAdicionais: ['parlamentar'],
+  },
+  'ceap.pacote': {
+    descricao: 'Baixar o relatório de prestação de contas e o pacote de comprovantes',
+    nivelMinimo: 4,
+    perfisAdicionais: ['parlamentar'],
+  },
+  'painel.financeiro': {
+    descricao: 'Ver o bloco financeiro do painel (saldo, comprometido e despesas)',
+    nivelMinimo: 2,
+    habilitacao: ['FI'],
+  },
+
   // Equipe
   'equipe.ver': { descricao: 'Ver a equipe', nivelMinimo: 1 },
   'equipe.administrar': {

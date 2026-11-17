@@ -195,6 +195,13 @@ describe('auditoria', () => {
     });
     expect(filtradas.itens[0].autorNome).toMatch(/Usuário/);
 
+    const opcoes = (await a.chamar('GET', '/api/auditoria/opcoes', { cookie: cookieChefe })).json();
+    expect(opcoes.operacoes).toContain('gabinete.atualizar');
+    expect(opcoes.entidades).toContain('gabinete');
+    expect(
+      (await a.chamar('GET', '/api/auditoria/opcoes', { cookie: cookieSupervisor })).statusCode,
+    ).toBe(404);
+
     expect((await a.chamar('GET', '/api/auditoria', { cookie: cookieSupervisor })).statusCode).toBe(
       404,
     );

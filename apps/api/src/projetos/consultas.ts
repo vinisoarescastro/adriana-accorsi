@@ -321,7 +321,7 @@ export class ConsultasDeProjetos {
       .where(
         natureza
           ? eq(categoria.natureza, natureza)
-          : inArray(categoria.natureza, ['tipo_proposicao', 'assunto_projeto']),
+          : inArray(categoria.natureza, ['tipo_proposicao', 'assunto_projeto', 'tipo_emenda']),
       )
       .orderBy(asc(categoria.natureza), asc(categoria.nome));
     return linhas as CategoriaDto[];

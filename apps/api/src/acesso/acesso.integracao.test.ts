@@ -39,6 +39,8 @@ describe('entrar', () => {
       'eventos',
       'projetos',
       'beneficiarios',
+      'emendas',
+      'ceap',
       'pessoas',
       'emails',
       'equipe',
