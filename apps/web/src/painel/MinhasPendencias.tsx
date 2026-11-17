@@ -40,6 +40,7 @@ export function MinhasPendencias({ dados }: { dados: PendenciasDoUsuario }) {
       {temDemandas ? (
         <Abas
           segmentada
+          discreta
           rotulo="O que está com você"
           valor={mostrando}
           aoMudar={setAba}

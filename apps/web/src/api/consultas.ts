@@ -65,6 +65,10 @@ export interface FiltroDaAuditoria {
   readonly pagina: number;
   readonly operacao: string;
   readonly entidade: string;
+  readonly autorId?: number | undefined;
+  /** AAAA-MM-DD, no fuso do gabinete (Brasília). */
+  readonly de?: string;
+  readonly ate?: string;
 }
 
 export const useAuditoria = (filtro: FiltroDaAuditoria) =>
@@ -74,6 +78,18 @@ export const useAuditoria = (filtro: FiltroDaAuditoria) =>
       const consulta = new URLSearchParams({ pagina: String(filtro.pagina), porPagina: '25' });
       if (filtro.operacao) consulta.set('operacao', filtro.operacao);
       if (filtro.entidade) consulta.set('entidade', filtro.entidade);
+      if (filtro.autorId) consulta.set('autorId', String(filtro.autorId));
+      if (filtro.de) consulta.set('de', `${filtro.de}T00:00:00-03:00`);
+      if (filtro.ate) consulta.set('ate', `${filtro.ate}T23:59:59.999-03:00`);
       return chamar<PaginaDaTrilha>('GET', `/api/auditoria?${consulta.toString()}`);
     },
+  });
+
+/** As operações e entidades que já aparecem na trilha: alimentam os filtros. */
+export const useOpcoesDaAuditoria = () =>
+  useQuery({
+    queryKey: ['auditoria', 'opcoes'] as const,
+    queryFn: () =>
+      chamar<{ operacoes: string[]; entidades: string[] }>('GET', '/api/auditoria/opcoes'),
+    staleTime: 60_000,
   });

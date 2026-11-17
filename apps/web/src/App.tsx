@@ -13,6 +13,8 @@ import { PaginaEventos } from './eventos/PaginaEventos';
 import { PaginaFluxos } from './fluxos/PaginaFluxos';
 import { Layout } from './layout/Layout';
 import { PaginaProjetos } from './projetos/PaginaProjetos';
+import { PaginaCeap } from './ceap/PaginaCeap';
+import { PaginaEmendas } from './emendas/PaginaEmendas';
 import { PaginaPainel } from './painel/PaginaPainel';
 import { PaginaPessoas } from './pessoas/PaginaPessoas';
 import { PaginaPerfil } from './perfil/PaginaPerfil';
@@ -97,6 +99,22 @@ function RotasDaArea() {
             element={
               <ExigePagina id="beneficiarios" sessao={sessao}>
                 <PaginaBeneficiarios sessao={sessao} />
+              </ExigePagina>
+            }
+          />
+          <Route
+            path="emendas"
+            element={
+              <ExigePagina id="emendas" sessao={sessao}>
+                <PaginaEmendas sessao={sessao} />
+              </ExigePagina>
+            }
+          />
+          <Route
+            path="ceap"
+            element={
+              <ExigePagina id="ceap" sessao={sessao}>
+                <PaginaCeap sessao={sessao} />
               </ExigePagina>
             }
           />

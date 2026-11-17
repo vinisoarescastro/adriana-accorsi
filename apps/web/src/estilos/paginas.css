@@ -724,3 +724,240 @@
     padding: var(--space-4);
   }
 }
+
+/* ===== Página de entrada (login): cartão dividido, como no design system ===== */
+.login {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.login__fundo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      40rem 24rem at 12% 0%,
+      color-mix(in srgb, var(--primary) 14%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      36rem 22rem at 100% 100%,
+      color-mix(in srgb, var(--accent) 16%, transparent),
+      transparent 70%
+    );
+}
+
+.login__fundo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--text) 9%, transparent) 1px,
+    transparent 1.5px
+  );
+  background-size: 10px 10px;
+}
+
+.login__tema {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 2;
+}
+
+.login__icone {
+  display: inline-grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.login__icone:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.login__principal {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-8) var(--space-4);
+}
+
+.login__cartao {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  max-width: 50rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.login__lateral {
+  position: relative;
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-7, 2.25rem);
+  overflow: hidden;
+  background: var(--gradient-primary);
+  color: #fff;
+}
+
+/* O toque amarelo da marca: um brilho no canto, sem competir com o texto. */
+.login__lateral::before {
+  content: '';
+  position: absolute;
+  top: -9rem;
+  right: -9rem;
+  width: 22rem;
+  height: 22rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 202, 0, 0.42), transparent 65%);
+}
+
+.login__lateral > * {
+  position: relative;
+}
+
+.login__logo {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: 3.5rem;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.login__chamada {
+  margin: 0 0 var(--space-4);
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.login__pontos {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.login__pontos li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.login__pontos svg {
+  flex: none;
+  box-sizing: content-box;
+  width: 1rem;
+  height: 1rem;
+  padding: 0.2rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.login__formulario {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+}
+
+.login__titulo {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.login__subtitulo {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+}
+
+.login__formulario .campo {
+  margin-bottom: 0;
+}
+
+.login__senha {
+  position: relative;
+  display: block;
+}
+
+.login__senha input {
+  padding-right: 2.75rem;
+}
+
+.login__olho {
+  position: absolute;
+  top: 50%;
+  right: var(--space-2);
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.login__olho:hover {
+  color: var(--text);
+}
+
+.login__rodape {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+@media (min-width: 48rem) {
+  .login__cartao {
+    grid-template-columns: 1fr 1fr;
+    min-height: 30.5rem;
+  }
+
+  .login__lateral {
+    display: flex;
+  }
+
+  .login__formulario {
+    padding: var(--space-8) var(--space-7, 2.25rem);
+  }
+}
+
+@media (max-width: 30rem) {
+  .login__formulario {
+    padding: var(--space-6) var(--space-5);
+  }
+}

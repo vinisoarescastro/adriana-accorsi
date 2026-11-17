@@ -27,6 +27,7 @@ describe('agenda', () => {
       [`GET ${urlDaAgenda(hojeNoGabinete())}`]: { corpo: { itens } },
     });
     renderizar('/g/agenda');
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Semana' }));
 
     expect(await screen.findByRole('button', { name: 'Reunião 1' })).toBeInTheDocument();
     expect(screen.getByText('Horário ocupado')).toBeInTheDocument();
@@ -42,6 +43,7 @@ describe('agenda', () => {
       [`GET ${urlDaAgenda(hojeNoGabinete())}`]: { corpo: { itens: [] } },
     });
     renderizar('/g/agenda');
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Semana' }));
     expect(await screen.findByText('Nada marcado neste período.')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Novo compromisso' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Bloquear horário' })).not.toBeInTheDocument();
@@ -56,6 +58,7 @@ describe('agenda', () => {
     });
     const usuario = userEvent.setup();
     renderizar('/g/agenda');
+    await usuario.click(await screen.findByRole('button', { name: 'Semana' }));
     await screen.findByText('Nada marcado neste período.');
     await usuario.click(screen.getByRole('button', { name: 'Minha agenda' }));
     expect(await screen.findByRole('button', { name: 'Reunião 3' })).toBeInTheDocument();

@@ -67,6 +67,8 @@ export const todasAsPaginas = [
     titulo: 'Beneficiários',
     operacao: 'beneficiarios.consultar',
   },
+  { id: 'emendas', caminho: '/g/emendas', titulo: 'Emendas', operacao: 'emendas.consultar' },
+  { id: 'ceap', caminho: '/g/ceap', titulo: 'CEAP', operacao: 'ceap.consultar' },
   { id: 'pessoas', caminho: '/g/pessoas', titulo: 'Pessoas', operacao: 'pessoas.consultar' },
   {
     id: 'emails',

@@ -8,6 +8,7 @@ import {
   ClipboardCheck,
   FileText,
   GitBranch,
+  HandCoins,
   History,
   LayoutDashboard,
   ListChecks,
@@ -20,6 +21,7 @@ import {
   Sun,
   Users,
   UsersRound,
+  Wallet,
   type LucideIcon,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -44,6 +46,8 @@ const aparenciaDasPaginas: Record<string, { icone: LucideIcon; grupo: string }> 
   eventos: { icone: ClipboardCheck, grupo: 'Principal' },
   projetos: { icone: Landmark, grupo: 'Principal' },
   beneficiarios: { icone: Building2, grupo: 'Principal' },
+  emendas: { icone: HandCoins, grupo: 'Principal' },
+  ceap: { icone: Wallet, grupo: 'Principal' },
   pessoas: { icone: Users, grupo: 'Principal' },
   emails: { icone: Mail, grupo: 'Principal' },
   equipe: { icone: UsersRound, grupo: 'Sistema' },

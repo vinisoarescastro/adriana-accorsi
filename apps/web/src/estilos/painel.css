@@ -80,24 +80,15 @@
   }
 }
 
-.painel-secao .indicador {
-  padding: var(--space-4);
-}
-
 .painel-duplo {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
   gap: var(--space-5);
 }
 
-/*
- * Indicador que pede atenção: uma borda sólida de 2 px em volta de todo o cartão (sem faixa no topo nem
- * na lateral) e o número em vermelho; a palavra do apoio diz o porquê. A segunda linha da borda é sombra,
- * para o cartão não mudar de tamanho.
- */
+/* Indicador que pede atenção: uma borda sólida de 1 px em volta de todo o cartão (sem faixa no topo nem na lateral) e o número em vermelho. */
 .indicador--alerta {
   border-color: var(--primary);
-  box-shadow: 0 0 0 1px var(--primary);
 }
 
 .indicador__valor--alerta {
@@ -394,7 +385,7 @@ a.barras__linha:hover .barras__barra {
 /* Carga da equipe */
 .carga {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
 
 .carga__lista {
@@ -407,9 +398,21 @@ a.barras__linha:hover .barras__barra {
 
 .carga__linha {
   display: grid;
-  grid-template-columns: minmax(7rem, 30%) minmax(0, 1fr) 2rem 4.5rem;
+  grid-template-columns: 1.75rem minmax(6rem, 28%) minmax(0, 1fr) 1.75rem auto;
   align-items: center;
   gap: var(--space-3);
+}
+
+.carga__avatar {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
 }
 
 .carga__nome {
@@ -423,7 +426,7 @@ a.barras__linha:hover .barras__barra {
 }
 
 .carga__apoio,
-.carga__concluidas {
+.carga__notas {
   color: var(--text-muted);
   font-size: var(--text-xs);
   font-weight: var(--weight-regular);
@@ -431,13 +434,17 @@ a.barras__linha:hover .barras__barra {
 
 .carga__trilho {
   display: block;
-  height: 0.75rem;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--surface-muted);
 }
 
 .carga__barra {
   display: flex;
   gap: 2px;
   height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-full);
   transition: width var(--duration-base) var(--ease);
 }
 
@@ -446,24 +453,31 @@ a.barras__linha:hover .barras__barra {
   height: 100%;
 }
 
-.carga__trecho--em-dia {
-  border-radius: 0 0 0 0;
-  background: var(--chart-neutral);
+.carga__trecho--demandas {
+  background: var(--chart-2);
 }
 
-.carga__trecho--atrasada {
-  border-radius: 0 4px 4px 0;
+.carga__trecho--tarefas {
   background: var(--chart-1);
-}
-
-.carga__trecho--em-dia:last-child {
-  border-radius: 0 4px 4px 0;
 }
 
 .carga__valor {
   font-variant-numeric: tabular-nums;
   font-weight: var(--weight-semibold);
   text-align: right;
+}
+
+.carga__notas {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 4.5rem;
+  white-space: nowrap;
+}
+
+.carga__atrasadas {
+  color: var(--danger-text);
+  font-weight: var(--weight-medium);
 }
 
 /* ===== Telas menores ===== */
@@ -513,10 +527,6 @@ a.barras__linha:hover .barras__barra {
 }
 
 @media (max-width: 640px) {
-  .painel-secao .indicador {
-    padding: var(--space-3) var(--space-4);
-  }
-
   .painel-topo__saudacao {
     font-size: var(--text-xl);
   }
@@ -536,10 +546,764 @@ a.barras__linha:hover .barras__barra {
   }
 
   .carga__linha {
-    grid-template-columns: minmax(5rem, 34%) minmax(0, 1fr) 2rem;
+    grid-template-columns: 1.75rem minmax(0, 1fr) 1.75rem;
   }
 
-  .carga__concluidas {
+  .carga__trilho {
+    grid-column: 2 / -1;
+    grid-row: 2;
+  }
+
+  .carga__notas {
     display: none;
   }
+}
+
+/* ===== Financeiro: valores da emenda e destinações ===== */
+.valores {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.valores__barra {
+  display: flex;
+  gap: 2px;
+  height: 0.75rem;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--surface-muted);
+}
+
+.valores__trecho {
+  display: block;
+  height: 100%;
+  min-width: 0;
+}
+
+.valores__trecho--utilizado {
+  background: var(--chart-1);
+}
+
+.valores__trecho--a-executar {
+  background: var(--chart-2);
+}
+
+.valores__trecho--disponivel {
+  background: var(--chart-neutral);
+}
+
+.valores__lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.valores__lista dt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.valores__lista dd {
+  margin: 0;
+  font-size: var(--text-md);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--weight-semibold);
+}
+
+.destinacoes {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.destinacao {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.destinacao--cancelada {
+  opacity: 0.75;
+}
+
+.destinacao__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.destinacao__valor {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--weight-semibold);
+}
+
+.destinacao__finalidade {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.e-numero {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* ===== CEAP: barra de seções e exercício, quadro mensal e gráficos ===== */
+.ceap-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.ceap-barra__exercicio {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.ceap-graficos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.ceap-graficos .cartao__titulo {
+  margin-bottom: var(--space-3);
+}
+
+.barras--largo .barras__linha {
+  grid-template-columns: minmax(6rem, 34%) minmax(0, 1fr) minmax(9.5rem, auto);
+}
+
+.tabela--mensal tfoot th[scope='row'],
+.tabela--mensal tfoot th,
+.tabela--mensal tfoot td {
+  border-top: 2px solid var(--border-strong);
+  background: var(--surface-muted);
+  font-weight: var(--weight-semibold);
+}
+
+.tabela__futuro {
+  color: var(--text-muted);
+}
+
+.tabela__negativo {
+  color: var(--danger-text);
+}
+
+@media (max-width: 40rem) {
+  .barras--largo .barras__linha {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 2px;
+  }
+
+  .barras--largo .barras__trilho {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+}
+
+.indicador--botao {
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tabela--mensal th[scope='row'] {
+  background: transparent;
+  color: var(--text);
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.tabela--mensal th,
+.tabela--mensal td {
+  padding-block: var(--space-2);
+  white-space: nowrap;
+}
+
+.tabela--mensal tbody td:last-child {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ===== Fluxos de trabalho ===== */
+.fluxo-resumo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.fluxo-resumo .cartao__titulo {
+  margin-bottom: var(--space-1);
+}
+
+.fluxo-trilho {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fluxo-trilho__etapa {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  min-width: 7rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+/* A seta liga uma etapa à seguinte, na mesma linha. */
+.fluxo-trilho__etapa:not(:last-child)::after {
+  content: '›';
+  position: absolute;
+  top: 50%;
+  right: calc(-1 * var(--space-4) - 2px);
+  color: var(--text-subtle);
+  font-size: var(--text-lg);
+  transform: translateY(-55%);
+}
+
+.fluxo-trilho__nome {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.fluxo-trilho__papel {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.fluxo-trilho__etapa--entrada {
+  border-color: var(--info-border, var(--border-strong));
+}
+
+.fluxo-trilho__etapa--conclusao {
+  border-color: var(--success-border);
+}
+
+.fluxo-trilho__etapa--inativa {
+  border-style: dashed;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.tabela--fluxo .fluxo-ordem {
+  width: 1%;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.tabela--fluxo .fluxo-nome {
+  font-weight: var(--weight-medium);
+}
+
+.fluxo-nova {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.fluxo-nova .grade-formulario {
+  margin-bottom: 0;
+}
+
+/* ===== Auditoria ===== */
+.filtros__data {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.filtros__data input {
+  min-height: 2.25rem;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.tabela--trilha td,
+.tabela--trilha th {
+  vertical-align: middle;
+}
+
+.filtros__controles {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.filtros__controles .filtros__selecao {
+  max-width: 100%;
+}
+
+.trilha-quando {
+  display: grid;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.trilha-quem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.trilha-quem__avatar {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+}
+
+.trilha-operacao {
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+}
+
+.trilha-operacao code {
+  font-size: var(--text-xs);
+}
+
+.trilha-detalhes > td {
+  background: var(--surface-muted);
+}
+
+.trilha-detalhes__justificativa {
+  margin: 0 0 var(--space-3);
+}
+
+.trilha-detalhes__tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.trilha-detalhes__tabela th,
+.trilha-detalhes__tabela td {
+  padding: var(--space-1) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.trilha-detalhes__tabela thead th {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+}
+
+.trilha-detalhes__tabela tbody th {
+  width: 28%;
+  color: var(--text-muted);
+  font-weight: var(--weight-medium);
+}
+
+.trilha-detalhes__mudou td {
+  background: var(--warning-soft, var(--surface-hover));
+  font-weight: var(--weight-semibold);
+}
+
+.trilha-detalhes__bruto {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ===== Cartões do painel: cabeçalho, conteúdo e rodapé ===== */
+.painel--inicio .cartao:not(.indicador) {
+  padding: 0;
+  margin-bottom: 0;
+  overflow: hidden;
+}
+
+.painel--inicio .cartao:not(.indicador) > .cartao__cabecalho {
+  align-items: center;
+  margin: 0;
+  padding: var(--space-4) var(--space-5) 0;
+}
+
+.painel--inicio .cartao:not(.indicador) > .cartao__corpo {
+  padding: var(--space-4) var(--space-5) var(--space-5);
+}
+
+.painel--inicio .cartao:not(.indicador) > .cartao__rodape {
+  justify-content: space-between;
+  margin: 0;
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.cartao__ver {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: auto;
+  font-weight: var(--weight-medium);
+}
+
+/* Barra de progresso (só nos valores em dinheiro) */
+.indicador__progresso {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.progresso {
+  height: 0.375rem;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--surface-muted);
+}
+
+.progresso__preenchimento {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--chart-2);
+  transition: width var(--duration-base) var(--ease);
+}
+
+.progresso--alerta .progresso__preenchimento {
+  background: var(--chart-1);
+}
+
+.progresso__percentual {
+  flex: none;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Faixa proporcional: uma barra dividida nas partes do total */
+.faixa {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.faixa__linhas {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.faixa__linha {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.faixa__rotulo {
+  font-weight: var(--weight-medium);
+}
+
+.faixa__barra {
+  display: flex;
+  gap: 2px;
+  height: 0.75rem;
+}
+
+.faixa__parte {
+  min-width: 4px;
+  border-radius: 4px;
+}
+
+.faixa__vazia {
+  flex: 1;
+  border-radius: 4px;
+  background: var(--surface-muted);
+}
+
+.faixa__texto {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+/* Cartões lado a lado têm a mesma altura, e o rodapé fica sempre embaixo. */
+.painel--inicio .cartao:not(.indicador) {
+  display: flex;
+  flex-direction: column;
+}
+
+.painel--inicio .cartao:not(.indicador) > .cartao__corpo {
+  flex: 1;
+}
+
+.painel-secao .indicador__rodape {
+  min-width: 0;
+}
+
+/* ===== Cartão: ícone simples, título e subtítulo juntos ===== */
+.cartao__titulos {
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.cartao__icone {
+  width: auto;
+  height: auto;
+  margin-top: 2px;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.cartao__titulo {
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
+}
+
+.cartao__descricao {
+  margin-top: 2px;
+  line-height: var(--leading-snug);
+}
+
+.painel--inicio .cartao:not(.indicador) > .cartao__cabecalho {
+  align-items: flex-start;
+}
+
+/* Trocar a visão ou o período dentro de um cartão: pequeno e sutil. */
+.abas--discreta.abas--segmentada {
+  padding: 2px;
+  gap: 1px;
+  border-color: transparent;
+  border-radius: var(--radius-md);
+}
+
+.abas--discreta .aba {
+  min-height: 1.5rem;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+}
+
+.abas--discreta.abas--segmentada .aba[aria-pressed='true'] {
+  box-shadow: none;
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* Rosca */
+.rosca {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+}
+
+.rosca__grafico {
+  position: relative;
+  flex: none;
+  width: 10.5rem;
+  height: 10.5rem;
+}
+
+.rosca__grafico svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: rotate(0deg);
+}
+
+.rosca__fundo {
+  fill: none;
+  stroke: var(--surface-muted);
+  stroke-width: 5;
+}
+
+.rosca__fatia {
+  fill: none;
+  stroke-width: 5;
+  transition: opacity var(--duration-fast) var(--ease);
+}
+
+.rosca__centro {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.rosca__centro strong {
+  font-size: var(--text-base);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.rosca__centro span {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.rosca__legenda {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rosca__legenda li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.rosca__nome {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rosca__valor {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+/* Colunas verticais */
+.colunas-v {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  align-items: end;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.colunas-v__item {
+  display: grid;
+  gap: var(--space-1);
+  justify-items: center;
+  min-width: 0;
+}
+
+.colunas-v__valor {
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--weight-semibold);
+}
+
+.colunas-v__trilho {
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  max-width: 2.5rem;
+  height: 8rem;
+}
+
+.colunas-v__barra {
+  display: block;
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  background: var(--chart-1);
+  transition: height var(--duration-base) var(--ease);
+}
+
+.colunas-v__rotulo {
+  display: -webkit-box;
+  max-width: 100%;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* Cabeçalho de cartão: o título nunca é espremido pelo seletor de visão (ele desce para a linha de baixo). */
+.cartao__cabecalho {
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+}
+
+.cartao__cabecalho > .cartao__titulos {
+  flex: 1 1 11rem;
+  min-width: 0;
+}
+
+.cartao__cabecalho > .acoes {
+  margin-left: auto;
+}
+
+/* Indicadores: mais compactos, com o subtítulo em até duas linhas. */
+.indicador__cabecalho {
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) 0;
+}
+
+.indicador__corpo {
+  padding: var(--space-2) var(--space-4) var(--space-3);
+}
+
+.indicador__rodape {
+  padding: var(--space-2) var(--space-4);
+}
+
+.indicador__apoio {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }

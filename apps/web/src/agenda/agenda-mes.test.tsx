@@ -31,8 +31,10 @@ describe('agenda por mês', () => {
     });
     const usuario = userEvent.setup();
     renderizar('/g/agenda');
-    await screen.findByText('Nada marcado neste período.');
-    await usuario.click(screen.getByRole('button', { name: 'Mês' }));
+    expect(await screen.findByRole('button', { name: 'Mês' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     expect(await screen.findByRole('button', { name: 'Reunião 1' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Reunião 2' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Reunião 3' })).toBeInTheDocument();

@@ -37,6 +37,8 @@ export function destinoDoAviso(aviso: AvisoDto): string | null {
       return `/g/demandas?demanda=${aviso.registro.id}`;
     case 'compromisso':
       return `/g/agenda?compromisso=${aviso.registro.id}`;
+    case 'despesa':
+      return `/g/ceap?despesa=${aviso.registro.id}`;
     default:
       return null;
   }

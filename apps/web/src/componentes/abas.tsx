@@ -13,16 +13,19 @@ export function Abas<T extends string>({
   aoMudar,
   itens,
   segmentada,
+  discreta,
 }: {
   rotulo: string;
   valor: T;
   aoMudar: (id: T) => void;
   itens: readonly ItemDeAba<T>[];
   segmentada?: boolean;
+  /** Pequena e sutil, para dentro de um cartão (trocar a visão ou o período do gráfico). */
+  discreta?: boolean;
 }) {
   return (
     <div
-      className={`abas${segmentada ? ' abas--segmentada' : ''}`}
+      className={`abas${segmentada ? ' abas--segmentada' : ''}${discreta ? ' abas--discreta' : ''}`}
       role="group"
       aria-label={rotulo}
     >

@@ -11,6 +11,8 @@ import type {
   Prioridade,
   ResultadoDeVotacaoDto,
   RespostaDeParticipanteDto,
+  StatusDeDespesa,
+  StatusDeEmenda,
   StatusDeProjeto,
   StatusDeDemanda,
   TipoDeProcessoDto,
@@ -165,3 +167,37 @@ export const rotuloDoResultadoDaVotacao: Record<ResultadoDeVotacaoDto, string> =
   retirado_de_pauta: 'Retirado de pauta',
   adiado: 'Adiado',
 };
+
+export const rotuloDoStatusDaEmenda: Record<StatusDeEmenda, string> = {
+  em_andamento: 'Em andamento',
+  concluida: 'Concluída',
+  arquivada: 'Arquivada',
+  cancelada: 'Cancelada',
+};
+
+export const rotuloDoStatusDaDespesa: Record<StatusDeDespesa, string> = {
+  lancada: 'Lançada',
+  em_analise: 'Em análise',
+  aprovada: 'Aprovada',
+  apresentada: 'Apresentada à Câmara',
+  ressarcida: 'Ressarcida',
+  reprovada: 'Reprovada',
+  glosada: 'Glosada pela Câmara',
+  arquivada: 'Arquivada',
+  cancelada: 'Cancelada',
+};
+
+export const nomesDosMeses = [
+  'janeiro',
+  'fevereiro',
+  'março',
+  'abril',
+  'maio',
+  'junho',
+  'julho',
+  'agosto',
+  'setembro',
+  'outubro',
+  'novembro',
+  'dezembro',
+] as const;

@@ -102,6 +102,30 @@ const rotas = (s: RespostaDaSessao, extras: Record<string, unknown> = {}) => ({
       ],
     },
   },
+  'GET /api/painel/financeiro': {
+    corpo: {
+      saldo: {
+        ano: 2026,
+        em: '2026-11-12',
+        mesDeReferencia: 11,
+        meses: [],
+        saldoAtual: '10900.00',
+        aguardandoAnalise: 2,
+        limiteDeAlerta: null,
+        abaixoDoLimite: false,
+        mesesSemCota: [],
+        porCategoria: [],
+        porStatus: [],
+      },
+      emendas: {
+        disponibilizado: '100000.00',
+        comprometido: '60000.00',
+        disponivel: '40000.00',
+        utilizado: '20000.00',
+        aExecutar: '40000.00',
+      },
+    },
+  },
   'GET /api/painel/equipe': {
     corpo: {
       periodoDias: 30,
@@ -133,7 +157,7 @@ describe('painel: o que cada perfil vê', () => {
     for (const nome of ['Atendimento', 'Tarefas', 'Projetos de lei']) {
       expect(await screen.findByRole('region', { name: nome })).toBeInTheDocument();
     }
-    expect(screen.getByText('Atendimento nos últimos 30 dias')).toBeInTheDocument();
+    expect(screen.getByText('Atendimento por dia')).toBeInTheDocument();
     expect(screen.getByText('Projetos por etapa')).toBeInTheDocument();
     expect(await screen.findByText('Carga da equipe')).toBeInTheDocument();
     expect(
@@ -171,7 +195,7 @@ describe('painel: o que cada perfil vê', () => {
 
     expect(await screen.findByRole('region', { name: 'Tarefas' })).toBeInTheDocument();
     expect(screen.queryByRole('region', { name: 'Atendimento' })).not.toBeInTheDocument();
-    expect(screen.queryByText('Atendimento nos últimos 30 dias')).not.toBeInTheDocument();
+    expect(screen.queryByText('Atendimento por dia')).not.toBeInTheDocument();
     expect(screen.queryByText('Demandas por etapa')).not.toBeInTheDocument();
     expect(await screen.findByText('Próximos compromissos')).toBeInTheDocument();
   });
@@ -229,7 +253,7 @@ describe('painel: pendências, agenda e gráfico', () => {
   it('as barras de projetos mostram só as etapas com projeto, com o número em texto', async () => {
     simularApi(rotas(sessao('chefe', todas)));
     renderizar('/g/painel');
-    const barras = await screen.findByRole('list', { name: 'Projetos de lei por etapa' });
+    const barras = await screen.findByRole('list', { name: 'Projetos por etapa' });
     expect(within(barras).getAllByRole('listitem')).toHaveLength(1);
     expect(within(barras).getByText('Em redação').closest('li')).toHaveTextContent('4');
   });

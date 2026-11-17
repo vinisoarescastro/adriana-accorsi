@@ -1,275 +1,137 @@
 import { pode } from '@gabinete/autorizacao';
-import type { EtapaDoFluxo, FluxoDeTrabalho, RespostaDaSessao } from '@gabinete/compartilhado';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState, type FormEvent } from 'react';
-import { chamar } from '../api/cliente';
-import { chaves, useFluxos } from '../api/consultas';
+import type { FluxoDeTrabalho, RespostaDaSessao } from '@gabinete/compartilhado';
+import { useState } from 'react';
+import { useFluxos } from '../api/consultas';
+import { Abas } from '../componentes/abas';
 import { CabecalhoDaPagina } from '../componentes/cabecalho';
 import { EsqueletoDeTabela } from '../componentes/tabela';
-import { AvisoDeErro, Botao, Campo, Selo } from '../componentes/ui';
+import { Aviso, AvisoDeErro, Selo } from '../componentes/ui';
 import { rotuloDoFluxo, rotuloDoPapel } from '../rotulos';
+import { LinhaDaEtapa } from './LinhaDaEtapa';
+import { NovaEtapa } from './NovaEtapa';
 
-function LinhaDaEtapa({
-  etapa,
-  fluxo,
-  ajusta,
-  estrutura,
-}: {
-  etapa: EtapaDoFluxo;
-  fluxo: FluxoDeTrabalho;
-  ajusta: boolean;
-  estrutura: boolean;
-}) {
-  const cliente = useQueryClient();
-  const [editando, setEditando] = useState(false);
-  const [nome, setNome] = useState(etapa.nomeInterno);
-  const [ordem, setOrdem] = useState(String(etapa.ordem));
-  const [prazo, setPrazo] = useState(etapa.prazoPadraoDias?.toString() ?? '');
-  const [rotulo, setRotulo] = useState(etapa.rotuloPublico ?? '');
-  const [visivel, setVisivel] = useState(etapa.visivelPublico);
-  const ehDemanda = fluxo.tipo === 'demanda';
+const ondeAparece: Record<FluxoDeTrabalho['tipo'], string> = {
+  demanda: 'Colunas do quadro de Demandas e andamento mostrado ao cidadão',
+  tarefa: 'Colunas do quadro de Tarefas',
+  projeto_lei: 'Colunas do quadro de Projetos de lei',
+  emenda: 'Colunas do quadro de Emendas (e das destinações)',
+  despesa_ceap: 'Etapas da despesa da CEAP, que decidem se ela consome o saldo',
+};
 
-  const atualizar = () => cliente.invalidateQueries({ queryKey: chaves.fluxos });
-  const salvar = useMutation({
-    mutationFn: () =>
-      chamar('PATCH', `/api/fluxos/etapas/${etapa.id}`, {
-        corpo: {
-          nomeInterno: nome,
-          ordem: Number(ordem),
-          prazoPadraoDias: prazo ? Number(prazo) : null,
-          ...(ehDemanda ? { rotuloPublico: rotulo || null, visivelPublico: visivel } : {}),
-        },
-      }),
-    onSuccess: async () => {
-      setEditando(false);
-      await atualizar();
-    },
-  });
-  const situacao = useMutation({
-    mutationFn: () =>
-      chamar('PUT', `/api/fluxos/etapas/${etapa.id}/situacao`, {
-        corpo: { situacao: etapa.situacao === 'ativa' ? 'inativa' : 'ativa' },
-      }),
-    onSuccess: atualizar,
-  });
-
-  const fixa = etapa.papel === 'entrada' || etapa.papel === 'arquivamento';
-
+/** O caminho do fluxo de uma olhada: as etapas na ordem, com o papel de cada uma. */
+function Trilho({ fluxo }: { fluxo: FluxoDeTrabalho }) {
   return (
-    <>
-      <tr>
-        <td>{etapa.ordem}</td>
-        <td className={etapa.situacao === 'inativa' ? 'etapa-inativa' : undefined}>
-          {etapa.nomeInterno}
-        </td>
-        <td>{rotuloDoPapel[etapa.papel]}</td>
-        {ehDemanda ? (
-          <>
-            <td>{etapa.rotuloPublico ?? '-'}</td>
-            <td>{etapa.visivelPublico ? 'Sim' : 'Não'}</td>
-          </>
-        ) : null}
-        <td>{etapa.prazoPadraoDias ? `${etapa.prazoPadraoDias} dias` : '-'}</td>
-        <td>
-          <Selo tom={etapa.situacao === 'ativa' ? 'sucesso' : 'neutro'} ponto>
-            {etapa.situacao === 'ativa' ? 'Ativa' : 'Inativa'}
-          </Selo>
-        </td>
-        {ajusta || estrutura ? (
-          <td>
-            <div className="acoes">
-              {ajusta ? (
-                <Botao pequeno variante="secundario" onClick={() => setEditando((v) => !v)}>
-                  {editando ? 'Cancelar' : 'Ajustar'}
-                </Botao>
-              ) : null}
-              {estrutura && !fixa ? (
-                <Botao
-                  pequeno
-                  variante="secundario"
-                  onClick={() => situacao.mutate()}
-                  disabled={situacao.isPending}
-                >
-                  {etapa.situacao === 'ativa' ? 'Desativar' : 'Reativar'}
-                </Botao>
-              ) : null}
-            </div>
-          </td>
-        ) : null}
-      </tr>
-      {situacao.error ? (
-        <tr>
-          <td colSpan={9}>
-            <AvisoDeErro erro={situacao.error} />
-          </td>
-        </tr>
-      ) : null}
-      {editando ? (
-        <tr>
-          <td colSpan={9}>
-            <div className="painel-do-usuario">
-              <AvisoDeErro erro={salvar.error} />
-              <div className="grade-formulario">
-                <Campo rotulo="Nome interno">
-                  {(p) => <input {...p} value={nome} onChange={(e) => setNome(e.target.value)} />}
-                </Campo>
-                <Campo rotulo="Ordem (só de apresentação)">
-                  {(p) => (
-                    <input
-                      {...p}
-                      type="number"
-                      min={1}
-                      value={ordem}
-                      onChange={(e) => setOrdem(e.target.value)}
-                    />
-                  )}
-                </Campo>
-                <Campo rotulo="Prazo padrão (dias)">
-                  {(p) => (
-                    <input
-                      {...p}
-                      type="number"
-                      min={1}
-                      value={prazo}
-                      onChange={(e) => setPrazo(e.target.value)}
-                    />
-                  )}
-                </Campo>
-                {ehDemanda ? (
-                  <Campo rotulo="Rótulo mostrado ao cidadão">
-                    {(p) => (
-                      <input
-                        {...p}
-                        value={rotulo}
-                        onChange={(e) => setRotulo(e.target.value)}
-                        maxLength={60}
-                      />
-                    )}
-                  </Campo>
-                ) : null}
-              </div>
-              {ehDemanda ? (
-                <label className="opcao">
-                  <input
-                    type="checkbox"
-                    checked={visivel}
-                    onChange={(e) => setVisivel(e.target.checked)}
-                  />
-                  Visível ao cidadão
-                </label>
-              ) : null}
-              <p>
-                <Botao pequeno onClick={() => salvar.mutate()} disabled={salvar.isPending || !nome}>
-                  Salvar etapa
-                </Botao>
-              </p>
-            </div>
-          </td>
-        </tr>
-      ) : null}
-    </>
-  );
-}
-
-function NovaEtapa({ fluxo }: { fluxo: FluxoDeTrabalho }) {
-  const cliente = useQueryClient();
-  const [nome, setNome] = useState('');
-  const [papel, setPapel] = useState<'intermediaria' | 'conclusao'>('intermediaria');
-  const criar = useMutation({
-    mutationFn: () =>
-      chamar('POST', `/api/fluxos/${fluxo.tipo}/etapas`, { corpo: { nomeInterno: nome, papel } }),
-    onSuccess: async () => {
-      setNome('');
-      await cliente.invalidateQueries({ queryKey: chaves.fluxos });
-    },
-  });
-  const enviar = (e: FormEvent) => {
-    e.preventDefault();
-    criar.mutate();
-  };
-  return (
-    <form onSubmit={enviar}>
-      <h3>Nova etapa</h3>
-      <AvisoDeErro erro={criar.error} />
-      <div className="grade-formulario">
-        <Campo rotulo="Nome interno">
-          {(p) => <input {...p} value={nome} onChange={(e) => setNome(e.target.value)} required />}
-        </Campo>
-        <Campo rotulo="Papel" ajuda="Entrada e Arquivamento são únicos e fixos em cada fluxo.">
-          {(p) => (
-            <select
-              {...p}
-              value={papel}
-              onChange={(e) => setPapel(e.target.value as 'intermediaria' | 'conclusao')}
-            >
-              <option value="intermediaria">Intermediária</option>
-              <option value="conclusao">Conclusão</option>
-            </select>
-          )}
-        </Campo>
-      </div>
-      <Botao type="submit" pequeno disabled={criar.isPending || !nome}>
-        Adicionar etapa
-      </Botao>
-    </form>
+    <ol className="fluxo-trilho" aria-label={`Caminho do fluxo de ${rotuloDoFluxo[fluxo.tipo]}`}>
+      {fluxo.etapas.map((e) => (
+        <li
+          key={e.id}
+          className={`fluxo-trilho__etapa fluxo-trilho__etapa--${e.papel}${e.situacao === 'inativa' ? ' fluxo-trilho__etapa--inativa' : ''}`}
+        >
+          <span className="fluxo-trilho__nome">{e.nomeInterno}</span>
+          <span className="fluxo-trilho__papel">
+            {rotuloDoPapel[e.papel]}
+            {e.situacao === 'inativa' ? ' · inativa' : ''}
+          </span>
+        </li>
+      ))}
+    </ol>
   );
 }
 
 export function PaginaFluxos({ sessao }: { sessao: RespostaDaSessao }) {
   const { data: fluxos, isLoading, error } = useFluxos();
+  const [escolhido, setEscolhido] = useState<FluxoDeTrabalho['tipo']>('demanda');
   const autoridade = { perfil: sessao.usuario.perfil, habilitacoes: sessao.usuario.habilitacoes };
   const ajusta = pode('fluxos.ajustar', autoridade);
   const estrutura = pode('fluxos.estruturar', autoridade);
+  const fluxo = fluxos?.find((f) => f.tipo === escolhido) ?? fluxos?.[0];
+  const ativas = fluxo?.etapas.filter((e) => e.situacao === 'ativa').length ?? 0;
 
   return (
     <section>
       <CabecalhoDaPagina
         titulo="Fluxos de trabalho"
-        descricao="Todo status é derivado do papel da etapa. Etapas de Entrada e de Arquivamento são únicas e não se desativam; etapa já usada em registros também não."
+        descricao="As etapas de cada processo: são as colunas dos quadros e decidem o status de cada registro."
       />
       <AvisoDeErro erro={error} />
       {isLoading ? <EsqueletoDeTabela colunas={6} /> : null}
-      {fluxos?.map((fluxo) => (
-        <div key={fluxo.tipo} className="cartao cartao--tabela">
-          <div className="tabela-rolavel">
-            <table className="tabela">
-              <caption>{rotuloDoFluxo[fluxo.tipo]}</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Ordem</th>
-                  <th scope="col">Etapa</th>
-                  <th scope="col">Papel</th>
-                  {fluxo.tipo === 'demanda' ? (
-                    <>
-                      <th scope="col">Rótulo ao cidadão</th>
-                      <th scope="col">Visível</th>
-                    </>
-                  ) : null}
-                  <th scope="col">Prazo padrão</th>
-                  <th scope="col">Situação</th>
-                  {ajusta || estrutura ? <th scope="col">Ações</th> : null}
-                </tr>
-              </thead>
-              <tbody>
-                {fluxo.etapas.map((etapa) => (
-                  <LinhaDaEtapa
-                    key={etapa.id}
-                    etapa={etapa}
-                    fluxo={fluxo}
-                    ajusta={ajusta}
-                    estrutura={estrutura}
-                  />
-                ))}
-              </tbody>
-            </table>
+      {fluxos ? (
+        <div className="ceap-barra">
+          <Abas
+            segmentada
+            rotulo="Fluxos"
+            valor={fluxo?.tipo ?? escolhido}
+            aoMudar={setEscolhido}
+            itens={fluxos.map((f) => ({ id: f.tipo, rotulo: rotuloDoFluxo[f.tipo] }))}
+          />
+        </div>
+      ) : null}
+
+      {fluxo ? (
+        <div className="painel">
+          <div className="cartao">
+            <div className="fluxo-resumo">
+              <div>
+                <h2 className="cartao__titulo">{rotuloDoFluxo[fluxo.tipo]}</h2>
+                <p className="campo__ajuda">{ondeAparece[fluxo.tipo]}</p>
+              </div>
+              <Selo tom="neutro">
+                {ativas} {ativas === 1 ? 'etapa ativa' : 'etapas ativas'}
+              </Selo>
+            </div>
+            <Trilho fluxo={fluxo} />
           </div>
+
+          <div className="cartao cartao--tabela">
+            <div className="tabela-rolavel">
+              <table className="tabela tabela--fluxo">
+                <caption>Etapas de {rotuloDoFluxo[fluxo.tipo]}</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Ordem</th>
+                    <th scope="col">Etapa</th>
+                    <th scope="col">Papel</th>
+                    {fluxo.tipo === 'demanda' ? (
+                      <>
+                        <th scope="col">Rótulo ao cidadão</th>
+                        <th scope="col">Visível</th>
+                      </>
+                    ) : null}
+                    <th scope="col">Prazo padrão</th>
+                    <th scope="col">Situação</th>
+                    {ajusta || estrutura ? <th scope="col">Ações</th> : null}
+                  </tr>
+                </thead>
+                <tbody>
+                  {fluxo.etapas.map((etapa) => (
+                    <LinhaDaEtapa
+                      key={etapa.id}
+                      etapa={etapa}
+                      fluxo={fluxo}
+                      ajusta={ajusta}
+                      estrutura={estrutura}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           {estrutura ? (
-            <div className="cartao__corpo">
+            <div className="cartao">
+              <h2 className="cartao__titulo">Adicionar etapa</h2>
               <NovaEtapa fluxo={fluxo} />
             </div>
           ) : null}
+
+          <Aviso tipo="info" titulo="Como as etapas funcionam">
+            O status de um registro vem do papel da etapa em que ele está: Entrada (em andamento),
+            Intermediária (em andamento), Conclusão (concluído) e Arquivamento (arquivado). Entrada
+            e Arquivamento são únicas em cada fluxo e não se desativam; etapa já usada em registros
+            também não. A ordem só muda a apresentação.
+          </Aviso>
         </div>
-      ))}
+      ) : null}
     </section>
   );
 }
