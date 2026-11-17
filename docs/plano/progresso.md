@@ -10,7 +10,7 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | 1 | Fundação | **concluída** (aceite do usuário) | 2026-11-16 | Código, testes, CI verde e infraestrutura verificados. Encerrada por decisão do usuário; **segue pendente a implantação na VPS** (PV-E), feita ao fim de todas as fases. Ver "Fase 1" abaixo |
 | 2 | Atendimento | **concluída** (aceite do usuário) | 2026-11-16 | Código e testes prontos; **CI verde no GitHub** (324 testes). Encerrada por decisão do usuário; **segue pendente a implantação** (PV-E). Ver "Fase 2" abaixo |
 | 3 | Cidadão (área pública e e-mail) | **concluída** (aceite do usuário) | 2026-11-16 | Encerrada por decisão do usuário; **seguem pendentes** SPF/DKIM/DMARC reais, envio com o Resend e implantação (PV-E, PV-F). Marco de apresentação à deputada. Código e testes prontos, verificados **localmente** com Postgres, API, app público, worker e Mailpit de verdade (425 testes verdes e um fluxo completo de 25 verificações). Ver "Fase 3" abaixo |
-| 4 | Trabalho da equipe | **implementada; falta fechar** (conferência manual, CI, implantação) | | Código e testes prontos, verificados **localmente** (546 testes verdes e um fluxo de 27 verificações contra API e worker reais). Ver "Fase 4" abaixo |
+| 4 | Trabalho da equipe | **concluída** (aceite do usuário) | 2026-11-17 | Encerrada por decisão do usuário, após a conferência manual com a aplicação rodando. Código e testes prontos, verificados **localmente** (546 testes verdes e um fluxo de 27 verificações contra API e worker reais). **CI verde no GitHub** (conferida em 2026-11-17, no commit do código da fase 4 e no push seguinte). **Segue pendente** a implantação (PV-E). Ver "Fase 4" abaixo |
 | 5 | Legislativo | não iniciada | | Depende de PV-A |
 | 6 | Financeiro (emendas e CEAP) | não iniciada | | Depende de PV-A e PV-B |
 | 7 | Consolidação | não iniciada | | |
@@ -29,13 +29,14 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | 4.F | Eventos e presença: cadastro, encerrar, presença por telefone, correção em 30 minutos, remoção com justificativa | feito |
 | 4.G | Worker de prazos: próximo e vencido, uma vez por dia, expurgo; falha de passagem não derruba o processo | feito |
 | 4.H | Front: tarefas, sino, agenda, eventos e presença em poucos toques, painel e configuração | feito |
-| 4.I | Roteiro de conferência, documentação ([ADR 0010](../arquitetura/decisoes/0010-trabalho-da-equipe-avisos-e-agenda.md)) e verificação | feito; a CI desta fase ainda não rodou |
+| 4.I | Roteiro de conferência, documentação ([ADR 0010](../arquitetura/decisoes/0010-trabalho-da-equipe-avisos-e-agenda.md)) e verificação | feito; CI verde |
 
 ### Verificação da fase 4 (2026-11-16)
 
 - **546 testes verdes** em 54 arquivos (unidade, interface e integração com Postgres real): 121 novos da fase 4 (banco, API, worker e interface). Formatação, lint e tipos limpos.
 - **Contra processos reais** (Postgres 17, API e worker rodando; a migração 0009 aplicada sobre um banco que já tinha dados das fases 2 e 3, e os invariantes de subida passaram): fluxo de tarefas, agenda, eventos, presença e painel, com usuários de cada perfil: **27 de 27**. O worker, com o processo real, gerou 3 avisos de prazo ao subir e **nenhum** ao ser reiniciado no mesmo dia. Detalhes em "Execução contra o ambiente real", no [roteiro](../operacao/conferencias/fase4-trabalho-da-equipe.md).
-- **Não verificado ainda:** conferência manual com navegador e em tela pequena ([roteiro](../operacao/conferencias/fase4-trabalho-da-equipe.md)); CI desta fase; implantação.
+- **Conferência manual** ([roteiro](../operacao/conferencias/fase4-trabalho-da-equipe.md)): feita pelo usuário em 2026-11-17 com a aplicação local e os dados de demonstração; fase encerrada por aceite dele.
+- **CI verde no GitHub** (2026-11-17): as execuções dos pushes de 16/11 e 17/11 passaram. **Não verificado ainda:** a implantação.
 
 ### Critérios de aceite da fase 4 (plano)
 
@@ -260,6 +261,7 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 
 | 2026-11-16 | Interface adota o design system de referência (tokens, barra lateral, tema escuro, Poppins, ícones), sem mudar funcionalidade. Ver [ADR 0011](../arquitetura/decisoes/0011-design-system-da-interface.md) |
 | 2026-11-16 | Fases 1, 2 e 3 encerradas por aceite do usuário. Ficam pendentes, para a implantação ao fim das fases: VPS e DNS (PV-E), e-mail real com SPF, DKIM e DMARC, revisão jurídica (PV-F) e os itens de infraestrutura dos roteiros. Fase 4 aprovada para começar |
+| 2026-11-17 | Fase 4 encerrada por aceite do usuário. Seguem pendentes, para a implantação: VPS e DNS (PV-E), e-mail real, e e-mail real. Fase 5 (Legislativo) liberada, com PV-A confirmada |
 
 | 2026-11-17 | PV-A, PV-B, PV-E e PV-F confirmadas pelo usuário. PV-C confirmada: Chefe e Administrador distintos, cerca de 50 usuários, o Administrador responde pela LGPD, Restritos só para Parlamentar, Chefe e Administrador. **O Parlamentar passa a ter acesso total à CEAP** (lança, edita, decide, inclusive a própria despesa com a marca de coincidência, e altera parâmetros), substituindo o "só consulta". **Quem entra no sistema recebe todas as habilitações por padrão** (formulário de novo usuário já vem marcado; o eixo de habilitação continua existindo para restringir) |
 

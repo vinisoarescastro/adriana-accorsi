@@ -3,7 +3,7 @@
 Roteiro de conferência manual. Os testes automatizados garantem as regras; este roteiro garante que **alguém olhou** as telas (tarefas, sino, agenda, eventos e presença), inclusive no celular.
 
 - **Quem executa:** a pessoa que vai apresentar o sistema (e, se possível, alguém do gabinete).
-- **Estado:** **pendente**. Os itens "sim" já passam nos testes; falta alguém olhar.
+- **Estado:** **conferida pelo usuário em 2026-11-17** (aceite da fase 4). Os itens "sim" já passam nos testes.
 
 ## Antes de começar
 
