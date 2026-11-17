@@ -22,3 +22,11 @@ A interface nasceu com uma paleta provisória e componentes simples. O usuário 
 - Trocar a identidade (PV-D) é mexer nos tokens.
 - Duas dependências novas no front: `lucide-react` e `@fontsource/poppins` (esta também no app público).
 - O e-mail ao cidadão não foi alterado (HTML de e-mail tem as suas limitações); alinhar a ele fica para quando a identidade da Deputada chegar.
+
+## Atualização (2026-11-17): paleta da Deputada e menu recolhível
+
+- **Paleta da Deputada Adriana Accorsi**: vermelho #FA082E, amarelo #FFCA00, preto e branco. O vermelho exato fica em `--brand-red` (monograma, áreas grandes); como cor de ação, o texto branco sobre ele dá 4,1:1, abaixo dos 4,5:1 exigidos, então `--primary` e os botões usam um tom um pouco mais fechado (#E1062C, 4,8:1). O amarelo é o acento (`--accent`, barra do item ativo e brilho da entrada); como texto sobre fundo claro usa o tom escuro `--accent-text`. O teste de contraste cobre os novos pares, nos dois temas.
+- **Barra lateral** preta, item ativo em vermelho com a barra amarela, marca centralizada. Em tela larga, o botão na divisa com o conteúdo a **recolhe para só os ícones** (a marca vira o monograma "AA", e cada link mantém o nome para leitores de tela e como dica); a escolha fica no navegador. No celular segue como gaveta.
+- **Rolagem dos quadros**: barras finas e quase invisíveis, sem trilha nem setinhas.
+- A logo é a atual (texto branco "Gabinete Digital Adriana Accorsi"); trocar pela oficial é só substituir o arquivo.
+

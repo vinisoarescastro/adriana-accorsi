@@ -1,12 +1,52 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { renderizar, semSessao, sessaoDe, simularApi } from '../teste/auxiliares';
 
 const gabinete404 = {
   status: 404,
   corpo: { codigo: 'nao_encontrado', mensagem: 'Não encontrado.' },
 };
+
+describe('menu lateral recolhível', () => {
+  const abrir = () => {
+    simularApi({
+      'GET /api/acesso/sessao': { corpo: sessaoDe('chefe', { paginas: ['painel', 'equipe'] }) },
+      'GET /api/gabinete': gabinete404,
+      'GET /api/equipe': { corpo: [] },
+    });
+    renderizar('/g/painel');
+  };
+
+  afterEach(() => localStorage.clear());
+
+  it('recolhe para só os ícones e expande de novo, sem perder os nomes dos links', async () => {
+    abrir();
+    const usuario = userEvent.setup();
+    const recolher = await screen.findByRole('button', { name: 'Recolher o menu' });
+    expect(recolher).toHaveAttribute('aria-expanded', 'true');
+    const raiz = () => document.querySelector('.aplicacao');
+    expect(raiz()).not.toHaveClass('aplicacao--recolhida');
+
+    await usuario.click(recolher);
+    expect(raiz()).toHaveClass('aplicacao--recolhida');
+    const expandir = screen.getByRole('button', { name: 'Expandir o menu' });
+    expect(expandir).toHaveAttribute('aria-expanded', 'false');
+    // Só os ícones à vista, mas cada link continua com o nome (leitores de tela e dica ao passar o mouse).
+    const menu = screen.getByRole('navigation');
+    expect(within(menu).getByRole('link', { name: 'Equipe' })).toHaveAttribute('title', 'Equipe');
+
+    await usuario.click(expandir);
+    expect(raiz()).not.toHaveClass('aplicacao--recolhida');
+  });
+
+  it('lembra a escolha neste navegador', async () => {
+    localStorage.setItem('menu-lateral-recolhido', '1');
+    abrir();
+    expect(await screen.findByRole('button', { name: 'Expandir o menu' })).toBeInTheDocument();
+    expect(document.querySelector('.aplicacao')).toHaveClass('aplicacao--recolhida');
+  });
+});
 
 describe('navegação', () => {
   it('a barra mostra só as páginas que o servidor diz que a sessão alcança', async () => {

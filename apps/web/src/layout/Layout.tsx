@@ -3,6 +3,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Building2,
   CalendarDays,
+  ChevronsLeft,
+  ChevronsRight,
   ClipboardCheck,
   FileText,
   GitBranch,
@@ -52,6 +54,17 @@ const aparenciaDasPaginas: Record<string, { icone: LucideIcon; grupo: string }> 
 
 const ordemDosGrupos = ['Principal', 'Sistema'];
 
+const chaveDoMenuRecolhido = 'menu-lateral-recolhido';
+
+/** O menu lateral recolhido (só ícones) é uma preferência de quem usa, lembrada neste navegador. */
+function menuRecolhidoInicial(): boolean {
+  try {
+    return localStorage.getItem(chaveDoMenuRecolhido) === '1';
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Estrutura da área interna. A barra lateral mostra só as páginas que o servidor diz que a
  * sessão alcança (o mesmo decisor das rotas): página sem permissão não aparece.
@@ -61,12 +74,20 @@ export function Layout({ sessao }: { sessao: RespostaDaSessao }) {
   const local = useLocation();
   const cliente = useQueryClient();
   const [aberta, setAberta] = useState(false);
+  const [recolhido, setRecolhido] = useState(menuRecolhidoInicial);
   const [tema, setTema] = useState<Tema>(temaInicial);
   const { data: gabinete } = useGabinete();
 
   useEffect(() => {
     aplicarTema(tema);
   }, [tema]);
+  useEffect(() => {
+    try {
+      localStorage.setItem(chaveDoMenuRecolhido, recolhido ? '1' : '0');
+    } catch {
+      // Sem armazenamento (janela privada): a preferência só vale nesta sessão.
+    }
+  }, [recolhido]);
   // A gaveta do menu fecha ao trocar de página.
   useEffect(() => setAberta(false), [local.pathname]);
 
@@ -89,7 +110,7 @@ export function Layout({ sessao }: { sessao: RespostaDaSessao }) {
     .filter((g) => g.paginas.length > 0);
 
   return (
-    <div className="aplicacao">
+    <div className={`aplicacao${recolhido ? ' aplicacao--recolhida' : ''}`}>
       <a className="pular-para-conteudo" href="#conteudo">
         Pular para o conteúdo
       </a>
@@ -97,8 +118,25 @@ export function Layout({ sessao }: { sessao: RespostaDaSessao }) {
       <aside className={`lateral${aberta ? ' lateral--aberta' : ''}`} aria-label="Menu principal">
         <div className="lateral__marca">
           <img className="lateral__logo" src={logo} alt="" />
+          <span className="lateral__monograma" aria-hidden="true">
+            AA
+          </span>
           <span className="somente-leitor">{gabinete?.nome ?? 'Gabinete'}</span>
         </div>
+        <button
+          type="button"
+          className="lateral__alternar"
+          aria-expanded={!recolhido}
+          aria-label={recolhido ? 'Expandir o menu' : 'Recolher o menu'}
+          title={recolhido ? 'Expandir o menu' : 'Recolher o menu'}
+          onClick={() => setRecolhido((v) => !v)}
+        >
+          {recolhido ? (
+            <ChevronsRight size={16} aria-hidden="true" />
+          ) : (
+            <ChevronsLeft size={16} aria-hidden="true" />
+          )}
+        </button>
         <nav className="lateral__nav">
           {grupos.map((grupo) => (
             <div className="lateral__secao" key={grupo.nome}>
@@ -110,10 +148,11 @@ export function Layout({ sessao }: { sessao: RespostaDaSessao }) {
                     key={pagina.id}
                     to={pagina.caminho}
                     className="lateral__link"
+                    title={recolhido ? pagina.titulo : undefined}
                     onClick={() => setAberta(false)}
                   >
                     <Icone size={18} aria-hidden="true" />
-                    {pagina.titulo}
+                    <span className="lateral__rotulo">{pagina.titulo}</span>
                   </NavLink>
                 );
               })}

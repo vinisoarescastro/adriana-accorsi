@@ -288,7 +288,7 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | PV-A | Validar fluxos federais (projeto de lei e emenda), tipos de emenda e de proposição, limites de "parado" | | aberta |
 | PV-B | Obter a norma vigente da CEAP e o anexo de limites por UF; confirmar categorias, competência, prazos e os nomes das etapas pós-aprovação | | aberta |
 | PV-C | Confirmar Chefe de Gabinete, Administrador e tamanho da equipe; validar a matriz de permissões | | **confirmada** em 2026-11-17 (ver "Decisões tomadas"); falta só a divisão dos ~50 usuários por perfil, na implantação |
-| PV-D | Identidade visual e dados da deputada (foto, cores, partido, mandato) | | aguardando validação do usuário com a assessoria |
+| PV-D | Identidade visual e dados da deputada (foto, cores, partido, mandato) | | **cores aplicadas** em 2026-11-17 (vermelho #FA082E, amarelo #FFCA00, preto e branco); seguem a validar: foto oficial, logomarca definitiva, partido e mandato |
 | PV-E | Acesso ao DNS de `nucleodedados.com` e à VPS; nome real do subdomínio; titularidade da conta do R2 | | aberta (**bloqueia fechar a fase 1**) |
 | PV-F | Retenção de dados, política de privacidade, encarregado (DPO) e revisão jurídica dos textos de consentimento e e-mail | | aberta |
 

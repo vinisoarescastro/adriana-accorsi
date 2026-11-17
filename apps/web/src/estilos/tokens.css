@@ -1,7 +1,7 @@
 /*
- * Tokens do sistema de design. A linguagem visual (paleta, tipografia, espaços, raios, sombras e
- * movimento) segue o design system de referência; a identidade da Deputada entra com a PV-D e muda
- * só estes valores. O teste contraste.test.ts confere os pares de cor, nos dois temas.
+ * Tokens do sistema de design. A linguagem visual (tipografia, espaços, raios, sombras e movimento)
+ * segue o design system de referência. A paleta é a da Deputada Adriana Accorsi: vermelho #FA082E,
+ * amarelo #FFCA00, preto e branco; trocar a identidade é mexer só nestes valores. O teste contraste.test.ts confere os pares de cor, nos dois temas.
  *
  * Os nomes antigos (--cor-*, --espaco-*) continuam valendo como apelidos dos tokens novos.
  */
@@ -58,6 +58,7 @@
 
   /* Layout */
   --sidebar-width: 15rem;
+  --sidebar-width-collapsed: 4.5rem;
   --topbar-height: 3.5rem;
   --content-max: 80rem;
 
@@ -65,6 +66,9 @@
   --duration-fast: 120ms;
   --duration-base: 180ms;
   --ease: cubic-bezier(0.2, 0, 0, 1);
+  /* Recolher e expandir o menu lateral: um deslize suave. Aumente para deixá-lo mais lento. */
+  --duration-menu: 350ms;
+  --ease-menu: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Camadas */
   --z-sticky: 20;
@@ -87,29 +91,44 @@
   --text-disabled: #a1a1aa;
   --overlay: rgba(24, 24, 27, 0.4);
 
-  /* Primária (azul royal) */
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --primary-active: #1e40af;
-  --primary-soft: #eff6ff;
-  --primary-soft-text: #1e40af;
+  /* Marca da Deputada (valores exatos, para o que é grande ou decorativo: logo, barra, destaques) */
+  --brand-red: #fa082e;
+  --brand-yellow: #ffca00;
+  --brand-black: #0b0b0c;
+
+  /*
+   * Primária: o vermelho da marca, um tom mais fechado para texto e botões, porque o #FA082E puro
+   * dá 4,1:1 com texto branco e a regra pede 4,5:1. O vermelho exato aparece em áreas grandes.
+   */
+  --primary: #e1062c;
+  --primary-hover: #c20524;
+  --primary-active: #a30420;
+  --primary-soft: #fff1f3;
+  --primary-soft-text: #a30420;
   --on-primary: #ffffff;
   /* Fundo dos botões primários: o mesmo nos dois temas, para o texto branco manter 4,5:1. */
-  --btn-primary: #2563eb;
-  --btn-primary-hover: #1d4ed8;
-  --btn-primary-active: #1e40af;
+  --btn-primary: #e1062c;
+  --btn-primary-hover: #c20524;
+  --btn-primary-active: #a30420;
+
+  /* Acento: o amarelo da marca. Texto sobre ele é preto; como texto sobre fundo claro, o tom escuro. */
+  --accent: #ffca00;
+  --accent-hover: #e6b600;
+  --accent-soft: #fff8d6;
+  --accent-text: #7a5b00;
+  --on-accent: #18181b;
 
   /* Degradês (com intenção: destaque, barra lateral, cartão principal) */
-  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #2563eb 55%, #1d4ed8 100%);
-  --gradient-deep: linear-gradient(160deg, #1e3a8a 0%, #172554 60%, #0f1b3d 100%);
-  --gradient-soft: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%);
+  --gradient-primary: linear-gradient(135deg, #e1062c 0%, #c20524 55%, #a30420 100%);
+  --gradient-deep: linear-gradient(160deg, #18181b 0%, #0e0e10 60%, #050506 100%);
+  --gradient-soft: linear-gradient(135deg, #fff1f3 0%, #fff8d6 100%);
 
-  /* Barra lateral */
+  /* Barra lateral: preta, com o item ativo em vermelho e a marca em amarelo */
   --sidebar-bg: var(--gradient-deep);
   --sidebar-text: rgba(255, 255, 255, 0.78);
   --sidebar-text-strong: #ffffff;
   --sidebar-hover: rgba(255, 255, 255, 0.1);
-  --sidebar-active: rgba(255, 255, 255, 0.18);
+  --sidebar-active: #e1062c;
 
   /* Secundária */
   --secondary: #f4f4f5;
@@ -186,14 +205,17 @@
   --text-disabled: #52525b;
   --overlay: rgba(0, 0, 0, 0.6);
 
-  --primary: #3b82f6;
-  --primary-hover: #60a5fa;
-  --primary-active: #93c5fd;
-  --primary-soft: #172554;
-  --primary-soft-text: #bfdbfe;
+  /* O vermelho para texto e ícones sobre fundo escuro é mais claro; o botão segue o mesmo. */
+  --primary: #ff4d62;
+  --primary-hover: #ff7385;
+  --primary-active: #ff98a5;
+  --primary-soft: #3a0a12;
+  --primary-soft-text: #ffb3bd;
   --on-primary: #ffffff;
-  --gradient-soft: linear-gradient(135deg, #14203f 0%, #1a1633 100%);
-  --gradient-deep: linear-gradient(160deg, #1e3a8a 0%, #14275e 55%, #0b1534 100%);
+  --accent-soft: #2e2500;
+  --accent-text: #ffd84d;
+  --gradient-soft: linear-gradient(135deg, #2a0d13 0%, #2a2200 100%);
+  --gradient-deep: linear-gradient(160deg, #141416 0%, #0b0b0c 60%, #030303 100%);
 
   --secondary: #1f1f23;
   --secondary-hover: #27272a;
