@@ -11,11 +11,56 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | 2 | Atendimento | **concluída** (aceite do usuário) | 2026-11-16 | Código e testes prontos; **CI verde no GitHub** (324 testes). Encerrada por decisão do usuário; **segue pendente a implantação** (PV-E). Ver "Fase 2" abaixo |
 | 3 | Cidadão (área pública e e-mail) | **concluída** (aceite do usuário) | 2026-11-16 | Encerrada por decisão do usuário; **seguem pendentes** SPF/DKIM/DMARC reais, envio com o Resend e implantação (PV-E, PV-F). Marco de apresentação à deputada. Código e testes prontos, verificados **localmente** com Postgres, API, app público, worker e Mailpit de verdade (425 testes verdes e um fluxo completo de 25 verificações). Ver "Fase 3" abaixo |
 | 4 | Trabalho da equipe | **concluída** (aceite do usuário) | 2026-11-17 | Encerrada por decisão do usuário, após a conferência manual com a aplicação rodando. Código e testes prontos, verificados **localmente** (546 testes verdes e um fluxo de 27 verificações contra API e worker reais). **CI verde no GitHub** (conferida em 2026-11-17, no commit do código da fase 4 e no push seguinte). **Segue pendente** a implantação (PV-E). Ver "Fase 4" abaixo |
-| 5 | Legislativo | não iniciada | | Depende de PV-A |
+| 5 | Legislativo | **implementada; falta fechar** (conferência manual, CI, implantação) | | PV-A confirmada. Código e testes prontos, verificados **localmente** (690 testes verdes no total, 144 novos desta fase, e o gerador de demonstração exercitado em cópia do banco). Ver "Fase 5" abaixo |
 | 6 | Financeiro (emendas e CEAP) | não iniciada | | Depende de PV-A e PV-B |
 | 7 | Consolidação | não iniciada | | |
 | 8 | Endurecimento | não iniciada | | |
 | 9 | Opcional (verba de gabinete, WhatsApp) | não iniciada | | Só se o gabinete pedir |
+
+## Fase 5: blocos
+
+| Bloco | Conteúdo | Estado |
+| --- | --- | --- |
+| 5.A | Banco (migração 0014): categoria, beneficiário (com `cnpj_valido`), projeto de lei, assuntos, coautores, comissões e votações; gatilhos e permissões | feito |
+| 5.B | Autorização: 8 operações (projetos e beneficiários) e as páginas Projetos de lei e Beneficiários, com a matriz esperada | feito |
+| 5.C | Contratos compartilhados: CNPJ (numérico e alfanumérico), CEP, UF, beneficiários, projetos, comissões e votações | feito |
+| 5.D | Beneficiários na API: cadastrar, alterar, inativar e reativar, listar com busca | feito |
+| 5.E | Projetos na API: cadastrar, mover pelo fluxo federal, reatribuir, cancelar, quadro, consolidado e atrasados | feito |
+| 5.F | Assuntos, coautores, comissões, votações e vocabulários na API | feito |
+| 5.G | Front: projetos (consolidado, quadro, lista, ficha com guias, comissões e votações) e beneficiários | feito |
+| 5.H | Dados de demonstração, roteiro de conferência, [ADR 0012](../arquitetura/decisoes/0012-legislativo-beneficiarios-e-dados-abertos-da-camara.md) (inclui a avaliação da API da Câmara, 5.8), documentação e verificação | feito; a CI desta fase ainda não rodou |
+
+### Verificação da fase 5 (2026-11-17)
+
+- **690 testes verdes** em 75 arquivos (unidade, interface e integração com Postgres real): 144 novos da fase 5 (banco, API, contratos, autorização e interface). Formatação, lint, tipos e build do front limpos.
+- **Gerador de demonstração** exercitado numa **cópia** do banco (a cópia foi descartada): 16 beneficiários (2 inativos, CNPJs válidos), 25 projetos de lei em quase todas as etapas, 34 passagens por comissões e 8 votações; há atrasados, concluídos, um arquivado e dois cancelados.
+- **Migração 0014** aplicada no banco local, sobre um banco que já tinha dados das fases 2 a 4, e os invariantes de subida passaram.
+- **Contra processos reais** (Postgres 17 e API rodando, migração 0014 sobre banco com dados das fases 2 a 4, demonstração gerada): 41 de 41 verificações com sessões de cinco perfis. Detalhes em "Execução contra o ambiente real", no [roteiro](../operacao/conferencias/fase5-legislativo.md).
+- **Não verificado ainda:** a conferência visual no navegador e em tela de 360 px (depende de quem olha as telas); CI desta fase; implantação.
+
+### Critérios de aceite da fase 5 (plano)
+
+| # | Critério | Estado |
+| --- | --- | --- |
+| 1 | Título, ementa e autoria são obrigatórios; número duplicado entre projetos ativos é recusado | verificado (API, banco e interface) |
+| 2 | CNPJ inválido ou duplicado é recusado | verificado (tela, API e banco, inclusive o CNPJ alfanumérico) |
+| 3 | O projeto percorre as etapas do fluxo federal; etapa de outro tipo de processo é recusada | verificado (API e banco) |
+| 4 | Comissões e votações são registradas e aparecem na ficha | verificado |
+| 5 | O quadro mostra os atrasados, calculados na leitura | verificado (o relógio avança e o mesmo registro vira atrasado, sem escrita; não há coluna de status nem de atraso) |
+| 6 | Sem a habilitação LG, o módulo não aparece (nem vazio) | verificado (menu, rota e API respondem como inexistente; beneficiários aceitam LG ou FI) |
+
+### Decisões e desvios durante a fase 5
+
+- **CNPJ alfanumérico aceito.** A Receita Federal passa a emitir CNPJ com letras a partir de julho de 2026; um cadastro só numérico recusaria CNPJs válidos. O cálculo (valor do caractere igual ao código ASCII menos 48) está no contrato compartilhado e no banco (`cnpj_valido`).
+- **Autoria é coluna do projeto** (o modelo de dados só previa coautores) e **`local` é coluna opcional da votação**.
+- **Número do projeto é opcional até o protocolo**, único entre os não cancelados.
+- **Vocabulários (tipo de proposição e assunto) na tabela `categoria`**, com um conjunto inicial **provisório**: o gabinete ajusta pela API (Supervisor em diante). A página de manutenção na tela fica para uma melhoria.
+- **Reabrir projeto encerrado é do Supervisor em diante**, e **cancelar e reatribuir também** (a especificação só definia quem move). Leitura conservadora, igual à das tarefas.
+- **O legislativo não alcança o Assessor Externo** (nível mínimo 2) e exige LG; beneficiários aceitam LG ou FI.
+- **Sem aviso nem worker de prazo para projeto** nesta fase; entra quando se ampliar a visão `vw_prazo_aberto`.
+- **5.7 (ajustar o fluxo federal):** PV-A foi confirmada sem alterações pedidas; o fluxo segue como o semeado e o gabinete o ajusta pela página Fluxos, que o quadro acompanha.
+- **5.8 (API da Câmara): avaliada e adiada**, com a justificativa e o desenho para depois no ADR 0012.
+- Defeito achado pelos testes: a sessão de teste expirava quando o relógio avançava dias; os testes de atraso entram de novo com o relógio adiantado.
 
 ## Fase 4: blocos
 
@@ -261,6 +306,7 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 
 | 2026-11-16 | Interface adota o design system de referência (tokens, barra lateral, tema escuro, Poppins, ícones), sem mudar funcionalidade. Ver [ADR 0011](../arquitetura/decisoes/0011-design-system-da-interface.md) |
 | 2026-11-16 | Fases 1, 2 e 3 encerradas por aceite do usuário. Ficam pendentes, para a implantação ao fim das fases: VPS e DNS (PV-E), e-mail real com SPF, DKIM e DMARC, revisão jurídica (PV-F) e os itens de infraestrutura dos roteiros. Fase 4 aprovada para começar |
+| 2026-11-17 | Fase 5 (Legislativo) implementada por inteiro, a pedido do usuário, em blocos consecutivos (ver "Fase 5" acima) |
 | 2026-11-17 | Fase 4 encerrada por aceite do usuário. Seguem pendentes, para a implantação: VPS e DNS (PV-E), e-mail real, e e-mail real. Fase 5 (Legislativo) liberada, com PV-A confirmada |
 
 | 2026-11-17 | PV-A, PV-B, PV-E e PV-F confirmadas pelo usuário. PV-C confirmada: Chefe e Administrador distintos, cerca de 50 usuários, o Administrador responde pela LGPD, Restritos só para Parlamentar, Chefe e Administrador. **O Parlamentar passa a ter acesso total à CEAP** (lança, edita, decide, inclusive a própria despesa com a marca de coincidência, e altera parâmetros), substituindo o "só consulta". **Quem entra no sistema recebe todas as habilitações por padrão** (formulário de novo usuário já vem marcado; o eixo de habilitação continua existindo para restringir) |

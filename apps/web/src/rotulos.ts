@@ -3,12 +3,15 @@ import type {
   EstadoDeEnvioDto,
   EstadoDoLink,
   EventoDeNotificacaoDto,
+  NaturezaDeBeneficiarioDto,
   NaturezaDeDocumento,
   OrigemDeConsentimentoDto,
   PapelDeEtapaDto,
   Perfil,
   Prioridade,
+  ResultadoDeVotacaoDto,
   RespostaDeParticipanteDto,
+  StatusDeProjeto,
   StatusDeDemanda,
   TipoDeProcessoDto,
   TipoDeVinculoDeTarefaDto,
@@ -140,4 +143,25 @@ export const rotuloDoVinculo: Record<TipoDeVinculoDeTarefaDto, string> = {
   pessoa: 'Vinculada a uma pessoa',
   compromisso: 'Vinculada a um compromisso',
   evento: 'Vinculada a um evento',
+};
+
+export const rotuloDaNaturezaDoBeneficiario: Record<NaturezaDeBeneficiarioDto, string> = {
+  municipio: 'Município',
+  orgao: 'Órgão público',
+  entidade: 'Entidade',
+};
+
+export const rotuloDoStatusDoProjeto: Record<StatusDeProjeto, string> = {
+  em_andamento: 'Em andamento',
+  concluido: 'Concluído',
+  arquivado: 'Arquivado',
+  cancelado: 'Cancelado',
+};
+
+export const rotuloDoResultadoDaVotacao: Record<ResultadoDeVotacaoDto, string> = {
+  aprovado: 'Aprovado',
+  aprovado_com_emendas: 'Aprovado com emendas',
+  rejeitado: 'Rejeitado',
+  retirado_de_pauta: 'Retirado de pauta',
+  adiado: 'Adiado',
 };

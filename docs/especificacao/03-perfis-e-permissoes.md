@@ -64,6 +64,7 @@ Nível mínimo. "Qualquer" significa que o perfil mais baixo alcança, e o recor
 | Eventos: encerrar; remover presença | Supervisor | AT |
 | Projetos de lei: acompanhar | Assessor Interno | LG |
 | Projetos de lei: supervisionar | Supervisor | LG |
+| Projetos de lei: vocabulários (tipos de proposição e assuntos) | Supervisor | LG |
 | Beneficiários: consultar e manter | Assessor Interno | LG ou FI |
 | Beneficiários: inativar | Supervisor | LG ou FI |
 | Emendas: acompanhar | Assessor Interno | LG |

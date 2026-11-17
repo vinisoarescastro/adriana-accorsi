@@ -127,6 +127,10 @@ Estado: rascunho da fase 0. Cada regra tem um identificador estável (`RN-`) par
 | RN-PRO-05 | Coautores como lista de nomes; votação com data e resultado, sem placar individual; comissões com data e parecer |
 | RN-BEN-01 | Beneficiário exige nome fantasia, razão social, CNPJ válido (dígito verificador) e endereço completo (CEP, logradouro, número, bairro, cidade, estado; só o complemento é opcional) |
 | RN-BEN-02 | Não há dois beneficiários ativos com o mesmo CNPJ |
+| RN-PRO-06 | **[fase 5]** O número é opcional até o protocolo; único entre os projetos não cancelados, sem diferenciar maiúsculas; cancelar libera o número |
+| RN-PRO-07 | **[fase 5]** Reatribuir e cancelar são do Supervisor ou superior; mover, editar e acompanhar (assuntos, coautores, comissões, votações) são do responsável ou do Supervisor ou superior. Reabrir um projeto encerrado é do Supervisor ou superior |
+| RN-PRO-08 | **[fase 5]** O status deriva do papel da etapa e o atraso do prazo vencido com o projeto em andamento; ambos calculados na leitura, nunca gravados |
+| RN-BEN-03 | **[fase 5]** O CNPJ aceita o formato numérico e o alfanumérico (Receita Federal, a partir de julho de 2026), conferido pelo dígito verificador na tela, na API e no banco. Inativar libera o CNPJ |
 
 ## 4.10 Emendas parlamentares
 

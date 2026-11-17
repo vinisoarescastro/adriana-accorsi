@@ -90,6 +90,26 @@ const esperado: Record<NomeDeOperacao, readonly Perfil[]> = {
   ],
   'eventos.encerrar': ['parlamentar', 'administrador', 'chefe', 'supervisor'],
   'presenca.remover': ['parlamentar', 'administrador', 'chefe', 'supervisor'],
+  'projetos.consultar': ['parlamentar', 'administrador', 'chefe', 'supervisor', 'assessor_interno'],
+  'projetos.registrar': ['parlamentar', 'administrador', 'chefe', 'supervisor', 'assessor_interno'],
+  'projetos.alterar': ['parlamentar', 'administrador', 'chefe', 'supervisor', 'assessor_interno'],
+  'projetos.supervisionar': ['parlamentar', 'administrador', 'chefe', 'supervisor'],
+  'projetos.vocabularios': ['parlamentar', 'administrador', 'chefe', 'supervisor'],
+  'beneficiarios.consultar': [
+    'parlamentar',
+    'administrador',
+    'chefe',
+    'supervisor',
+    'assessor_interno',
+  ],
+  'beneficiarios.manter': [
+    'parlamentar',
+    'administrador',
+    'chefe',
+    'supervisor',
+    'assessor_interno',
+  ],
+  'beneficiarios.inativar': ['parlamentar', 'administrador', 'chefe', 'supervisor'],
   'equipe.ver': perfis,
   'equipe.administrar': ['administrador', 'chefe'],
   'equipe.historico': ['parlamentar', 'administrador', 'chefe'],
@@ -169,6 +189,16 @@ describe('páginas alcançáveis', () => {
     expect(semAtendimento).toContain('painel');
   });
 
+  it('o legislativo exige LG; beneficiários aceitam LG ou FI; sem elas, nem aparecem', () => {
+    const para = (habilitacoes: readonly Area[]) =>
+      paginasAlcancaveis({ perfil: 'supervisor', habilitacoes });
+    expect(para(['LG'])).toEqual(expect.arrayContaining(['projetos', 'beneficiarios']));
+    expect(para(['FI'])).toContain('beneficiarios');
+    expect(para(['FI'])).not.toContain('projetos');
+    expect(para(['AT', 'AG'])).not.toContain('projetos');
+    expect(para(['AT', 'AG'])).not.toContain('beneficiarios');
+  });
+
   it('cada perfil vê só o que o decisor permite', () => {
     const para = (perfil: Perfil) => paginasAlcancaveis({ perfil, habilitacoes: todas });
     expect(para('assessor_externo')).toEqual([
@@ -188,6 +218,8 @@ describe('páginas alcançáveis', () => {
       'tarefas',
       'agenda',
       'eventos',
+      'projetos',
+      'beneficiarios',
       'pessoas',
       'emails',
       'equipe',
@@ -200,6 +232,8 @@ describe('páginas alcançáveis', () => {
       'tarefas',
       'agenda',
       'eventos',
+      'projetos',
+      'beneficiarios',
       'pessoas',
       'emails',
       'equipe',
@@ -213,6 +247,8 @@ describe('páginas alcançáveis', () => {
       'tarefas',
       'agenda',
       'eventos',
+      'projetos',
+      'beneficiarios',
       'pessoas',
       'emails',
       'equipe',

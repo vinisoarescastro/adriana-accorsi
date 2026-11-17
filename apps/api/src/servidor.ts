@@ -35,6 +35,13 @@ import { registrarRotasDeAuditoria } from './auditoria/rotas.js';
 import { ServicoDeAuditoria } from './auditoria/servico.js';
 import { registrarRotasDeFluxos } from './fluxos/rotas.js';
 import { ServicoDeFluxos } from './fluxos/servico.js';
+import { ServicoDeBeneficiarios } from './beneficiarios/servico.js';
+import { registrarRotasDeBeneficiarios } from './beneficiarios/rotas.js';
+import { ServicoDeAcompanhamentoDoProjeto } from './projetos/acompanhamento.js';
+import { ConsultasDeProjetos } from './projetos/consultas.js';
+import { registrarRotasDeProjetos } from './projetos/rotas.js';
+import { ServicoDeProjetos } from './projetos/servico.js';
+import { ServicoDeVocabularios } from './projetos/vocabularios.js';
 import { ConsultasDeTarefas } from './tarefas/consultas.js';
 import { registrarRotasDeTarefas } from './tarefas/rotas.js';
 import { ServicoDeTarefas } from './tarefas/servico.js';
@@ -205,6 +212,16 @@ export async function construirServidor(dep: DependenciasDoServidor): Promise<Fa
     app,
     consultasDeTarefas,
     new ServicoDeTarefas({ bd, consultas: consultasDeTarefas, agora }),
+  );
+
+  registrarRotasDeBeneficiarios(app, new ServicoDeBeneficiarios(bd));
+  const consultasDeProjetos = new ConsultasDeProjetos(bd, agora);
+  registrarRotasDeProjetos(
+    app,
+    consultasDeProjetos,
+    new ServicoDeProjetos({ bd, consultas: consultasDeProjetos, agora }),
+    new ServicoDeAcompanhamentoDoProjeto(bd, consultasDeProjetos, agora),
+    new ServicoDeVocabularios(bd),
   );
 
   await dep.registrarRotas?.(app);

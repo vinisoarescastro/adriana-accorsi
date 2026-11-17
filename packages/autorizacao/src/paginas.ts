@@ -11,6 +11,12 @@ export const paginas = {
   tarefas: { caminho: '/g/tarefas', titulo: 'Tarefas', operacao: 'tarefas.consultar' },
   agenda: { caminho: '/g/agenda', titulo: 'Agenda', operacao: 'agenda.consultar' },
   eventos: { caminho: '/g/eventos', titulo: 'Eventos', operacao: 'eventos.consultar' },
+  projetos: { caminho: '/g/projetos', titulo: 'Projetos de lei', operacao: 'projetos.consultar' },
+  beneficiarios: {
+    caminho: '/g/beneficiarios',
+    titulo: 'Beneficiários',
+    operacao: 'beneficiarios.consultar',
+  },
   pessoas: { caminho: '/g/pessoas', titulo: 'Pessoas', operacao: 'pessoas.consultar' },
   emails: {
     caminho: '/g/emails',

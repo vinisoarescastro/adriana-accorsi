@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router';
 import { ExigePagina, ExigeSessao, NaoEncontrada } from './acesso/guardas';
 import { PaginaEntrar } from './acesso/PaginaEntrar';
 import { PaginaTrocarSenha } from './acesso/PaginaTrocarSenha';
+import { PaginaBeneficiarios } from './beneficiarios/PaginaBeneficiarios';
 import { PaginaAuditoria } from './auditoria/PaginaAuditoria';
 import { PaginaConfiguracoes } from './configuracoes/PaginaConfiguracoes';
 import { PaginaAgenda } from './agenda/PaginaAgenda';
@@ -11,6 +12,7 @@ import { PaginaEquipe } from './equipe/PaginaEquipe';
 import { PaginaEventos } from './eventos/PaginaEventos';
 import { PaginaFluxos } from './fluxos/PaginaFluxos';
 import { Layout } from './layout/Layout';
+import { PaginaProjetos } from './projetos/PaginaProjetos';
 import { PaginaPainel } from './painel/PaginaPainel';
 import { PaginaPessoas } from './pessoas/PaginaPessoas';
 import { PaginaPerfil } from './perfil/PaginaPerfil';
@@ -79,6 +81,22 @@ function RotasDaArea() {
             element={
               <ExigePagina id="eventos" sessao={sessao}>
                 <PaginaEventos sessao={sessao} />
+              </ExigePagina>
+            }
+          />
+          <Route
+            path="projetos"
+            element={
+              <ExigePagina id="projetos" sessao={sessao}>
+                <PaginaProjetos sessao={sessao} />
+              </ExigePagina>
+            }
+          />
+          <Route
+            path="beneficiarios"
+            element={
+              <ExigePagina id="beneficiarios" sessao={sessao}>
+                <PaginaBeneficiarios sessao={sessao} />
               </ExigePagina>
             }
           />

@@ -11,7 +11,8 @@ type PapelDaEtapa = 'entrada' | 'intermediaria' | 'conclusao' | 'arquivamento';
 export interface DadosDoCartao {
   readonly titulo: string;
   readonly apoio?: string | undefined;
-  readonly prioridade: Prioridade;
+  /** Projetos de lei não têm prioridade: sem ela, o cartão não mostra o selo. */
+  readonly prioridade?: Prioridade | undefined;
   readonly prazo: string | null;
   readonly atrasada: boolean;
   /** O principal primeiro. */
@@ -162,9 +163,11 @@ function CartaoDoQuadro({
       onDragEnd={aoTerminarArrasto}
     >
       <button type="button" className="quadro__corpo" onClick={aoAbrir}>
-        <span className="quadro__etiquetas">
-          <SeloDePrioridade prioridade={prioridade} compacto />
-        </span>
+        {prioridade ? (
+          <span className="quadro__etiquetas">
+            <SeloDePrioridade prioridade={prioridade} compacto />
+          </span>
+        ) : null}
         <strong className="quadro__cartao-titulo">{titulo}</strong>
         {apoio ? <span className="quadro__apoio">{apoio}</span> : null}
         <span className="quadro__meta">

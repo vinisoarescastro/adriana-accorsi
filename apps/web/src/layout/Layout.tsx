@@ -1,6 +1,7 @@
 import type { RespostaDaSessao } from '@gabinete/compartilhado';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
+  Building2,
   CalendarDays,
   ClipboardCheck,
   FileText,
@@ -10,6 +11,7 @@ import {
   ListChecks,
   LogOut,
   Mail,
+  Landmark,
   Menu,
   Moon,
   Settings,
@@ -38,6 +40,8 @@ const aparenciaDasPaginas: Record<string, { icone: LucideIcon; grupo: string }> 
   tarefas: { icone: ListChecks, grupo: 'Principal' },
   agenda: { icone: CalendarDays, grupo: 'Principal' },
   eventos: { icone: ClipboardCheck, grupo: 'Principal' },
+  projetos: { icone: Landmark, grupo: 'Principal' },
+  beneficiarios: { icone: Building2, grupo: 'Principal' },
   pessoas: { icone: Users, grupo: 'Principal' },
   emails: { icone: Mail, grupo: 'Principal' },
   equipe: { icone: UsersRound, grupo: 'Sistema' },

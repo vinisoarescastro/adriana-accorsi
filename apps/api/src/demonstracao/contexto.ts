@@ -43,10 +43,11 @@ export interface Contexto {
   readonly armazenamento: ArmazenamentoEmDisco;
   readonly segredoDaAplicacao: string;
   readonly colegas: Colega[];
-  readonly tipos: { demanda: number; tarefa: number };
+  readonly tipos: { demanda: number; tarefa: number; projeto_lei: number };
   readonly etapas: {
     demanda: Record<string, EtapaConhecida>;
     tarefa: Record<string, EtapaConhecida>;
+    projeto_lei: Record<string, EtapaConhecida>;
   };
   readonly avisos: LinhaDeAviso[];
   readonly trilha: LinhaDeTrilha[];

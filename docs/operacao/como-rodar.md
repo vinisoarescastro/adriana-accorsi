@@ -1,6 +1,6 @@
 # Como rodar
 
-Estado: fase 4 implementada. Existem a API (`apps/api`), o front (`apps/web`), a área do cidadão (`apps/publico`), o worker (`apps/worker`: e-mails ao cidadão e avisos de prazo) e os pacotes `banco`, `autorizacao` e `compartilhado`. Implantação na VPS: ver [implantacao.md](implantacao.md).
+Estado: fase 5 implementada. Existem a API (`apps/api`), o front (`apps/web`), a área do cidadão (`apps/publico`), o worker (`apps/worker`: e-mails ao cidadão e avisos de prazo) e os pacotes `banco`, `autorizacao` e `compartilhado`. Implantação na VPS: ver [implantacao.md](implantacao.md).
 
 ## Requisitos
 
@@ -96,7 +96,7 @@ Variáveis do app público: `DATABASE_URL_PUBLICO`, `HOST_PUBLICO`, `PORTA_PUBLI
 ## Dados de demonstração
 
 Para avaliar a aplicação com volume e variedade (usuários, cidadãos, demandas com histórico, tarefas,
-comentários com menções, agenda, eventos, e-mails, documentos, avisos e auditoria):
+comentários com menções, agenda, eventos, e-mails, documentos, beneficiários, projetos de lei com comissões e votações, avisos e auditoria):
 
 ```
 npm run demonstracao -w @gabinete/api
@@ -118,4 +118,4 @@ nada: `npm run demonstracao:corresponsaveis -w @gabinete/api`.
 
 ## O que ainda não existe
 
-Os módulos de negócio das fases 5 a 7 (legislativo, emendas, CEAP, consolidação). O atendimento (fase 2), o cidadão (fase 3) e o trabalho da equipe, com tarefas, agenda, eventos e avisos (fase 4), já existem. Ver [o plano](../plano/plano-de-implementacao.md).
+Os módulos de negócio das fases 6 e 7 (emendas, CEAP e consolidação). O atendimento (fase 2), o cidadão (fase 3), o trabalho da equipe (fase 4) e o legislativo, com beneficiários e projetos de lei (fase 5), já existem. Ver [o plano](../plano/plano-de-implementacao.md).

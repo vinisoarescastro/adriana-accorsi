@@ -7,6 +7,7 @@ import { sql } from 'drizzle-orm';
 const tabelasDeDados = [
   'andamento_publicado',
   'aviso',
+  'beneficiario',
   'bloqueio_indisponibilidade',
   'comentario_interno',
   'comentario_mencao',
@@ -22,14 +23,27 @@ const tabelasDeDados = [
   'participante_externo',
   'participante_interno',
   'pessoa',
+  'projeto_assunto',
+  'projeto_coautor',
+  'projeto_lei',
   'protocolo_emitido',
   'tarefa',
   'tarefa_responsavel',
+  'tramitacao_comissao',
   'vinculo',
+  'votacao_projeto',
 ] as const;
 
 /** Entidades da trilha que pertencem aos dados apagados. O resto (usuários, acesso, fluxos) fica. */
-const entidadesDaTrilha = ['compromisso', 'demanda', 'evento', 'pessoa', 'tarefa'] as const;
+const entidadesDaTrilha = [
+  'beneficiario',
+  'compromisso',
+  'demanda',
+  'evento',
+  'pessoa',
+  'projeto_lei',
+  'tarefa',
+] as const;
 
 /**
  * Apaga os dados de uso, numa transação. Várias tabelas são imutáveis por gatilho (trilha,

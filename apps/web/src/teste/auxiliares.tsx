@@ -55,6 +55,18 @@ export const todasAsPaginas = [
   { id: 'tarefas', caminho: '/g/tarefas', titulo: 'Tarefas', operacao: 'tarefas.consultar' },
   { id: 'agenda', caminho: '/g/agenda', titulo: 'Agenda', operacao: 'agenda.consultar' },
   { id: 'eventos', caminho: '/g/eventos', titulo: 'Eventos', operacao: 'eventos.consultar' },
+  {
+    id: 'projetos',
+    caminho: '/g/projetos',
+    titulo: 'Projetos de lei',
+    operacao: 'projetos.consultar',
+  },
+  {
+    id: 'beneficiarios',
+    caminho: '/g/beneficiarios',
+    titulo: 'Beneficiários',
+    operacao: 'beneficiarios.consultar',
+  },
   { id: 'pessoas', caminho: '/g/pessoas', titulo: 'Pessoas', operacao: 'pessoas.consultar' },
   {
     id: 'emails',
@@ -89,7 +101,7 @@ export function sessaoDe(
       nome: 'Fulano de Tal',
       email: 'fulano@exemplo.test',
       perfil,
-      habilitacoes: ['AT', 'AG'],
+      habilitacoes: ['AT', 'AG', 'LG'],
     },
     senhaTrocaObrigatoria: opcoes.trocaObrigatoria ?? false,
     expiraEm: '2026-11-13T00:00:00.000Z',

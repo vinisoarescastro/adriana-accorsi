@@ -195,6 +195,49 @@ export const operacoes = {
     habilitacao: ['AT'],
   },
 
+  // Legislativo (fase 5, habilitação LG). Beneficiários também aceitam FI (usados pelas emendas).
+  'projetos.consultar': {
+    descricao: 'Listar e consultar projetos de lei (quadro, consolidado e atrasados)',
+    nivelMinimo: 2,
+    habilitacao: ['LG'],
+  },
+  'projetos.registrar': {
+    descricao: 'Cadastrar projeto de lei',
+    nivelMinimo: 2,
+    habilitacao: ['LG'],
+  },
+  'projetos.alterar': {
+    descricao:
+      'Editar, mover e acompanhar o projeto (assuntos, coautores, comissões e votações). Supervisor ou superior, ou o responsável: regra do serviço',
+    nivelMinimo: 2,
+    habilitacao: ['LG'],
+  },
+  'projetos.supervisionar': {
+    descricao: 'Reatribuir e cancelar projeto de lei',
+    nivelMinimo: 3,
+    habilitacao: ['LG'],
+  },
+  'projetos.vocabularios': {
+    descricao: 'Manter os vocabulários do legislativo (tipos de proposição e assuntos)',
+    nivelMinimo: 3,
+    habilitacao: ['LG'],
+  },
+  'beneficiarios.consultar': {
+    descricao: 'Consultar e buscar beneficiários',
+    nivelMinimo: 2,
+    habilitacao: ['LG', 'FI'],
+  },
+  'beneficiarios.manter': {
+    descricao: 'Cadastrar e alterar beneficiários',
+    nivelMinimo: 2,
+    habilitacao: ['LG', 'FI'],
+  },
+  'beneficiarios.inativar': {
+    descricao: 'Inativar e reativar beneficiários',
+    nivelMinimo: 3,
+    habilitacao: ['LG', 'FI'],
+  },
+
   // Equipe
   'equipe.ver': { descricao: 'Ver a equipe', nivelMinimo: 1 },
   'equipe.administrar': {

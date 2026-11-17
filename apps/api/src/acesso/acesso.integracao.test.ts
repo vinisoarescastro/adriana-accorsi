@@ -37,6 +37,8 @@ describe('entrar', () => {
       'tarefas',
       'agenda',
       'eventos',
+      'projetos',
+      'beneficiarios',
       'pessoas',
       'emails',
       'equipe',

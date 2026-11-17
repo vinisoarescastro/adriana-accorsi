@@ -9,6 +9,7 @@ import { popularCorresponsaveis } from './corresponsaveis.js';
 import { popularDemandas } from './demandas.js';
 import { gravarAvisosETrilha } from './gravar.js';
 import { popularInteracoes } from './interacoes.js';
+import { popularLegislativo } from './legislativo.js';
 import { limpar } from './limpar.js';
 import { popularPessoas } from './pessoas.js';
 import { popularTarefas } from './tarefas.js';
@@ -17,7 +18,7 @@ import { popularUsuarios, senhaDaDemonstracao } from './usuarios.js';
 /**
  * Prepara o banco LOCAL para uma demonstração: apaga os dados de uso e cria uma base fictícia, grande
  * e coerente (usuários, cidadãos, demandas com histórico, tarefas, comentários com menções, agenda,
- * eventos, e-mails, documentos, avisos e auditoria). Nunca roda fora de um banco local.
+ * eventos, e-mails, documentos, beneficiários, projetos de lei, avisos e auditoria). Nunca roda fora de um banco local.
  *
  * Uso: `npm run demonstracao -w @gabinete/api`.
  */
@@ -62,8 +63,16 @@ try {
     armazenamento: new ArmazenamentoEmDisco(pastaDeArquivos),
     segredoDaAplicacao: segredo,
     colegas: [],
-    tipos: { demanda: tipoId('demanda'), tarefa: tipoId('tarefa') },
-    etapas: { demanda: doTipo('demanda'), tarefa: doTipo('tarefa') },
+    tipos: {
+      demanda: tipoId('demanda'),
+      tarefa: tipoId('tarefa'),
+      projeto_lei: tipoId('projeto_lei'),
+    },
+    etapas: {
+      demanda: doTipo('demanda'),
+      tarefa: doTipo('tarefa'),
+      projeto_lei: doTipo('projeto_lei'),
+    },
     avisos: [],
     trilha: [],
     resumo: {},
@@ -83,6 +92,8 @@ try {
   await popularCorresponsaveis(ctx);
   console.log('7/8 Agenda e eventos…');
   await popularAgenda(ctx, pessoas);
+  console.log('7b/8 Beneficiários e projetos de lei…');
+  await popularLegislativo(ctx);
   console.log('8/8 Avisos e auditoria…');
   await gravarAvisosETrilha(ctx);
 

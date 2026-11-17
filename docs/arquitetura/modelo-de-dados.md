@@ -95,14 +95,17 @@ Restrições: uma etapa de Entrada, uma de Arquivamento e ao menos uma de Conclu
 
 ## 9. Legislativo
 
-| Tabela | Colunas principais |
-| --- | --- |
-| `beneficiario` | `nome_fantasia`, `razao_social`, `cnpj` (único entre ativos), `cep`, `logradouro`, `numero`, `complemento`, `bairro`, `cidade`, `estado`, `natureza`, `situacao` |
-| `projeto_lei` | `responsavel_id`, `titulo`, `ementa`, `numero` (único entre ativos), `tipo_proposicao_id`, `etapa_atual_id`, `prazo`, `cancelado_em`, `justificativa_cancelamento` |
-| `projeto_assunto` | `projeto_id`, `categoria_id` |
-| `projeto_coautor` | `projeto_id`, `nome` |
-| `tramitacao_comissao` | `projeto_id`, `comissao`, `data`, `parecer` |
-| `votacao_projeto` | `projeto_id`, `data`, `resultado` (sem placar individual) |
+Implementado na migração 0014 (fase 5). Ver [ADR 0012](decisoes/0012-legislativo-beneficiarios-e-dados-abertos-da-camara.md).
+
+| Tabela | Colunas principais | Observações |
+| --- | --- | --- |
+| `categoria` | `natureza` (assunto_projeto, tipo_proposicao, natureza_documento, tipo_emenda), `nome`, `situacao` | Nome único dentro da natureza, sem diferenciar maiúsculas. Nunca se apaga: inativa-se. Conjunto inicial na migração |
+| `beneficiario` | `nome_fantasia`, `razao_social`, `cnpj` (único entre ativos), `cep`, `logradouro`, `numero`, `complemento`, `bairro`, `cidade`, `estado`, `natureza` (municipio, orgao, entidade), `situacao` (ativo, inativo), `criado_por` | `CHECK` com a função `cnpj_valido` (numérico e alfanumérico), CEP de 8 números, UF entre as 27, endereço preenchido |
+| `projeto_lei` | `criador_id`, `responsavel_id`, `titulo`, `ementa`, `autoria`, `numero` (nulo até o protocolo; único entre os não cancelados), `tipo_proposicao_id`, `etapa_atual_id`, `prazo`, `cancelado_em`, `cancelado_por`, `justificativa_cancelamento` | Sem coluna de status nem de atraso. Gatilho: projeto cancelado não se altera; criador e data de criação não mudam. **Desvio:** a coluna `autoria` (o plano só previa coautores) |
+| `projeto_assunto` | `projeto_id`, `categoria_id` | Chave composta |
+| `projeto_coautor` | `projeto_id`, `nome` | Nome único por projeto, sem diferenciar maiúsculas |
+| `tramitacao_comissao` | `projeto_id`, `comissao`, `data`, `parecer`, `registrado_por`, `registrado_em` | |
+| `votacao_projeto` | `projeto_id`, `data`, `resultado` (aprovado, aprovado_com_emendas, rejeitado, retirado_de_pauta, adiado), `local`, `registrado_por`, `registrado_em` | Sem placar individual. **Desvio:** a coluna `local` (opcional) |
 
 ## 10. Emendas
 
