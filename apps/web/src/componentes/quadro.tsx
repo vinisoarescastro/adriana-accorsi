@@ -1,6 +1,6 @@
 import type { Prioridade } from '@gabinete/compartilhado';
-import { ArrowRightLeft, CalendarClock } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { ArrowRightLeft, CalendarClock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { MenuSuspenso } from './menu';
 import { GrupoDeAvatares } from './responsaveis';
 import { SeloDePrioridade } from './situacao';
@@ -28,6 +28,70 @@ export interface ColunaDeQuadro<T> {
   readonly itens: readonly T[];
 }
 
+/** O que, dentro do quadro, é de quem clica (cartão, botão, campo): não inicia o arrasto do fundo. */
+const seletorDoQueNaoArrasta = 'article, button, a, input, select, textarea, [role="menu"]';
+
+/**
+ * Rolagem horizontal do quadro, sem depender da barra do fim da página: setas para os lados (rolam uma
+ * tela de colunas), arrastar o fundo com o mouse e Shift + roda. Diz se ainda há o que rolar em cada
+ * direção, para as setas só aparecerem quando servem.
+ */
+function useRolagemDoQuadro() {
+  const faixa = useRef<HTMLDivElement>(null);
+  const [podeVoltar, setPodeVoltar] = useState(false);
+  const [podeAvancar, setPodeAvancar] = useState(false);
+
+  const medir = useCallback(() => {
+    const el = faixa.current;
+    if (!el) return;
+    setPodeVoltar(el.scrollLeft > 4);
+    setPodeAvancar(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    const el = faixa.current;
+    if (!el) return;
+    medir();
+    el.addEventListener('scroll', medir, { passive: true });
+    window.addEventListener('resize', medir);
+    // Colunas que chegam depois (carregamento) mudam a largura total.
+    const observador = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(medir);
+    observador?.observe(el);
+    return () => {
+      el.removeEventListener('scroll', medir);
+      window.removeEventListener('resize', medir);
+      observador?.disconnect();
+    };
+  }, [medir]);
+
+  const rolar = (sentido: -1 | 1) => {
+    const el = faixa.current;
+    if (!el) return;
+    el.scrollBy({ left: sentido * el.clientWidth * 0.8, behavior: 'smooth' });
+  };
+
+  // Arrastar o fundo com o mouse: só onde não há cartão nem controle.
+  const arrasto = useRef<{ x: number; inicio: number } | null>(null);
+  const aoPressionar = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = faixa.current;
+    if (!el || e.pointerType !== 'mouse' || e.button !== 0) return;
+    if ((e.target as HTMLElement).closest(seletorDoQueNaoArrasta)) return;
+    arrasto.current = { x: e.clientX, inicio: el.scrollLeft };
+    el.classList.add('is-panning');
+  };
+  const aoMover = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = faixa.current;
+    if (!el || !arrasto.current) return;
+    el.scrollLeft = arrasto.current.inicio - (e.clientX - arrasto.current.x);
+  };
+  const aoSoltar = () => {
+    arrasto.current = null;
+    faixa.current?.classList.remove('is-panning');
+  };
+
+  return { faixa, podeVoltar, podeAvancar, rolar, aoPressionar, aoMover, aoSoltar };
+}
+
 /**
  * Quadro por etapa, como o `KanbanBoard` do Design System: arraste um cartão para outra coluna para
  * movê-lo (a coluna de destino se destaca). Quem não pode mover não arrasta. O menu "Mover para…" de
@@ -50,6 +114,7 @@ export function Quadro<T extends { id: number }>({
   podeMover: (item: T) => boolean;
   aoMover: (item: T, colunaId: number) => void;
 }) {
+  const rolagem = useRolagemDoQuadro();
   const [arrastando, setArrastando] = useState<{ item: T; deColuna: number } | null>(null);
   const [sobre, setSobre] = useState<number | null>(null);
   const encerrar = () => {
@@ -58,80 +123,115 @@ export function Quadro<T extends { id: number }>({
   };
 
   return (
-    <div className="quadro" role="list" aria-label={rotulo}>
-      {colunas.map((coluna) => {
-        const destino = arrastando !== null && arrastando.deColuna !== coluna.id;
-        return (
-          <section
-            key={coluna.id}
-            className={`quadro__coluna${destino && sobre === coluna.id ? ' is-over' : ''}`}
-            role="listitem"
-            aria-label={coluna.nome}
-            onDragOver={(e) => {
-              if (!destino) return;
-              e.preventDefault();
-              e.dataTransfer.dropEffect = 'move';
-              setSobre(coluna.id);
-            }}
-            onDragLeave={(e) => {
-              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setSobre(null);
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              if (arrastando && destino) aoMover(arrastando.item, coluna.id);
-              encerrar();
-            }}
-          >
-            <header className="quadro__cabeca">
-              <span className={`quadro__ponto quadro__ponto--${coluna.papel}`} aria-hidden="true" />
-              <h2 className="quadro__titulo">{coluna.nome}</h2>
-              <span className="quadro__contagem" aria-label={`${coluna.total} itens`}>
-                {coluna.total}
-              </span>
-            </header>
-            <div className="quadro__lista">
-              {coluna.itens.length === 0 ? (
-                <div className="quadro__vazio">{destino ? 'Solte aqui para mover.' : vazio}</div>
-              ) : (
-                coluna.itens.map((item) => {
-                  const movel = podeMover(item);
-                  return (
-                    <CartaoDoQuadro
-                      key={item.id}
-                      dados={dados(item)}
-                      aoAbrir={() => aoAbrir(item.id)}
-                      arrastando={arrastando?.item.id === item.id}
-                      aoComecarArrasto={
-                        movel
-                          ? (e) => {
-                              e.dataTransfer.effectAllowed = 'move';
-                              e.dataTransfer.setData('text/plain', String(item.id));
-                              setArrastando({ item, deColuna: coluna.id });
-                            }
-                          : undefined
-                      }
-                      aoTerminarArrasto={encerrar}
-                      destinos={
-                        movel
-                          ? colunas
-                              .filter((c) => c.id !== coluna.id)
-                              .map((c) => ({ id: c.id, nome: c.nome }))
-                          : []
-                      }
-                      aoEscolherDestino={(destinoId) => aoMover(item, destinoId)}
-                    />
-                  );
-                })
-              )}
-            </div>
-            {coluna.total > coluna.itens.length ? (
-              <p className="campo__ajuda">
-                Mostrando {coluna.itens.length} de {coluna.total}. Use a lista para ver todas.
-              </p>
-            ) : null}
-          </section>
-        );
-      })}
+    <div className="quadro-moldura">
+      {rolagem.podeVoltar ? (
+        <button
+          type="button"
+          className="quadro-seta quadro-seta--esquerda"
+          aria-label="Ver colunas anteriores"
+          onClick={() => rolagem.rolar(-1)}
+        >
+          <ChevronLeft size={20} aria-hidden="true" />
+        </button>
+      ) : null}
+      {rolagem.podeAvancar ? (
+        <button
+          type="button"
+          className="quadro-seta quadro-seta--direita"
+          aria-label="Ver próximas colunas"
+          onClick={() => rolagem.rolar(1)}
+        >
+          <ChevronRight size={20} aria-hidden="true" />
+        </button>
+      ) : null}
+      <div
+        className="quadro"
+        role="list"
+        aria-label={rotulo}
+        ref={rolagem.faixa}
+        onPointerDown={rolagem.aoPressionar}
+        onPointerMove={rolagem.aoMover}
+        onPointerUp={rolagem.aoSoltar}
+        onPointerLeave={rolagem.aoSoltar}
+        onPointerCancel={rolagem.aoSoltar}
+      >
+        {colunas.map((coluna) => {
+          const destino = arrastando !== null && arrastando.deColuna !== coluna.id;
+          return (
+            <section
+              key={coluna.id}
+              className={`quadro__coluna${destino && sobre === coluna.id ? ' is-over' : ''}`}
+              role="listitem"
+              aria-label={coluna.nome}
+              onDragOver={(e) => {
+                if (!destino) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                setSobre(coluna.id);
+              }}
+              onDragLeave={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setSobre(null);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (arrastando && destino) aoMover(arrastando.item, coluna.id);
+                encerrar();
+              }}
+            >
+              <header className="quadro__cabeca">
+                <span
+                  className={`quadro__ponto quadro__ponto--${coluna.papel}`}
+                  aria-hidden="true"
+                />
+                <h2 className="quadro__titulo">{coluna.nome}</h2>
+                <span className="quadro__contagem" aria-label={`${coluna.total} itens`}>
+                  {coluna.total}
+                </span>
+              </header>
+              <div className="quadro__lista">
+                {coluna.itens.length === 0 ? (
+                  <div className="quadro__vazio">{destino ? 'Solte aqui para mover.' : vazio}</div>
+                ) : (
+                  coluna.itens.map((item) => {
+                    const movel = podeMover(item);
+                    return (
+                      <CartaoDoQuadro
+                        key={item.id}
+                        dados={dados(item)}
+                        aoAbrir={() => aoAbrir(item.id)}
+                        arrastando={arrastando?.item.id === item.id}
+                        aoComecarArrasto={
+                          movel
+                            ? (e) => {
+                                e.dataTransfer.effectAllowed = 'move';
+                                e.dataTransfer.setData('text/plain', String(item.id));
+                                setArrastando({ item, deColuna: coluna.id });
+                              }
+                            : undefined
+                        }
+                        aoTerminarArrasto={encerrar}
+                        destinos={
+                          movel
+                            ? colunas
+                                .filter((c) => c.id !== coluna.id)
+                                .map((c) => ({ id: c.id, nome: c.nome }))
+                            : []
+                        }
+                        aoEscolherDestino={(destinoId) => aoMover(item, destinoId)}
+                      />
+                    );
+                  })
+                )}
+              </div>
+              {coluna.total > coluna.itens.length ? (
+                <p className="campo__ajuda">
+                  Mostrando {coluna.itens.length} de {coluna.total}. Use a lista para ver todas.
+                </p>
+              ) : null}
+            </section>
+          );
+        })}
+      </div>
     </div>
   );
 }

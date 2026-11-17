@@ -649,22 +649,76 @@
 }
 
 /* ===== Quadro (kanban): mesmas medidas e cores do Design System ===== */
+/* O quadro cabe na tela: a barra de rolagem horizontal fica sempre à vista (no pé do quadro), e cada
+   coluna rola por dentro quando tem muitos cartões. As setas e o arrasto do fundo rolam para os lados. */
+.quadro-moldura {
+  position: relative;
+}
+
 .quadro {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(17rem, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   gap: var(--space-4);
+  height: clamp(22rem, calc(100dvh - 19rem), 70rem);
   overflow-x: auto;
+  overflow-y: hidden;
   padding-bottom: var(--space-2);
   align-items: stretch;
   scroll-snap-type: x proximity;
+  scrollbar-gutter: stable;
+  overscroll-behavior-x: contain;
+}
+
+.quadro:not(.is-panning) {
+  cursor: grab;
+}
+
+.quadro.is-panning {
+  cursor: grabbing;
+  scroll-snap-type: none;
+  user-select: none;
+}
+
+.quadro-seta {
+  position: absolute;
+  top: 45%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  opacity: 0.92;
+}
+
+.quadro-seta:hover,
+.quadro-seta:focus-visible {
+  opacity: 1;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.quadro-seta--esquerda {
+  left: calc(var(--space-2) * -1);
+}
+
+.quadro-seta--direita {
+  right: calc(var(--space-2) * -1);
 }
 
 .quadro__coluna {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  min-height: 12rem;
+  min-height: 0;
   padding: var(--space-3);
   border-radius: var(--radius-xl);
   background: color-mix(in srgb, var(--text) 4%, var(--bg));
@@ -718,8 +772,14 @@
 
 .quadro__lista {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: var(--space-2);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Folga para a sombra dos cartões não ser cortada. */
+  padding: 2px;
 }
 
 /* O cartão tem a aparência do cartão do Design System; o corpo é um botão (abre a ficha). */
