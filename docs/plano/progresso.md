@@ -241,8 +241,8 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 | --- | --- | --- | --- |
 | PV-A | Validar fluxos federais (projeto de lei e emenda), tipos de emenda e de proposição, limites de "parado" | | aberta |
 | PV-B | Obter a norma vigente da CEAP e o anexo de limites por UF; confirmar categorias, competência, prazos e os nomes das etapas pós-aprovação | | aberta |
-| PV-C | Confirmar Chefe de Gabinete, Administrador e tamanho da equipe; validar a matriz de permissões | | aberta |
-| PV-D | Identidade visual e dados da deputada (foto, cores, partido, mandato) | | aberta |
+| PV-C | Confirmar Chefe de Gabinete, Administrador e tamanho da equipe; validar a matriz de permissões | | **confirmada** em 2026-11-17 (ver "Decisões tomadas"); falta só a divisão dos ~50 usuários por perfil, na implantação |
+| PV-D | Identidade visual e dados da deputada (foto, cores, partido, mandato) | | aguardando validação do usuário com a assessoria |
 | PV-E | Acesso ao DNS de `nucleodedados.com` e à VPS; nome real do subdomínio; titularidade da conta do R2 | | aberta (**bloqueia fechar a fase 1**) |
 | PV-F | Retenção de dados, política de privacidade, encarregado (DPO) e revisão jurídica dos textos de consentimento e e-mail | | aberta |
 
@@ -260,6 +260,8 @@ Estados: `não iniciada` · `em andamento` · `concluída` · `bloqueada`.
 
 | 2026-11-16 | Interface adota o design system de referência (tokens, barra lateral, tema escuro, Poppins, ícones), sem mudar funcionalidade. Ver [ADR 0011](../arquitetura/decisoes/0011-design-system-da-interface.md) |
 | 2026-11-16 | Fases 1, 2 e 3 encerradas por aceite do usuário. Ficam pendentes, para a implantação ao fim das fases: VPS e DNS (PV-E), e-mail real com SPF, DKIM e DMARC, revisão jurídica (PV-F) e os itens de infraestrutura dos roteiros. Fase 4 aprovada para começar |
+
+| 2026-11-17 | PV-A, PV-B, PV-E e PV-F confirmadas pelo usuário. PV-C confirmada: Chefe e Administrador distintos, cerca de 50 usuários, o Administrador responde pela LGPD, Restritos só para Parlamentar, Chefe e Administrador. **O Parlamentar passa a ter acesso total à CEAP** (lança, edita, decide, inclusive a própria despesa com a marca de coincidência, e altera parâmetros), substituindo o "só consulta". **Quem entra no sistema recebe todas as habilitações por padrão** (formulário de novo usuário já vem marcado; o eixo de habilitação continua existindo para restringir) |
 
 ## Decisões abertas
 

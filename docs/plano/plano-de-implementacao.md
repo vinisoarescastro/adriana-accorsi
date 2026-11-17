@@ -22,7 +22,7 @@ Este documento descreve tudo o que precisa ser feito, fase por fase, para constr
 | D8 | Verba de gabinete (pessoal) | Fora do escopo. Fase 9 opcional |
 | D9 | Domínio | `dominio.nucleodedados.com` para a aplicação, provisório, para apresentação à deputada. Será trocado se ela aprovar |
 | D10 | Entrega | Tudo, em fases |
-| D11 | Perfil Parlamentar | Perfil à parte para a Deputada, um único usuário ativo, conta pessoal. Vê tudo, opera e acompanha como Supervisor, na CEAP só consulta (sem ateste) e não administra o sistema. A agenda do gabinete é a agenda dela (ver `docs/especificacao/03`, item 3.4.1) |
+| D11 | Perfil Parlamentar | Perfil à parte para a Deputada, um único usuário ativo, conta pessoal. Vê tudo, opera e acompanha como Supervisor, tem acesso total à CEAP (sem passo de ateste; decisão de 2026-11-17) e não administra o sistema. A agenda do gabinete é a agenda dela (ver `docs/especificacao/03`, item 3.4.1) |
 
 ### 1.1 Decisões que assumi como padrão (corrija se discordar)
 
@@ -292,7 +292,7 @@ Estado da fase 0: os documentos foram escritos e aguardam sua aprovação. Detal
 ### Critérios de aceite
 
 1. O administrador criado por linha de comando entra, troca a senha e cria um usuário de cada perfil. Só é possível criar um Parlamentar ativo, e só o Administrador o cria.
-1a. O Parlamentar vê as consultas que o Chefe vê (auditoria, produtividade), mas é recusado em qualquer operação de administração e em qualquer escrita da CEAP (teste da matriz perfil × operação).
+1a. O Parlamentar vê as consultas que o Chefe vê (auditoria, produtividade), mas é recusado em qualquer operação de administração (usuários, política de publicação, eliminação de dados, fluxos); na CEAP ele tem acesso total (teste da matriz perfil × operação).
 2. Cada perfil vê na barra só o que alcança; a rota de uma página não alcançada responde como inexistente.
 3. Cinco falhas bloqueiam a conta por 15 minutos; e-mail inexistente e senha errada são indistinguíveis.
 4. Alterar perfil de um usuário derruba as sessões dele no ato.

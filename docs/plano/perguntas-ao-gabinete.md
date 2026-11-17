@@ -14,7 +14,7 @@ O sistema tem seis perfis. Precisamos saber quem ocupa cada um.
 
 | Perfil | O que faz | Quem será? |
 | --- | --- | --- |
-| Parlamentar | A Deputada. Vê tudo, opera e acompanha; na CEAP só consulta; não administra o sistema | Adriana Accorsi |
+| Parlamentar | A Deputada. Vê tudo, opera e acompanha; tem acesso total à CEAP; não administra o sistema | Adriana Accorsi |
 | Administrador | Cria usuários, redefine senhas, altera parâmetros e regras do sistema | |
 | Chefe de Gabinete | Administra a equipe, vê auditoria, baixa o pacote financeiro, pode decidir despesa que ele mesmo lançou | |
 | Supervisor | Reatribui e cancela registros, encerra eventos, exporta relatórios, decide despesas lançadas por outros | |

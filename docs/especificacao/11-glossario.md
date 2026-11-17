@@ -24,7 +24,7 @@
 | Outbox | Padrão em que o evento a notificar é gravado na mesma transação do ato e enviado depois pelo worker |
 | Papel (de etapa) | Entrada, Intermediária, Conclusão ou Arquivamento |
 | Pessoa | O cidadão atendido, cadastrado por telefone |
-| Parlamentar | Perfil da Deputada: vê tudo, opera e acompanha, mas na CEAP só consulta e não administra o sistema. Um único usuário ativo, conta pessoal |
+| Parlamentar | Perfil da Deputada: vê tudo, opera e acompanha, tem acesso total à CEAP e não administra o sistema. Um único usuário ativo, conta pessoal |
 | Perfil | Parlamentar, Administrador, Chefe de Gabinete, Supervisor, Assessor Interno ou Assessor Externo |
 | Política de publicação | Declaração versionada do que o cidadão pode ver |
 | Protocolo | Identificador de 12 caracteres de uma demanda, imutável |

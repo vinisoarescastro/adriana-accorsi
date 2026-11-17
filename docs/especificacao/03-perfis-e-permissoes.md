@@ -10,7 +10,7 @@ A autoridade de um usuário é a **interseção de dois eixos**: o **nível** do
 
 | Nível | Perfil | Particularidades |
 | --- | --- | --- |
-| fora da escala | Parlamentar | A Deputada. Perfil à parte, um único usuário ativo. Vê tudo (inclusive Restritos, auditoria e produtividade), opera e acompanha todos os módulos como um Supervisor, mas na CEAP só consulta e não administra o sistema. Conta pessoal e intransferível (ver 3.4.1) |
+| fora da escala | Parlamentar | A Deputada. Perfil à parte, um único usuário ativo. Vê tudo (inclusive Restritos, auditoria e produtividade), opera e acompanha todos os módulos como um Supervisor, tem acesso total à CEAP e não administra o sistema (usuários, política de publicação, eliminação de dados, fluxos). Conta pessoal e intransferível (ver 3.4.1) |
 | 5 | Administrador | Tem todas as habilitações, não removíveis. Concede qualquer perfil, altera a política de publicação, elimina dados pessoais, reconstitui valores, altera parâmetros da CEAP |
 | 4 | Chefe de Gabinete | Administra equipe e habilitações, vê auditoria e produtividade, baixa o pacote financeiro, vê compromissos Restritos, pode decidir despesa que ele mesmo lançou. Não concede o perfil de Administrador |
 | 3 | Supervisor | Supervisiona: reatribui, cancela, remove, revoga link, encerra evento, exporta, cria compromisso Restrito, decide despesa que outro lançou |
@@ -73,8 +73,8 @@ Nível mínimo. "Qualquer" significa que o perfil mais baixo alcança, e o recor
 | CEAP: lançar despesa | Assessor Interno | FI |
 | CEAP: supervisionar e decidir despesa | Supervisor (regra de segregação) | FI |
 | CEAP: decidir despesa que o próprio lançou | Chefe | FI |
-| CEAP: parâmetros (alterar) | Administrador | FI |
-| CEAP: reconstituir saldo | Administrador | FI |
+| CEAP: parâmetros (alterar) | Administrador (e o Parlamentar) | FI |
+| CEAP: reconstituir saldo | Administrador (e o Parlamentar) | FI |
 | Pacote de documentos financeiros | Chefe | não exige |
 | Exportar relação | Supervisor | a do módulo exportado |
 | Auditoria do gabinete | Chefe | não exige |
@@ -101,7 +101,7 @@ Perfil da Deputada. Ele não ocupa um degrau da escala de 1 a 5. Cada operação
 | Equipe e fluxos | Consultar |
 | Exportações | De todos os módulos, com o mesmo filtro da tela |
 
-**CEAP: somente consulta.** Não lança despesa, não decide, não anexa nem remove comprovante e não altera parâmetros. Não há passo de ateste da Deputada no fluxo. Isto é decisão do gabinete: a responsabilidade legal sobre a despesa continua sendo dela, e quem decide internamente é o Supervisor, o Chefe ou o Administrador.
+**CEAP: acesso total.** Consulta, lança, edita, anexa e remove comprovante, decide despesa (inclusive a que ela mesma lançou, com a coincidência registrada, como o Chefe) e altera parâmetros. Decisão do gabinete, confirmada em 2026-11-17: a Deputada pode fazer o que achar necessário na CEAP. Não há passo de ateste dela no fluxo.
 
 **O que ele não faz (administração técnica):**
 
@@ -109,7 +109,6 @@ Perfil da Deputada. Ele não ocupa um degrau da escala de 1 a 5. Cada operação
 | --- | --- |
 | Criar, alterar ou desativar usuários, redefinir senhas, conceder perfil e habilitação | Chefe e Administrador |
 | Alterar a política de publicação | Administrador |
-| Alterar parâmetros da CEAP | Administrador |
 | Eliminar dados pessoais | Administrador |
 | Estruturar fluxos | Administrador |
 
@@ -128,4 +127,4 @@ Perfil da Deputada. Ele não ocupa um degrau da escala de 1 a 5. Cada operação
 
 ## 3.6 Decisão em aberto
 
-**PV-C:** confirmar quem será o Chefe de Gabinete e o Administrador, e quantos usuários terá a equipe. A matriz acima é a proposta inicial e deve ser validada com o gabinete.
+**PV-C: confirmada em 2026-11-17.** Chefe e Administrador são pessoas diferentes; cerca de 50 usuários (a divisão por perfil entra na implantação); qualquer perfil pode atender, e a regra do Assessor Externo segue limitada ao que é dele; o Administrador é o responsável pela privacidade de dados (LGPD); compromissos Restritos só para a Parlamentar, o Chefe e o Administrador; a Parlamentar tem acesso total à CEAP; quem entra no sistema recebe todas as habilitações por padrão (o Chefe pode desmarcar ao criar ou alterar o usuário).

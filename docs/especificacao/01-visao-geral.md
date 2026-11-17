@@ -18,7 +18,7 @@ Substituir planilhas, mensagens e memória por um sistema único onde o gabinete
 
 | Quem | Como usa |
 | --- | --- |
-| A Deputada (Parlamentar) | Perfil próprio: vê tudo, opera e acompanha; na CEAP só consulta; não administra o sistema. Usa o próprio login |
+| A Deputada (Parlamentar) | Perfil próprio: vê tudo, opera e acompanha; tem acesso total à CEAP; não administra o sistema. Usa o próprio login |
 | Equipe do gabinete | Área interna autenticada, em cinco perfis (ver 03) |
 | Cidadão atendido | Página pública de acompanhamento, sem conta, somente leitura; recebe e-mail de andamento se consentir |
 | Administrador | Administra o próprio sistema: equipe, configurações e parâmetros. Não há operador externo de plataforma |

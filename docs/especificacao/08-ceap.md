@@ -85,7 +85,7 @@ Mapeadas aos itens que a norma consultada lista como custeáveis. A lista exata 
 
 ## 8.7 Segregação de função (decisão D6)
 
-**Quem lança a despesa não a aprova, exceto o Chefe de Gabinete e o Administrador.**
+**Quem lança a despesa não a aprova, exceto o Chefe de Gabinete, o Administrador e a Parlamentar.**
 
 | Quem decide | Despesa lançada por outra pessoa | Despesa que o próprio decisor lançou |
 | --- | --- | --- |
@@ -93,18 +93,18 @@ Mapeadas aos itens que a norma consultada lista como custeáveis. A lista exata 
 | Supervisor com FI | **Sim** | **Não** |
 | Chefe de Gabinete | Sim | **Sim**, com coincidência registrada |
 | Administrador | Sim | **Sim**, com coincidência registrada |
-| Parlamentar | **Não**: só consulta | **Não**: só consulta |
+| Parlamentar | **Sim** | **Sim**, com coincidência registrada |
 
 | Id | Regra |
 | --- | --- |
-| RN-CEAP-10 | O serviço recusa decisão de despesa quando decisor e lançador coincidem, exceto se o decisor for Chefe ou Administrador |
+| RN-CEAP-10 | O serviço recusa decisão de despesa quando decisor e lançador coincidem, exceto se o decisor for Chefe, Administrador ou Parlamentar |
 | RN-CEAP-11 | O banco repete a regra por restrição e gatilho, para que não dependa só do código |
 | RN-CEAP-12 | Quando decisor e lançador coincidem, a despesa recebe a marca **decisão pelo próprio lançador**, a trilha destaca o ato e o relatório de prestação de contas lista essas despesas |
 | RN-CEAP-13 | Se nenhum Supervisor com FI puder decidir uma despesa (por exemplo, o único foi quem lançou), gera-se aviso ao Chefe e ao Administrador, para que a despesa não fique parada |
 
 | Id | Regra |
 | --- | --- |
-| RN-CEAP-14 | O perfil Parlamentar tem acesso de **consulta** à CEAP (despesas, saldo, relatório, pacote, reconstituição por data). Não lança, não decide, não anexa comprovante e não altera parâmetros. O fluxo da despesa não tem passo de ateste da Deputada |
+| RN-CEAP-14 | O perfil Parlamentar tem acesso **total** à CEAP: consulta (despesas, saldo, relatório, pacote, reconstituição por data), lança, edita, anexa e remove comprovante, decide despesa (inclusive a que ela mesma lançou, com a marca de RN-CEAP-12) e altera parâmetros. Decisão do gabinete, confirmada em 2026-11-17 (PV-C). O fluxo da despesa continua sem passo de ateste da Deputada |
 
 Por que há exceção: o Mandatus revogou a regra por completo (DT-114) porque gabinete pequeno tem um só supervisor financeiro e a despesa ficava parada. Aqui a regra se mantém para quem pode ser auditado de fora, e o Chefe e o Administrador, que respondem pelo gabinete, podem destravar com rastreabilidade.
 

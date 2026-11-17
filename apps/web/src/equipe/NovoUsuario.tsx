@@ -33,11 +33,13 @@ export function NovoUsuario({
   const [perfil, setPerfil] = useState<Perfil>(
     perfisPossiveis[perfisPossiveis.length - 1] ?? 'assessor_externo',
   );
-  const [habilitacoes, setHabilitacoes] = useState<Area[]>([]);
+  const possiveis = areas.filter((a) => sessao.usuario.habilitacoes.includes(a));
+  // Decisão do gabinete: quem entra no sistema acessa tudo. Todas as áreas que o
+  // concedente tem já vêm marcadas; o Chefe só desmarca para restringir.
+  const [habilitacoes, setHabilitacoes] = useState<Area[]>(possiveis);
   const [criado, setCriado] = useState<UsuarioComSenhaInicial | null>(null);
 
   const todas = perfisComTodasAsHabilitacoes.includes(perfil);
-  const possiveis = areas.filter((a) => sessao.usuario.habilitacoes.includes(a));
 
   const criar = useMutation({
     mutationFn: () =>
